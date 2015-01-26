@@ -63,6 +63,8 @@ var inPreroll = false;
 var firstReviewerSong = false;
 
 var isCasting = false;
+var castSender = null;
+var castReceiver = null;
 
 /*
  * Run on page load.
@@ -157,16 +159,19 @@ var onDocumentLoad = function(e) {
     setInterval(checkSkips, 60000);
 
     if (IS_CAST_RECEIVER) {
-        CHROMECAST_RECEIVER.onMessage('toggle-audio', onCastReceiverToggleAudio);
-        CHROMECAST_RECEIVER.onMessage('skip-song', onCastReceiverSkipSong);
-        CHROMECAST_RECEIVER.onMessage('toggle-genre', onCastReceiverToggleGenre);
-        CHROMECAST_RECEIVER.onMessage('toggle-curator', onCastReceiverToggleCurator);
-        CHROMECAST_RECEIVER.onMessage('send-playlist', onCastReceiverPlaylist);
-        CHROMECAST_RECEIVER.onMessage('send-tags', onCastReceiverTags);
-        CHROMECAST_RECEIVER.onMessage('send-history', onCastReceiverHistory);
-        CHROMECAST_RECEIVER.onMessage('send-played', onCastReceiverPlayed);
-        CHROMECAST_RECEIVER.onMessage('init', onCastReceiverInit);
-        CHROMECAST_RECEIVER.setup();
+        castReceiver = NEWSCAST.Receiver({
+            'namespace': APP_CONFIG.CHROMECAST_NAMESPACE,
+            'debug': true
+        });
+        castReceiver.onMessage('toggle-audio', onCastReceiverToggleAudio);
+        castReceiver.onMessage('skip-song', onCastReceiverSkipSong);
+        castReceiver.onMessage('toggle-genre', onCastReceiverToggleGenre);
+        castReceiver.onMessage('toggle-curator', onCastReceiverToggleCurator);
+        castReceiver.onMessage('send-playlist', onCastReceiverPlaylist);
+        castReceiver.onMessage('send-tags', onCastReceiverTags);
+        castReceiver.onMessage('send-history', onCastReceiverHistory);
+        castReceiver.onMessage('send-played', onCastReceiverPlayed);
+        castReceiver.onMessage('init', onCastReceiverInit);
     }
 }
 
@@ -182,7 +187,14 @@ window['__onGCastApiAvailable'] = function(loaded, errorInfo) {
         }
 
         if (loaded) {
-            CHROMECAST_SENDER.setup(onCastReady, onCastStarted, onCastStopped);
+            castSender = NEWSCAST.Sender({
+                'namespace': APP_CONFIG.CHROMECAST_NAMESPACE,
+                'appId': APP_CONFIG.CHROMECAST_APP_ID,
+                'onCastReady': onCastReady,
+                'onCastStarted': onCastStarted,
+                'onCastStopped': onCastStopped,
+                'debug': true
+            });
 
             $castButtons.show();
 
@@ -220,14 +232,14 @@ var onCastStarted = function() {
         $chromecastScreen.show();
     }
 
-    CHROMECAST_SENDER.sendMessage('send-tags', JSON.stringify(selectedTags));
-    CHROMECAST_SENDER.sendMessage('send-playlist', JSON.stringify(playlist));
-    CHROMECAST_SENDER.sendMessage('send-history', JSON.stringify(songHistory));
-    CHROMECAST_SENDER.sendMessage('send-played', JSON.stringify(playedSongs));
-    CHROMECAST_SENDER.sendMessage('init');
+    castSender.sendMessage('send-tags', JSON.stringify(selectedTags));
+    castSender.sendMessage('send-playlist', JSON.stringify(playlist));
+    castSender.sendMessage('send-history', JSON.stringify(songHistory));
+    castSender.sendMessage('send-played', JSON.stringify(playedSongs));
+    castSender.sendMessage('init');
 
-    CHROMECAST_SENDER.onMessage('genre-ended', onCastGenreEnded);
-    CHROMECAST_SENDER.onMessage('reviewer-ended', onCastReviewerEnded);
+    castSender.onMessage('genre-ended', onCastGenreEnded);
+    castSender.onMessage('reviewer-ended', onCastReviewerEnded);
 }
 
 /*
@@ -250,7 +262,7 @@ var onCastStartClick = function(e) {
 
     _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'chromecast-start']);
 
-    CHROMECAST_SENDER.startCasting();
+    castSender.startCasting();
 }
 
 /*
@@ -261,7 +273,7 @@ var onCastStopClick = function(e) {
 
     _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'chromecast-stop']);
 
-    CHROMECAST_SENDER.stopCasting();
+    castSender.stopCasting();
 
     $castStop.hide();
     $castStart.show();
@@ -636,7 +648,7 @@ var nextPlaylist = function() {
     }
 
     if (IS_CAST_RECEIVER) {
-        CHROMECAST_RECEIVER.sendMessage('tag-ended');
+        castReceiver.sendMessage('tag-ended');
     }
 
     _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'tag-finish', selectedTag]);
@@ -671,7 +683,7 @@ var onPlayClick = function(e) {
     e.preventDefault();
 
     if (isCasting) {
-        CHROMECAST_SENDER.sendMessage('toggle-audio', 'play');
+        castSender.sendMessage('toggle-audio', 'play');
     } else {
         $audioPlayer.jPlayer('play');
     }
@@ -687,7 +699,7 @@ var onPauseClick = function(e) {
     e.preventDefault();
 
     if (isCasting) {
-        CHROMECAST_SENDER.sendMessage('toggle-audio', 'pause');
+        castSender.sendMessage('toggle-audio', 'pause');
     } else {
         $audioPlayer.jPlayer('pause');
     }
@@ -730,7 +742,7 @@ var onSkipClick = function(e) {
     e.preventDefault();
 
     if (isCasting) {
-        CHROMECAST_SENDER.sendMessage('skip-song');
+        castSender.sendMessage('skip-song');
     } else {
         skipSong();
     }
@@ -947,7 +959,7 @@ var onReviewerClick = function(e) {
     firstReviewerSong = true;
 
     if (isCasting) {
-        CHROMECAST_SENDER.sendMessage('toggle-curator', curator);
+        castSender.sendMessage('toggle-curator', curator);
     } else {
         switchTag(reviewer);
     }
@@ -974,7 +986,7 @@ var onGenreClick = function(e) {
     var genre = $(this).data('tag');
 
     if (isCasting) {
-        CHROMECAST_SENDER.sendMessage('toggle-genre', genre);
+        castSender.sendMessage('toggle-genre', genre);
     } else {
         switchTag(genre);
     }
