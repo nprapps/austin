@@ -53,6 +53,16 @@
         <div class="share">
             <a class="" data-toggle="modal" data-backdrop="static" data-target="#share-modal"><i class="fa fa-share"></i> <span>Share</span></a>
         </div>
+
+        <div class="chromecast">
+            <a href="#" class="start">Start Casting</a>
+            <a href="#" class="stop">Stop Casting</a>
+        </div>
+
+        <div class="fullscreen">
+            <a href="#" class="start"><span class="fa fa-arrows-alt"></span> Fullscreen</a>
+            <a href="#" class="stop" style="display: none;"><span class="fa fa-arrows-alt"></span> Exit fullscreen</a>
+        </div>
     </div>
 </div>
 
@@ -68,4 +78,8 @@
 <script>
     var SONG_DATA = {{ song_data|safe }};
 </script>
+{% endblock %}
+
+{% block extra_foot %}
+<script type="text/javascript" src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js"></script>
 {% endblock %}

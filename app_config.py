@@ -125,6 +125,9 @@ GOOGLE_ANALYTICS = {
 DISQUS_API_KEY = 'tIbSzEhGBE9NIptbnQWn4wy1gZ546CsQ2IHHtxJiYAceyyPoAkDkVnQfCifmCaQW'
 DISQUS_UUID = '211d091e-a573-11e4-a82b-14109fed4b76'
 
+CHROMECAST_APP_ID = None
+CHROMECAST_NAMESPACE = 'urn:x-cast:nprviz.austin'
+
 GENRE_TAGS = [
     'Classical',
     'Country/Americana',
@@ -268,6 +271,7 @@ def configure_targets(deployment_target):
     global DEBUG
     global DEPLOYMENT_TARGET
     global DISQUS_SHORTNAME
+    global CHROMECAST_APP_ID
 
     if deployment_target == 'production':
         S3_BUCKET = PRODUCTION_S3_BUCKET
@@ -277,6 +281,7 @@ def configure_targets(deployment_target):
         SERVER_BASE_URL = 'http://%s/%s' % (SERVERS[0], PROJECT_SLUG)
         SERVER_LOG_PATH = '/var/log/%s' % PROJECT_FILENAME
         DISQUS_SHORTNAME = 'npr-news'
+        CHROMECAST_APP_ID = None 
         DEBUG = False
     elif deployment_target == 'staging':
         S3_BUCKET = STAGING_S3_BUCKET
@@ -286,6 +291,7 @@ def configure_targets(deployment_target):
         SERVER_BASE_URL = 'http://%s/%s' % (SERVERS[0], PROJECT_SLUG)
         SERVER_LOG_PATH = '/var/log/%s' % PROJECT_FILENAME
         DISQUS_SHORTNAME = 'nprviz-test'
+        CHROMECAST_APP_ID = '431F1C05'
         DEBUG = True
     else:
         S3_BUCKET = None
@@ -295,6 +301,7 @@ def configure_targets(deployment_target):
         SERVER_BASE_URL = 'http://127.0.0.1:8001/%s' % PROJECT_SLUG
         SERVER_LOG_PATH = '/tmp'
         DISQUS_SHORTNAME = 'nprviz-test'
+        CHROMECAST_APP_ID = '431F1C05'
         DEBUG = True
 
     DEPLOYMENT_TARGET = deployment_target

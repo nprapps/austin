@@ -30,10 +30,18 @@ var $fixedControls = null;
 var $historyButton = null;
 var $skipsRemaining = null;
 
+var $castButtons = null;
+var $castStart = null;
+var $castStop = null;
+var $castScreen = null;
+
 // URL params
 var NO_AUDIO = (window.location.search.indexOf('noaudio') >= 0);
 var RESET_STATE = (window.location.search.indexOf('resetstate') >= 0);
 var ALL_HISTORY = (window.location.search.indexOf('allhistory') >= 0);
+
+var IS_CAST_RECEIVER = (window.location.search.indexOf('chromecast') >= 0);
+var IS_FAKE_CASTER = (window.location.search.indexOf('fakecast') >= 0);
 
 // Global state
 var firstShareLoad = true;
@@ -53,6 +61,8 @@ var fixedHeaderHeight = null;
 var is_small_screen = false
 var inPreroll = false;
 var firstReviewerSong = false;
+
+var isCasting = false;
 
 /*
  * Run on page load.
@@ -90,6 +100,12 @@ var onDocumentLoad = function(e) {
     $fixedControls = $('.fixed-controls');
     $historyButton = $('.js-show-history');
     $skipsRemaining = $('.skips-remaining');
+
+    $castButtons = $('.chromecast');
+    $castStart = $('.chromecast .start');
+    $castStop = $('.chromecast .stop');
+    $castScreen = $('.cast-controls');
+
     onWindowResize();
     $landing.show();
 
@@ -116,6 +132,9 @@ var onDocumentLoad = function(e) {
     $songs.on('click', '.byline .reviewer-link', onReviewerLinkClick);
     $landing.on('click', '.poster.shrink', onFilterTipClick);
 
+    $castStart.on('click', onCastStartClick);
+    $castStop.on('click', onCastStopClick);
+
     // configure ZeroClipboard on share panel
     ZeroClipboard.config({ swfPath: 'js/lib/ZeroClipboard.swf' });
     var clippy = new ZeroClipboard($(".clippy"));
@@ -136,6 +155,176 @@ var onDocumentLoad = function(e) {
     loadState();
 
     setInterval(checkSkips, 60000);
+
+    if (IS_CAST_RECEIVER) {
+        CHROMECAST_RECEIVER.onMessage('toggle-audio', onCastReceiverToggleAudio);
+        CHROMECAST_RECEIVER.onMessage('skip-song', onCastReceiverSkipSong);
+        CHROMECAST_RECEIVER.onMessage('toggle-genre', onCastReceiverToggleGenre);
+        CHROMECAST_RECEIVER.onMessage('toggle-curator', onCastReceiverToggleCurator);
+        CHROMECAST_RECEIVER.onMessage('send-playlist', onCastReceiverPlaylist);
+        CHROMECAST_RECEIVER.onMessage('send-tags', onCastReceiverTags);
+        CHROMECAST_RECEIVER.onMessage('send-history', onCastReceiverHistory);
+        CHROMECAST_RECEIVER.onMessage('send-played', onCastReceiverPlayed);
+        CHROMECAST_RECEIVER.onMessage('init', onCastReceiverInit);
+        CHROMECAST_RECEIVER.setup();
+    }
+}
+
+/*
+ * Setup Chromecast if library is available.
+ */
+window['__onGCastApiAvailable'] = function(loaded, errorInfo) {
+    // We need the DOM here, so don't fire until it's ready.
+    $(function() {
+        // Don't init sender if in receiver mode
+        if (IS_CAST_RECEIVER ) {
+            return;
+        }
+
+        if (loaded) {
+            CHROMECAST_SENDER.setup(onCastReady, onCastStarted, onCastStopped);
+
+            $castButtons.show();
+
+            if (IS_FAKE_CASTER) {
+              onCastStarted();
+            }
+
+        } else {
+            // TODO: prompt to install?
+        }
+    });
+}
+/*
+ * A cast device is available.
+ */
+var onCastReady = function() {
+    $castStart.show();
+}
+
+/*
+ * A cast session started.
+ */
+var onCastStarted = function() {
+    // TODO: stop audio
+
+    $stack.hide();
+    $fullscreenStart.hide();
+    $castStop.show();
+    $castStart.hide();
+    $audioPlayer.jPlayer('stop');
+
+    isCasting = true;
+
+    if (!IS_FAKE_CASTER) {
+        $chromecastScreen.show();
+    }
+
+    CHROMECAST_SENDER.sendMessage('send-tags', JSON.stringify(selectedTags));
+    CHROMECAST_SENDER.sendMessage('send-playlist', JSON.stringify(playlist));
+    CHROMECAST_SENDER.sendMessage('send-history', JSON.stringify(songHistory));
+    CHROMECAST_SENDER.sendMessage('send-played', JSON.stringify(playedSongs));
+    CHROMECAST_SENDER.sendMessage('init');
+
+    CHROMECAST_SENDER.onMessage('genre-ended', onCastGenreEnded);
+    CHROMECAST_SENDER.onMessage('reviewer-ended', onCastReviewerEnded);
+}
+
+/*
+ * A cast session stopped.
+ */
+var onCastStopped = function() {
+    $castStart.show();
+    $castStop.hide();
+    isCasting = false;
+
+    $chromecastScreen.hide();
+    $stack.show();
+}
+
+/*
+ * Begin chromecasting.
+ */
+var onCastStartClick = function(e) {
+    e.preventDefault();
+
+    _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'chromecast-start']);
+
+    CHROMECAST_SENDER.startCasting();
+}
+
+/*
+ * Stop chromecasting.
+ */
+var onCastStopClick = function(e) {
+    e.preventDefault();
+
+    _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'chromecast-stop']);
+
+    CHROMECAST_SENDER.stopCasting();
+
+    $castStop.hide();
+    $castStart.show();
+}
+
+var onCastGenreEnded = function() {
+    console.log('fired');
+    resetGenreFilters();
+}
+
+var onCastReviewerEnded = function() {
+    console.log('fired');
+    getNextReviewer();
+}
+
+var onCastReceiverToggleAudio = function(message) {
+    if (message === 'play') {
+        $audioPlayer.jPlayer('play');
+    } else {
+        $audioPlayer.jPlayer('pause');
+    }
+}
+
+var onCastReceiverSkipSong = function() {
+    skipSong();
+}
+
+var onCastReceiverToggleGenre = function(message) {
+    toggleGenre(message);
+}
+
+var onCastReceiverToggleCurator = function(message) {
+    toggleCurator(message);
+}
+
+var onCastReceiverPlaylist = function(message) {
+    playlist = JSON.parse(message);
+    console.log(playlist);
+}
+
+var onCastReceiverTags = function(message) {
+    selectedTags = JSON.parse(message);
+    console.log(selectedTags);
+}
+
+var onCastReceiverHistory = function(message) {
+    songHistory = JSON.parse(message);
+    console.log(songHistory);
+}
+
+var onCastReceiverPlayed = function(message) {
+    playedSongs = JSON.parse(message);
+
+    for (i = 0; i < playedSongs.length; i++) {
+        playedSongs[i] = parseInt(playedSongs[i]);
+    }
+    console.log(playedSongs);
+}
+
+var onCastReceiverInit = function() {
+    $landing.hide();
+    $('.songs, .player-container, .playlist-filters').show();
+    _.delay(playNextSong, 1000);
 }
 
 /*
@@ -297,7 +486,12 @@ var playNextSong = function() {
         'mixtapeName': makeMixtapeName(nextSong)
     });
     var $html = $(JST.song(context));
-    $songs.append($html);
+
+    if (isCasting) {
+        $songs.prepend($html);
+    } else {
+        $songs.append($html);
+    }
 
     $playerArtist.html(nextSong['artist']);
     $playerTitle.html(nextSong['title']);
@@ -322,42 +516,49 @@ var playNextSong = function() {
 
         hideWelcome();
     } else {
-        setCurrentSongHeight();
-        $html.find('.container-fluid').css('height', songHeight);
-        $html.prev().velocity("scroll", {
-            duration: 350,
-            offset: -fixedHeaderHeight,
-            begin: function() {
-                $(document).off('scroll');
-            },
-            complete: function() {
-                $('.stack .poster').velocity('fadeOut', {
-                    duration: 500
-                });
-                $html.prev().find('.container-fluid').css('height', '0');
-                $html.prev().find('.song-info').css('min-height', 0);
-                $html.prev().css('min-height', '0').addClass('small');
-                $html.css('min-height', songHeight)
-                    .velocity('fadeIn', {
-                        duration: 300,
-                        complete: function(){
-                                $(this).velocity("scroll", {
-                                duration: 500,
-                                offset: -fixedHeaderHeight,
-                                delay: 300,
-                                complete: function() {
-                                    $(document).on('scroll', onDocumentScroll);
-
-                                    if (playedSongs.length > 1) {
-                                        $historyButton.show();
-                                        $historyButton.removeClass('offscreen');
-                                    }
-                                }
-                            });
-                        }
+        if (IS_CAST_RECEIVER) {
+            $html.prev().hide();
+            $html.css('min-height', songHeight);
+            $html.find('.container-fluid').css('min-height', songHeight);
+            $html.show();
+        } else {
+            setCurrentSongHeight();
+            $html.find('.container-fluid').css('height', songHeight);
+            $html.prev().velocity("scroll", {
+                duration: 350,
+                offset: -fixedHeaderHeight,
+                begin: function() {
+                    $(document).off('scroll');
+                },
+                complete: function() {
+                    $('.stack .poster').velocity('fadeOut', {
+                        duration: 500
                     });
-            }
-        });
+                    $html.prev().find('.container-fluid').css('height', '0');
+                    $html.prev().find('.song-info').css('min-height', 0);
+                    $html.prev().css('min-height', '0').addClass('small');
+                    $html.css('min-height', songHeight)
+                        .velocity('fadeIn', {
+                            duration: 300,
+                            complete: function(){
+                                    $(this).velocity("scroll", {
+                                    duration: 500,
+                                    offset: -fixedHeaderHeight,
+                                    delay: 300,
+                                    complete: function() {
+                                        $(document).on('scroll', onDocumentScroll);
+
+                                        if (playedSongs.length > 1) {
+                                            $historyButton.show();
+                                            $historyButton.removeClass('offscreen');
+                                        }
+                                    }
+                                });
+                            }
+                        });
+                }
+            });
+        }
     }
 
     currentSong = nextSong;
@@ -434,6 +635,10 @@ var nextPlaylist = function() {
         resetState();
     }
 
+    if (IS_CAST_RECEIVER) {
+        CHROMECAST_RECEIVER.sendMessage('tag-ended');
+    }
+
     _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'tag-finish', selectedTag]);
     var tag = null;
 
@@ -464,7 +669,13 @@ var updateTotalSongsPlayed = function() {
  */
 var onPlayClick = function(e) {
     e.preventDefault();
-    $audioPlayer.jPlayer('play');
+
+    if (isCasting) {
+        CHROMECAST_SENDER.sendMessage('toggle-audio', 'play');
+    } else {
+        $audioPlayer.jPlayer('play');
+    }
+
     $play.hide();
     $pause.show();
 }
@@ -474,7 +685,13 @@ var onPlayClick = function(e) {
  */
 var onPauseClick = function(e) {
     e.preventDefault();
-    $audioPlayer.jPlayer('pause');
+
+    if (isCasting) {
+        CHROMECAST_SENDER.sendMessage('toggle-audio', 'pause');
+    } else {
+        $audioPlayer.jPlayer('pause');
+    }
+
     $pause.hide();
     $play.show();
 }
@@ -511,7 +728,12 @@ var toggleFilterPanel = function() {
  */
 var onSkipClick = function(e) {
     e.preventDefault();
-    skipSong();
+
+    if (isCasting) {
+        CHROMECAST_SENDER.sendMessage('skip-song');
+    } else {
+        skipSong();
+    }
 }
 
 /*
@@ -722,9 +944,14 @@ var onReviewerClick = function(e) {
     e.preventDefault();
 
     var reviewer = $(this).data('tag');
-    console.log(reviewer);
     firstReviewerSong = true;
-    switchTag(reviewer);
+
+    if (isCasting) {
+        CHROMECAST_SENDER.sendMessage('toggle-curator', curator);
+    } else {
+        switchTag(reviewer);
+    }
+        
     toggleFilterPanel();
 }
 
@@ -745,7 +972,13 @@ var onGenreClick = function(e) {
     e.preventDefault();
 
     var genre = $(this).data('tag');
-    switchTag(genre);
+
+    if (isCasting) {
+        CHROMECAST_SENDER.sendMessage('toggle-genre', genre);
+    } else {
+        switchTag(genre);
+    }
+
     toggleFilterPanel();
 }
 
@@ -822,6 +1055,10 @@ var onShuffleSongsClick = function(e) {
  * Hide the welcome screen and show the playing song
  */
 var hideWelcome  = function() {
+    if (isCasting) {
+        $chromecastScreen.show();
+    }
+
     $('.songs, .player-container').show();
     $fixedHeader.show();
     setCurrentSongHeight();
