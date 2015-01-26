@@ -31,7 +31,7 @@ class GoogleDoc(object):
 
     # You can change these with kwargs but it's not recommended.
     spreadsheet_url = 'https://spreadsheets.google.com/feeds/download/spreadsheets/Export?key=%(key)s&exportFormat=%(format)s&gid=%(gid)s'
-    new_spreadsheet_url = 'https://docs.google.com/spreadsheets/d/%(key)s/export?format=%(format)s&id=%(key)s&gid=%(gid)s'
+    new_spreadsheet_url = 'https://docs.google.com/spreadsheets/d/%(key)s/export?format=%(format)s&id=%(key)s'
     auth = None
     email = os.environ.get('APPS_GOOGLE_EMAIL', None)
     password = os.environ.get('APPS_GOOGLE_PASS', None)
@@ -72,7 +72,6 @@ class GoogleDoc(object):
         """
         Uses the authentication token to fetch a google doc.
         """
-
         # Handle basically all the things that can go wrong.
         if not self.auth:
             raise KeyError("Error! You didn't get an auth token. Something very bad happened. File a bug?")
@@ -89,6 +88,7 @@ class GoogleDoc(object):
 
             if r.status_code != 200:
                 url = self.new_spreadsheet_url % url_params
+
                 r = requests.get(url, headers=headers)
 
             if r.status_code != 200:

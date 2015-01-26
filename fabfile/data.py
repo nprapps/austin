@@ -3,11 +3,17 @@
 """
 Commands that update or process the application data.
 """
+import csv
 from datetime import datetime
 import json
+from smartypants import smartypants
+import os
+from time import sleep
 
-from fabric.api import task
+from fabric.api import local, task
 from facebook import GraphAPI
+import requests
+from smartypants import smartypants
 from twitter import Twitter, OAuth
 
 import app_config
@@ -19,6 +25,126 @@ def update():
     Stub function for updating app-specific data.
     """
     #update_featured_social()
+    update_songs()
+
+@task
+def update_songs(verify='true'):
+    local('Curl -s -o data/songs.csv https://docs.google.com/spreadsheets/d/19J4Fi2bpeEicoM5475lu1L345fF8hiBn4owbiCKdqIU/export?format=csv&id=19J4Fi2bpeEicoM5475lu1L345fF8hiBn4owbiCKdqIU&gid=0')
+
+    # Hack: for some reason downloaded file does not exist yet without this
+    sleep(1)
+
+    output = clean_songs(verify == 'true')
+
+    with open('data/songs.json', 'w') as f:
+        json.dump(output, f)
+
+@task
+def clean_songs(verify):
+    output = []
+    unique_audio = []
+    unique_song_art = []
+    unique_song_title = []
+
+    with open('data/songs.csv') as f:
+        rows = csv.DictReader(f)
+
+        for row in rows:
+            stripped_row = {}
+
+            for name, value in row.items():
+                try:
+                    stripped_row[name] = value.strip()
+                except AttributeError:
+                    print value
+                    raise
+
+            row = stripped_row
+
+            print '%s - %s' % (row['artist'], row['title'])
+
+            if row['song_art']:
+                name, ext = os.path.splitext(row['song_art'])
+                row['song_art'] = '%s-s500%s' % (name, ext)
+
+            if row['title']:
+                row['title'] = smartypants(row['title'])
+
+            if row['artist']:
+                row['artist'] = smartypants(row['artist'])
+
+            if row['review']:
+                row['review'] = smartypants(row['review'])
+                
+            # Verify links
+            if verify:
+                try:
+                    audio_link = 'http://pd.npr.org/anon.npr-mp3%s.mp3' % row['media_url']
+                    audio_request = requests.head(audio_link)
+
+                    if audio_request.status_code != 200:
+                        print '--> %s The audio URL is invalid: %s' % (audio_request.status_code, audio_link)
+
+                    song_art_link = 'http://www.npr.org%s' % row['song_art']
+                    song_art_request = requests.head(song_art_link)
+
+                    if song_art_request.status_code != 200:
+                        print '--> %s The song art URL is invalid: %s' % (song_art_request, song_art_link)
+                except:
+                    print '--> request.head failed'
+
+            row['genre_tags'] = []
+
+            for i in range(1,4):
+                key = 'genre%i' % i
+
+                if row[key]:
+                    row['genre_tags'].append(row[key])
+
+                if key != 'genre1':
+                    del row[key]
+
+            row['curator_tags'] = []
+
+            for i in range(1,7):
+                key = 'curator%i' % i
+
+                if row[key]:
+                    row['curator_tags'].append(row[key])
+
+                del row[key]
+
+            # Verify tags
+            if verify:
+                for song_genre in row['genre_tags']:
+                    if song_genre not in app_config.GENRE_TAGS:
+                        print "--> Genre %s is not a valid genre" % (song_genre)
+
+                for song_curator in row['curator_tags']:
+                    if song_curator not in app_config.REVIEWER_TAGS:
+                        print "--> Genre %s is not a valid genre" % (song_curator)
+
+                if row['reviewer'] not in app_config.REVIEWER_IMAGES:
+                    print '--> Reviewer %s does not have a headshot' % row['reviewer']
+
+                if row['media_url'] in unique_audio:
+                    print '--> Duplicate audio url: %s' % row['media_url']
+                else:
+                    unique_audio.append(row['media_url'])
+
+                if row['song_art'] in unique_song_art:
+                    print '--> Duplicate song_art url: %s' % row['song_art']
+                else:
+                    unique_song_art.append(row['song_art'])
+
+                if row['title'] in unique_song_title:
+                    print '--> Duplicate title: %s' % row['title']
+                else:
+                    unique_song_title.append(row['title'])
+
+            output.append(row)
+
+    return output
 
 @task
 def update_featured_social():

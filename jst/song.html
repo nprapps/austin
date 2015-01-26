@@ -1,0 +1,44 @@
+<div class="song">
+    <div class="container-fluid">
+        <div class="song-info">
+            <img class="album-cover img-responsive" src="http://npr.org<%= song_art %>">
+            <div class="song-info-wrapper">
+                <h2 class="artist"><%= artist %></h2>
+                <h1 class="song-title">&lsquo;<%= title %>&rsquo;</h1>
+
+                <div class="song-tags">
+                    <h3 class="tag-header">Filed Under:</h3>
+                    <ul class="list-unstyled no-click">
+                        <% for (var i = 0; i < genre_tags.length; i++) { %>
+                            <li><%= genre_tags[i] %></li>
+                        <% } %>
+                    </ul>
+                </div>
+
+                <div class="review-wrapper">
+                    <p class="review"><%= review %></p>
+                    <p class="byline"><span class="mug"><img src="<%= S3_BASE_URL %>/assets/img/headshots/<%= REVIEWER_IMAGES[reviewer] %>"></span> <span class="name"><%= reviewer %><% if (reviewer_affiliation) { %>, <a href="<%= affiliate_link %>" target="_blank"><%= reviewer_affiliation %></a><% } %></span>
+                    <% if (mixtapeName) { %>
+                        <a href="#" class="reviewer-link" data-tag="<%= reviewer %>"><span class="icon-play"></span> Play <%= mixtapeName %> mixtape</a>
+                        </p>
+                    <% } %>
+                </div>
+
+                <ul class="song-tools list-unstyled">
+                    <% if (ASIN) { %>
+                    <li><a target="_blank" href="http://amazon.com/dp/<%= ASIN %>?tag=npr-5-20" class="amazon"><span class="icon-amazon"></span></a></li>
+                    <% } %>
+                    <% if (itunes) { %>
+                    <li><a target="_blank" href="<%= itunes %>&at=11l79Y" class="itunes"><span class="icon-apple"></span></a></li>
+                    <% } %>
+                    <% if (rdio) { %>
+                    <li><a target="_blank" href="<%= rdio %>" class="rdio"><span class="icon-rdio"></span></a></li>
+                    <% } %>
+                    <% if (spotify) { %>
+                    <li><a target="_blank" href="<%= spotify %>" class="spotify"><span class="icon-spotify-circled"></span></a></li>
+                    <% } %>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

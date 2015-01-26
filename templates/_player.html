@@ -1,0 +1,40 @@
+<div class="player-container">
+    <div class="fixed-controls">
+        <div class="filters">
+            <h2 class="filter-title js-toggle-filters"><span class="carot"></span>Current Mix <span class="current-dj"></span></h2>
+        </div>
+
+        {% include '_filter.html' %}
+    </div>
+
+    <div class="player-wrapper">
+        <div class="player">
+            <div id="audio-player" class="jp-jplayer"></div>
+            <div id="jp_container_1" class="jp-audio">
+                <div class="jp-type-single">
+                    <div class="gui">
+                        <div class="controls">
+                            <a href="javascript:;" class="play player-button" tabindex="1" title="play"><span class="icon-play"></span></a>
+                            <a href="javascript:;" class="pause player-button" tabindex="1" style="display: none;" title="pause"><span class="icon-pause"></span></a>
+                        </div>
+                        <div class="jp-progress-container">
+                            <div class="player-progress jp-progress">
+                                <h2 class="artist"></h2>
+                                <h1 class="song-title"></h1>
+                                <div class="jp-play-bar bar"></div>
+                            </div>
+                        </div>
+                        <div class="playback-info">
+                            <div class="current-time"></div>
+                            <p class="skips"><span class="skips-remaining"></span></p>
+                        </div>
+
+                        <a class="skip player-button" href="#"><span class="icon-forward"></span></a>
+                    </div>
+                </div>
+            </div> <!-- end .jp-audio -->
+        </div> <!-- end #audio -->
+    </div>
+
+
+</div>
