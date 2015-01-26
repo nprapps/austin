@@ -40,9 +40,6 @@ var NO_AUDIO = (window.location.search.indexOf('noaudio') >= 0);
 var RESET_STATE = (window.location.search.indexOf('resetstate') >= 0);
 var ALL_HISTORY = (window.location.search.indexOf('allhistory') >= 0);
 
-var IS_CAST_RECEIVER = (window.location.search.indexOf('chromecast') >= 0);
-var IS_FAKE_CASTER = (window.location.search.indexOf('fakecast') >= 0);
-
 // Global state
 var firstShareLoad = true;
 var playedSongs = [];
@@ -158,66 +155,55 @@ var onDocumentLoad = function(e) {
 
     setInterval(checkSkips, 60000);
 
-    if (IS_CAST_RECEIVER) {
-        castReceiver = NEWSCAST.Receiver({
-            'namespace': APP_CONFIG.CHROMECAST_NAMESPACE,
-            'debug': true
-        });
-        castReceiver.onMessage('toggle-audio', onCastReceiverToggleAudio);
-        castReceiver.onMessage('skip-song', onCastReceiverSkipSong);
-        castReceiver.onMessage('toggle-genre', onCastReceiverToggleGenre);
-        castReceiver.onMessage('toggle-curator', onCastReceiverToggleCurator);
-        castReceiver.onMessage('send-playlist', onCastReceiverPlaylist);
-        castReceiver.onMessage('send-tags', onCastReceiverTags);
-        castReceiver.onMessage('send-history', onCastReceiverHistory);
-        castReceiver.onMessage('send-played', onCastReceiverPlayed);
-        castReceiver.onMessage('init', onCastReceiverInit);
-    }
+    Newscast({
+        'namespace': APP_CONFIG.CHROMECAST_NAMESPACE,
+        'appId': APP_CONFIG.CHROMECAST_APP_ID,
+        'onReceiverCreated': onCastReceiverCreated,
+        'onSenderCreated': onCastSenderCreated,
+        'onSenderReady': onCastSenderReady,
+        'onSenderStarted': onCastSenderStarted,
+        'onSenderStopped': onCastSenderStopped,
+        'debug': true
+    });
 }
 
 /*
- * Setup Chromecast if library is available.
+ * Chromecast receiver mode activated.
  */
-window['__onGCastApiAvailable'] = function(loaded, errorInfo) {
-    // We need the DOM here, so don't fire until it's ready.
-    $(function() {
-        // Don't init sender if in receiver mode
-        if (IS_CAST_RECEIVER ) {
-            return;
-        }
+var onCastReceiverCreated = function(receiver) {
+    castReceiver = receiver;
 
-        if (loaded) {
-            castSender = NEWSCAST.Sender({
-                'namespace': APP_CONFIG.CHROMECAST_NAMESPACE,
-                'appId': APP_CONFIG.CHROMECAST_APP_ID,
-                'onCastReady': onCastReady,
-                'onCastStarted': onCastStarted,
-                'onCastStopped': onCastStopped,
-                'debug': true
-            });
+    castReceiver.onMessage('toggle-audio', onCastReceiverToggleAudio);
+    castReceiver.onMessage('skip-song', onCastReceiverSkipSong);
+    castReceiver.onMessage('toggle-genre', onCastReceiverToggleGenre);
+    castReceiver.onMessage('toggle-curator', onCastReceiverToggleCurator);
+    castReceiver.onMessage('send-playlist', onCastReceiverPlaylist);
+    castReceiver.onMessage('send-tags', onCastReceiverTags);
+    castReceiver.onMessage('send-history', onCastReceiverHistory);
+    castReceiver.onMessage('send-played', onCastReceiverPlayed);
+    castReceiver.onMessage('init', onCastReceiverInit);
 
-            $castButtons.show();
-
-            if (IS_FAKE_CASTER) {
-              onCastStarted();
-            }
-
-        } else {
-            // TODO: prompt to install?
-        }
-    });
 }
+
+/*
+ * Chromecast sender mode activated.
+ */
+var onCastSenderCreated = function(sender) {
+    castSender = sender;
+}
+
 /*
  * A cast device is available.
  */
-var onCastReady = function() {
-    $castStart.show();
+var onCastSenderReady = function() {
+    $castButtons.show();
+    $castStop.hide();
 }
 
 /*
  * A cast session started.
  */
-var onCastStarted = function() {
+var onCastSenderStarted = function() {
     // TODO: stop audio
 
     $stack.hide();
@@ -245,7 +231,7 @@ var onCastStarted = function() {
 /*
  * A cast session stopped.
  */
-var onCastStopped = function() {
+var onCastSenderStopped = function() {
     $castStart.show();
     $castStop.hide();
     isCasting = false;

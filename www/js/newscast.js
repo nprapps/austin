@@ -1,22 +1,28 @@
 /*
  * Lightweight Chromecasting library.
  */
-var NEWSCAST = (function() {
+var Newscast = function(config) {
     var MESSAGE_DELIMITER = 'NEWSCAST';
     var _messageRegex = new RegExp('(\\S+)' + MESSAGE_DELIMITER + '(.+)$');
+
+    var _isReceiver = (window.location.search.indexOf('chromecast') >= 0);
+    var _namespace = config['namespace'];
+    var _appId = config['appId'];
+    var _onReceiverCreated = config['onReceiverCreated'];
+    var _onSenderCreated = config['onSenderCreated'];
+    var _onSenderReady = config['onSenderReady'];
+    var _onSenderStarted = config['onSenderStarted'];
+    var _onSenderStopped = config['onSenderStopped'];
+    var _debug = config['debug'] || false;
 
     /*
      * Receiver
      */
-    var Receiver = function(config) {
+    var Receiver = function() {
         var _customMessageBus = null;
         var _senderId = null;
-
         var _messageHandlers = {};
         
-        var _namespace = config['namespace'];
-        var _debug = config['debug'];
-
         /*
          * Log a debugging message.
          */
@@ -108,17 +114,9 @@ var NEWSCAST = (function() {
     /*
      * Sender
      */
-    var Sender = function(config) {
+    var Sender = function() {
         var _session = null;
-
         var _messageHandlers = {};
-
-        var _namespace = config['namespace'];
-        var _appId = config['appId'];
-        var _readyCallback = config['readyCallback'];
-        var _startedCallback = config['startedCallback'];
-        var _stoppedCallback = config['stoppedCallback'];
-        var _debug = config['debug'] || false;
 
         /*
          * Log a debugging message.
@@ -142,8 +140,8 @@ var NEWSCAST = (function() {
             _session = session;
             _session.addUpdateListener(_sessionUpdateListener);
 
-            if (_startedCallback) {
-                _startedCallback();
+            if (_onSenderStarted) {
+                _onSenderStarted();
             }
         }
 
@@ -154,8 +152,8 @@ var NEWSCAST = (function() {
             if (!isAlive) {
                 _log('Session no longer alive')
 
-                if (_stoppedCallback) {
-                    _stoppedCallback();
+                if (_onSenderStopped) {
+                    _onSenderStopped();
                 }
             }
         }
@@ -167,8 +165,8 @@ var NEWSCAST = (function() {
             if (e === chrome.cast.ReceiverAvailability.AVAILABLE) {
                 _log('Receiver is available')
 
-                if (_readyCallback) {
-                    _readyCallback();
+                if (_onSenderReady) {
+                    _onSenderReady();
                 }
             } else if (e === chrome.cast.ReceiverAvaibility.UNAVAILABLE) {
                 _log('Receiver not available')
@@ -208,8 +206,8 @@ var NEWSCAST = (function() {
             _session = session;
             _session.addUpdateListener(_sessionUpdateListener);
 
-            if (_startedCallback) {
-                _startedCallback();
+            if (_onSenderStarted) {
+                _onSenderStarted();
             }
         }
 
@@ -236,8 +234,8 @@ var NEWSCAST = (function() {
         var _onSessionStopSuccess = function() {
             _log('Cast stopped');
 
-            if (_stoppedCallback) {
-                _stoppedCallback();
+            if (_onSenderStopped) {
+                _onSenderStopped();
             }
         }
 
@@ -337,8 +335,40 @@ var NEWSCAST = (function() {
         };
     }
 
-    return {
-        'Receiver': Receiver,
-        'Sender': Sender
+    if (_isReceiver) {
+        // Load Receiver library
+        var script =  document.createElement('script');
+        script.async = false;
+        script.type = 'text/javascript';
+        script.src = '//www.gstatic.com/cast/sdk/libs/receiver/2.0.0/cast_receiver.js';
+
+        script.onload = function() {
+            // Create receiver
+            var receiver = Receiver();
+
+            _onReceiverCreated(receiver);
+
+        }
+
+        document.body.appendChild(script);
+    } else {
+        // Setup Cast Sender API global callback
+        window['__onGCastApiAvailable'] = function(loaded, errorInfo) {
+
+            if (loaded) {
+                // Create sender
+                var sender = Sender();
+
+                console.log(sender);
+
+                _onSenderCreated(sender);
+            }
+        }
+        
+        // Load Sender API
+        var script =  document.createElement('script');
+        script.type = 'text/javascript';
+        script.src = '//www.gstatic.com/cv/js/sender/v1/cast_sender.js';
+        document.body.appendChild(script);
     }
-}());
+};
