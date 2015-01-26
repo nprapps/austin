@@ -111,6 +111,8 @@ var NEWSCAST = (function() {
     var Sender = function(config) {
         var _session = null;
 
+        var _messageHandlers = {};
+
         var _namespace = config['namespace'];
         var _appId = config['appId'];
         var _readyCallback = config['readyCallback'];
@@ -239,10 +241,50 @@ var NEWSCAST = (function() {
             }
         }
 
+        /*
+         * Session could not be stopped.
+         */
         var _onSessionStopError = function(e) {
             _log('Failed to stop cast, error:');
             _log(e, true);
         }
+
+        /*
+         * New message received.
+         */
+        var _onReceiveMessage = function(e) {
+            _log('Received message: ' + e.data);
+
+            var match = e.data.match(_messageRegex);
+
+            var messageType = match[1];
+            var message = match[2];
+
+            _fire(messageType, message);
+        }
+
+        /*
+         * Fire handler callbacks for a given message.
+         */
+        var _fire = function(messageType, message) {
+            if (messageType in _messageHandlers) {
+                for (var i = 0; i < _messageHandlers[messageType].length; i++) {
+                    _messageHandlers[messageType][i](message);
+                }
+            }
+        };
+
+        /*
+         * Register a new message handler callback.
+         */
+        var onMessage = function(messageType, callback) {
+            if (!(messageType in _messageHandlers)) {
+                _messageHandlers[messageType] = [];
+            }
+
+            _messageHandlers[messageType].push(callback);
+        }
+
 
         /*
          * Send a message to the receiver.
