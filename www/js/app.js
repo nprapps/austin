@@ -28,6 +28,7 @@ var $filtersButton = null;
 var $currentDj = null;
 var $fixedControls = null;
 var $historyButton = null;
+var $fullscreenButton = null;
 
 var $castButtons = null;
 var $castStart = null;
@@ -98,6 +99,10 @@ var onDocumentLoad = function(e) {
     $fixedControls = $('.fixed-controls');
     $historyButton = $('.js-show-history');
 
+    $fullscreenButtons = $('.fullscreen');
+    $fullscreenStart = $('.fullscreen .start');
+    $fullscreenStop = $('.fullscreen .stop');
+
     $castButtons = $('.chromecast');
     $castStart = $('.chromecast .start');
     $castStop = $('.chromecast .stop');
@@ -131,6 +136,9 @@ var onDocumentLoad = function(e) {
 
     $castStart.on('click', onCastStartClick);
     $castStop.on('click', onCastStopClick);
+
+    $fullscreenStart.on('click', onFullscreenStartClick);
+    $fullscreenStop.on('click', onFullscreenStopClick);
 
     // configure ZeroClipboard on share panel
     ZeroClipboard.config({ swfPath: 'js/lib/ZeroClipboard.swf' });
@@ -317,6 +325,34 @@ var onCastReceiverInit = function() {
     $landing.hide();
     $('.songs, .player-container, .playlist-filters').show();
     _.delay(playNextSong, 1000);
+}
+
+/*
+ * Initiate fullscreen
+ */
+var onFullscreenStartClick = function(e) {
+    e.preventDefault();
+
+    _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'fullscreen-start']);
+
+    screenfull.request();
+
+    $fullscreenStop.show();
+    $fullscreenStart.hide();
+}
+
+/*
+ * Exit fullscreen
+ */
+var onFullscreenStopClick = function(e) {
+    e.preventDefault();
+
+    _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'fullscreen-stop']);
+
+    screenfull.exit();
+
+    $fullscreenStop.hide();
+    $fullscreenStart.show();
 }
 
 /*
