@@ -6,6 +6,11 @@ var Newscast = function(config) {
     var _messageRegex = new RegExp('(\\S+)' + MESSAGE_DELIMITER + '(.+)$');
 
     var _isReceiver = (window.location.search.indexOf('chromecast') >= 0);
+
+    if (config.hasOwnProperty('isReceiver')) {
+        _isReceiver = config['isReceiver'];
+    }
+
     var _namespace = config['namespace'];
     var _appId = config['appId'];
     var _onReceiverCreated = config['onReceiverCreated'];
@@ -95,7 +100,7 @@ var Newscast = function(config) {
             )
         }
 
-        _log('Initailizing receiver');
+        _log('Initializing receiver');
 
         var castReceiverManager = cast.receiver.CastReceiverManager.getInstance();
         _customMessageBus = castReceiverManager.getCastMessageBus(_namespace);
