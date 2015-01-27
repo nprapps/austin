@@ -28,7 +28,6 @@ var $filtersButton = null;
 var $currentDj = null;
 var $fixedControls = null;
 var $historyButton = null;
-var $skipsRemaining = null;
 
 var $castButtons = null;
 var $castStart = null;
@@ -49,7 +48,6 @@ var selectedTag = null;
 var playlistLength = null;
 var onWelcome = true;
 var playedsongCount = null;
-var usedSkips = [];
 var curator = null;
 var totalSongsPlayed = 0;
 var songHistory = {};
@@ -62,6 +60,7 @@ var firstReviewerSong = false;
 var isCasting = false;
 var castSender = null;
 var castReceiver = null;
+var IS_CAST_RECEIVER = false;
 
 /*
  * Run on page load.
@@ -98,7 +97,6 @@ var onDocumentLoad = function(e) {
     $currentDj = $('.current-dj');
     $fixedControls = $('.fixed-controls');
     $historyButton = $('.js-show-history');
-    $skipsRemaining = $('.skips-remaining');
 
     $castButtons = $('.chromecast');
     $castStart = $('.chromecast .start');
@@ -147,13 +145,10 @@ var onDocumentLoad = function(e) {
 
     if (RESET_STATE) {
         resetState();
-        resetLegalLimits();
     }
 
     setupAudio();
     loadState();
-
-    setInterval(checkSkips, 60000);
 
     Newscast({
         'namespace': APP_CONFIG.CHROMECAST_NAMESPACE,
@@ -182,7 +177,6 @@ var onCastReceiverCreated = function(receiver) {
     castReceiver.onMessage('send-history', onCastReceiverHistory);
     castReceiver.onMessage('send-played', onCastReceiverPlayed);
     castReceiver.onMessage('init', onCastReceiverInit);
-
 }
 
 /*
@@ -407,7 +401,6 @@ var playIntroAudio = function() {
 
     if (!onWelcome) {
         $('.stack .poster').velocity('fadeIn');
-        $skipsRemaining.hide();
     }
 
     $audioPlayer.jPlayer('setMedia', {
@@ -471,10 +464,7 @@ var playNextSong = function() {
     // check if we can play the song legally (4 times per 3 hours)
     // if we don't have a song, get a new playlist
     if (nextSong) {
-        var canPlaySong = checkSongHistory(nextSong);
-        if (!canPlaySong) {
-            return;
-        }
+
     } else {
         nextPlaylist();
         return;
@@ -494,7 +484,6 @@ var playNextSong = function() {
     $playerArtist.html(nextSong['artist']);
     $playerTitle.html(nextSong['title']);
     document.title = nextSong['artist'] + ' \u2014 \u2018' + nextSong['title'] + '\u2019 | ' + COPY.content['project_name'];
-    $skipsRemaining.show();
 
     var nextsongURL = 'http://podcastdownload.npr.org/anon.npr-mp3' + nextSong['media_url'] + '.mp3';
 
@@ -562,7 +551,6 @@ var playNextSong = function() {
     currentSong = nextSong;
     markSongPlayed(currentSong);
     updateTotalSongsPlayed();
-    writeSkipsRemaining();
     preloadSongImages();
 }
 
@@ -740,56 +728,10 @@ var onSkipClick = function(e) {
 var skipSong = function() {
     if (inPreroll || usedSkips.length < APP_CONFIG.SKIP_LIMIT) {
         if (!inPreroll) {
-            usedSkips.push(moment.utc());
-            _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'song-skip', $playerArtist.text() + ' - ' + $playerTitle.text(), usedSkips.length]);
+            _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'song-skip', $playerArtist.text() + ' - ' + $playerTitle.text(), 1]);
         }
 
         playNextSong();
-        simpleStorage.set('usedSkips', usedSkips);
-        writeSkipsRemaining();
-    }
-}
-
-/*
- * Check to see if some skips are past the skip limit window
- */
-var checkSkips = function() {
-    var now = moment.utc();
-    var skipped = true;
-
-    while (skipped) {
-        skipped = false;
-
-        for (i = 0; i < usedSkips.length; i++) {
-            if (now.subtract(1, 'hour').isAfter(usedSkips[i])) {
-                usedSkips.splice(i, 1);
-                skipped = true;
-                break;
-            }
-        }
-    }
-
-    simpleStorage.set('usedSkips', usedSkips);
-    writeSkipsRemaining();
-}
-
-/*
- * Update the skip limit display
- */
-var writeSkipsRemaining = function() {
-    if (usedSkips.length == APP_CONFIG.SKIP_LIMIT - 1) {
-        $skipsRemaining.text(APP_CONFIG.SKIP_LIMIT - usedSkips.length + ' skip available')
-        $skip.removeClass('disabled');
-    }
-    else if (usedSkips.length == APP_CONFIG.SKIP_LIMIT) {
-        var text = 'Skipping available in ';
-            text += moment(usedSkips[usedSkips.length - 1]).add(1, 'hour').fromNow(true);
-        $skipsRemaining.text(text);
-        $skip.addClass('disabled');
-    }
-    else {
-        $skipsRemaining.text(APP_CONFIG.SKIP_LIMIT - usedSkips.length + ' skips available')
-        $skip.removeClass('disabled');
     }
 }
 
@@ -822,8 +764,6 @@ var loadState = function() {
     } else {
         $landingFirstDeck.show();
     }
-
-    checkSkips();
 }
 
 /*
@@ -836,16 +776,6 @@ var resetState = function() {
     simpleStorage.set('playedSongs', playedSongs);
     simpleStorage.set('selectedTag', selectedTag);
     simpleStorage.set('playedPreroll', false);
-}
-
-/*
- * Reset the legal limitations. For development only.
- */
-var resetLegalLimits = function() {
-    usedSkips = [];
-    simpleStorage.set('usedSkips', usedSkips);
-    songHistory = {}
-    simpleStorage.set('songHistory', songHistory);
 }
 
 /*
@@ -949,7 +879,7 @@ var onReviewerClick = function(e) {
     } else {
         switchTag(reviewer);
     }
-        
+
     toggleFilterPanel();
 }
 
