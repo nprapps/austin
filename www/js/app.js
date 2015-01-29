@@ -158,10 +158,8 @@ var onDocumentLoad = function(e) {
     setupAudio();
     loadState();
 
-    setInterval(checkSkips, 60000);
-
     if (window.location.hash) {
-
+        playSongFromHash();
     }
 
     /*Newscast({
@@ -602,6 +600,10 @@ var playSongFromHash = function() {
     var song = _.find(SONG_DATA, function(song) {
         return songID === song['id']
     });
+
+    if (!song) {
+        return;
+    }
 
     buildPlaylist();
     updateTagDisplay();
