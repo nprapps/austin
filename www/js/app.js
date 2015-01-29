@@ -126,7 +126,7 @@ var onDocumentLoad = function(e) {
     $(document).on('scroll', onDocumentScroll);
     $shuffleSongs.on('click', onShuffleSongsClick);
     $historyButton.on('click', showHistory);
-    $songs.on('click', '.song:not(:last-child)', onSongCardClick);
+    $songs.on('click', '.song', onSongCardClick);
     $songs.on('click', '.song-tools .amazon', onAmazonClick);
     $songs.on('click', '.song-tools .itunes', oniTunesClick);
     $songs.on('click', '.song-tools .rdio', onRdioClick);
@@ -360,24 +360,6 @@ var onFullscreenStopClick = function(e) {
 }
 
 /*
- * Shorten Bob's playlist to 3 songs for testing
- * how the end of a playlist works easier.
- */
-var shortenBob = function() {
-    var bobSongs = _.filter(SONG_DATA, function(song) {
-        var tags = song['genre_tags'].concat(song['curator_tags']);
-        for (var i = 0; i < song['curator_tags'].length; i++) {
-            if (song['curator_tags'][i] === 'Bob Boilen') {
-                return true;
-            }
-        }
-    });
-
-    bobSongs = bobSongs.splice(0, bobSongs.length - 3);
-    SONG_DATA = _.difference(SONG_DATA, bobSongs);
-}
-
-/*
  * Configure jPlayer.
  */
 var setupAudio = function() {
@@ -424,11 +406,6 @@ var playIntroAudio = function() {
     // if on welcome screen, play the intro audio
     if (onWelcome) {
         audioFile = APP_CONFIG.WELCOME_AUDIO;
-    }
-
-    // if we have a selected tag, find its audio
-    if (selectedTag && !onWelcome) {
-        audioFile = APP_CONFIG.TAG_AUDIO_INTROS[selectedTag];
     }
 
     // if there is no audio (i.e. genres), just play the next song
@@ -513,13 +490,10 @@ var playNextSong = function(nextSong) {
     var context = $.extend(APP_CONFIG, nextSong, {
         'mixtapeName': makeMixtapeName(nextSong)
     });
-    var $html = $(JST.song(context));
+    var $song = $('.song[data-song-id=' + nextSong['id'] + ']');
 
-    if (isCasting) {
-        $songs.prepend($html);
-    } else {
-        $songs.append($html);
-    }
+    $songs.find('.song').addClass('small');
+    $song.removeClass('small');    
 
     $playerArtist.html(nextSong['artist']);
     $playerTitle.html(nextSong['title']);
@@ -542,14 +516,14 @@ var playNextSong = function(nextSong) {
     $pause.show();
 
     if (onWelcome) {
-        $html.css('min-height', songHeight).show();
-        $html.find('.container-fluid').css('height', songHeight);
+        $song.css('min-height', songHeight).show();
+        $song.find('.container-fluid').css('height', songHeight);
 
         hideWelcome();
     } else {
         setCurrentSongHeight();
-        $html.find('.container-fluid').css('height', songHeight);
-        $html.prev().velocity("scroll", {
+        $song.find('.container-fluid').css('height', songHeight);
+        $song.prev().velocity("scroll", {
             duration: 350,
             offset: -fixedHeaderHeight,
             begin: function() {
@@ -559,10 +533,10 @@ var playNextSong = function(nextSong) {
                 $('.stack .poster').velocity('fadeOut', {
                     duration: 500
                 });
-                $html.prev().find('.container-fluid').css('height', '0');
-                $html.prev().find('.song-info').css('min-height', 0);
-                $html.prev().css('min-height', '0').addClass('small');
-                $html.css('min-height', songHeight)
+                $song.prev().find('.container-fluid').css('height', '0');
+                $song.prev().find('.song-info').css('min-height', 0);
+                $song.prev().css('min-height', '0').addClass('small');
+                $song.css('min-height', songHeight)
                     .velocity('fadeIn', {
                         duration: 300,
                         complete: function(){
@@ -588,7 +562,6 @@ var playNextSong = function(nextSong) {
     currentSong = nextSong;
     markSongPlayed(currentSong);
     updateTotalSongsPlayed();
-    preloadSongImages();
 }
 
 /*
@@ -612,61 +585,15 @@ var playSongFromHash = function() {
 }
 
 /*
- * Preload song art and reviewer headshot to make things smoother.
- */
-var preloadSongImages = function() {
-    var nextSong = _.find(playlist, function(song) {
-        return !(_.contains(playedSongs, song['id']));
-    });
-
-    if (!nextSong) {
-        return;
-    }
-
-    var songArt = new Image();
-    songArt.src = 'http://npr.org' + nextSong['song_art'];
-
-    var reviewerImage = new Image();
-    reviewerImage.src = APP_CONFIG.S3_BASE_URL + '/assets/img/' + APP_CONFIG.REVIEWER_IMAGES[nextSong['reviewer']];
-}
-
-/*
  *  Set the height of the currently playing song to fill the viewport.
  */
 var setCurrentSongHeight = function(){
     windowHeight = Modernizr.touch ? window.innerHeight || $(window).height() : $(window).height();
     songHeight = windowHeight - $player.height() - $fixedHeader.height() - $fixedControls.height();
 
-    $songs.children().last().find('.container-fluid').css('height', songHeight);
-    $songs.children().last().css('min-height', songHeight);
-}
-
-/*
- * Check the song history to see if you've played it
- * more than 4 times in 3 hours
- */
-var checkSongHistory = function(song) {
-    if (songHistory[song['id']]) {
-        for (var i = 0; i < songHistory[song['id']].length; i++) {
-            var now = moment.utc();
-            if (now.subtract(3, 'hours').isAfter(songHistory[song['id']][i])) {
-                songHistory[song['id']].splice(i,1);
-            }
-        }
-
-        if (songHistory[song['id']].length >= 4) {
-            markSongPlayed(song);
-            playNextSong();
-            return false;
-        }
-    } else {
-        songHistory[song['id']] = [];
-    }
-
-    songHistory[song['id']].push(moment.utc());
-    simpleStorage.set('songHistory', songHistory);
-
-    return true;
+    // TODO: set song height on currently playing track, no last
+    /*$songs.children().last().find('.container-fluid').css('height', songHeight);
+    $songs.children().last().css('min-height', songHeight);*/
 }
 
 /*
@@ -783,13 +710,11 @@ var onSkipClick = function(e) {
  * Skip to the next song
  */
 var skipSong = function() {
-    if (inPreroll || usedSkips.length < APP_CONFIG.SKIP_LIMIT) {
-        if (!inPreroll) {
-            _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'song-skip', $playerArtist.text() + ' - ' + $playerTitle.text(), 1]);
-        }
-
-        playNextSong();
+    if (!inPreroll) {
+        _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'song-skip', $playerArtist.text() + ' - ' + $playerTitle.text(), 1]);
     }
+
+    playNextSong();
 }
 
 /*
@@ -848,21 +773,21 @@ var markSongPlayed = function(song) {
  * Reconstruct listening history from stashed id's.
  */
 var buildListeningHistory = function() {
-    for (var i = 0; i < playedSongs.length; i++) {
-        var songID = playedSongs[i];
+    // for (var i = 0; i < playedSongs.length; i++) {
+    //     var songID = playedSongs[i];
 
-        var song = _.find(SONG_DATA, function(song) {
-            return songID === song['id']
-        });
+    //     var song = _.find(SONG_DATA, function(song) {
+    //         return songID === song['id']
+    //     });
 
 
-        var context = $.extend(APP_CONFIG, song, {
-            'mixtapeName': makeMixtapeName(song)
-        });
-        var html = JST.song(context);
-        $songs.append(html);
-    };
-    $songs.find('.song').addClass('small');
+    //     var context = $.extend(APP_CONFIG, song, {
+    //         'mixtapeName': makeMixtapeName(song)
+    //     });
+    //     var html = JST.song(context);
+    //     $songs.append(html);
+    // };
+    // $songs.find('.song').addClass('small');
 }
 
 /*
@@ -890,6 +815,7 @@ var buildPlaylist = function() {
  * Shuffle the entire list of songs.
  */
 var shuffleSongs = function() {
+    // TODO: shuffle .song divs
     SONG_DATA = _.shuffle(SONG_DATA);
 }
 
@@ -981,7 +907,6 @@ var switchTag = function(tag, noAutoplay) {
     updateTagDisplay();
     shuffleSongs();
     buildPlaylist();
-    preloadSongImages();
 
     if (noAutoplay !== true) {
         playIntroAudio();
@@ -1114,7 +1039,6 @@ var swapTapeDeck = function() {
 var onGoButtonClick = function(e) {
     e.preventDefault();
     swapTapeDeck();
-    $songs.find('.song').remove();
     playedSongs = [];
     simpleStorage.set('playedSongs', playedSongs);
     switchTag(null, true);
@@ -1138,7 +1062,6 @@ var onContinueButtonClick = function(e) {
  * Toggle played song card size
  */
 var onSongCardClick = function(e) {
-    $(this).toggleClass('small');
 
     var songID = $(this).attr('data-song-id');
 
@@ -1243,7 +1166,6 @@ var getSong = function($el) {
  * Scroll to the top of the history
  */
 var showHistory = function() {
-    $songs.find('.song:not(:last)').addClass('small');
     $songs.velocity('scroll');
 }
 
@@ -1255,6 +1177,7 @@ var toggleHistoryButton = function(e) {
         return;
     }
 
+    // TODO: dont use last song
     var currentSongOffset = $songs.find('.song').last().offset().top - 50;
     var windowScrollTop = $(window).scrollTop();
     if (currentSongOffset < windowScrollTop + fixedHeaderHeight){
