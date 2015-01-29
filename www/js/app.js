@@ -155,7 +155,11 @@ var onDocumentLoad = function(e) {
 
     setInterval(checkSkips, 60000);
 
-    Newscast({
+    if (window.location.hash) {
+
+    }
+
+    /*Newscast({
         'namespace': APP_CONFIG.CHROMECAST_NAMESPACE,
         'appId': APP_CONFIG.CHROMECAST_APP_ID,
         'onReceiverCreated': onCastReceiverCreated,
@@ -164,7 +168,7 @@ var onDocumentLoad = function(e) {
         'onSenderStarted': onCastSenderStarted,
         'onSenderStopped': onCastSenderStopped,
         'debug': true
-    });
+    });*/
 }
 
 /*
@@ -447,35 +451,32 @@ var makeMixtapeName = function(song) {
 /*
  * Play the next song in the playlist.
  */
-var playNextSong = function() {
-    // if this is the first song in a curator playlist
-    // get one reviewed by the curator
-    var nextSong = _.find(playlist, function(song) {
-        if (!firstReviewerSong) {
-            return !(_.contains(playedSongs, song['id']));
-        } else {
-            return !(_.contains(playedSongs, song['id'])) && song['reviewer'] === selectedTag;
-        }
-    });
+var playNextSong = function(nextSong) {
 
-    // some mixtape curators have not reviewed anything
-    // in this case, just use the normal filter
-    if (firstReviewerSong && !nextSong) {
-        var nextSong = _.find(playlist, function(song) {
-            return !(_.contains(playedSongs, song['id']));
+    if (!nextSong) {
+        // if this is the first song in a curator playlist
+        // get one reviewed by the curator        
+        nextSong = _.find(playlist, function(song) {
+            if (!firstReviewerSong) {
+                return !(_.contains(playedSongs, song['id']));
+            } else {
+                return !(_.contains(playedSongs, song['id'])) && song['reviewer'] === selectedTag;
+            }
         });
+
+        // some mixtape curators have not reviewed anything
+        // in this case, just use the normal filter
+        if (firstReviewerSong && !nextSong) {
+            nextSong = _.find(playlist, function(song) {
+                return !(_.contains(playedSongs, song['id']));
+            });
+        }
     }
 
     firstReviewerSong = false;
 
-    // check if we can play the song legally (4 times per 3 hours)
     // if we don't have a song, get a new playlist
-    if (nextSong) {
-        var canPlaySong = checkSongHistory(nextSong);
-        if (!canPlaySong) {
-            return;
-        }
-    } else {
+    if (!nextSong) {
         nextPlaylist();
         return;
     }
@@ -505,6 +506,10 @@ var playNextSong = function() {
             mp3: nextsongURL
         }).jPlayer('play');
     }
+
+    // window.location.hash = '#' + nextSong['id'];
+    window.history.replaceState(undefined, undefined, '#' + nextSong['id'])
+
     $play.hide();
     $pause.show();
 
@@ -514,49 +519,42 @@ var playNextSong = function() {
 
         hideWelcome();
     } else {
-        if (IS_CAST_RECEIVER) {
-            $html.prev().hide();
-            $html.css('min-height', songHeight);
-            $html.find('.container-fluid').css('min-height', songHeight);
-            $html.show();
-        } else {
-            setCurrentSongHeight();
-            $html.find('.container-fluid').css('height', songHeight);
-            $html.prev().velocity("scroll", {
-                duration: 350,
-                offset: -fixedHeaderHeight,
-                begin: function() {
-                    $(document).off('scroll');
-                },
-                complete: function() {
-                    $('.stack .poster').velocity('fadeOut', {
-                        duration: 500
-                    });
-                    $html.prev().find('.container-fluid').css('height', '0');
-                    $html.prev().find('.song-info').css('min-height', 0);
-                    $html.prev().css('min-height', '0').addClass('small');
-                    $html.css('min-height', songHeight)
-                        .velocity('fadeIn', {
-                            duration: 300,
-                            complete: function(){
-                                    $(this).velocity("scroll", {
-                                    duration: 500,
-                                    offset: -fixedHeaderHeight,
-                                    delay: 300,
-                                    complete: function() {
-                                        $(document).on('scroll', onDocumentScroll);
+        setCurrentSongHeight();
+        $html.find('.container-fluid').css('height', songHeight);
+        $html.prev().velocity("scroll", {
+            duration: 350,
+            offset: -fixedHeaderHeight,
+            begin: function() {
+                $(document).off('scroll');
+            },
+            complete: function() {
+                $('.stack .poster').velocity('fadeOut', {
+                    duration: 500
+                });
+                $html.prev().find('.container-fluid').css('height', '0');
+                $html.prev().find('.song-info').css('min-height', 0);
+                $html.prev().css('min-height', '0').addClass('small');
+                $html.css('min-height', songHeight)
+                    .velocity('fadeIn', {
+                        duration: 300,
+                        complete: function(){
+                                $(this).velocity("scroll", {
+                                duration: 500,
+                                offset: -fixedHeaderHeight,
+                                delay: 300,
+                                complete: function() {
+                                    $(document).on('scroll', onDocumentScroll);
 
-                                        if (playedSongs.length > 1) {
-                                            $historyButton.show();
-                                            $historyButton.removeClass('offscreen');
-                                        }
+                                    if (playedSongs.length > 1) {
+                                        $historyButton.show();
+                                        $historyButton.removeClass('offscreen');
                                     }
-                                });
-                            }
-                        });
-                }
-            });
-        }
+                                }
+                            });
+                        }
+                    });
+            }
+        });
     }
 
     currentSong = nextSong;
@@ -564,6 +562,22 @@ var playNextSong = function() {
     updateTotalSongsPlayed();
     writeSkipsRemaining();
     preloadSongImages();
+}
+
+/*
+ * Play song specified in hash URL.
+ */
+var playSongFromHash = function() {
+    var songID = window.location.hash.substring(1);
+
+    var song = _.find(SONG_DATA, function(song) {
+        return songID === song['id']
+    });
+
+    buildPlaylist();
+    updateTagDisplay();
+    $landing.velocity('fadeOut');
+    playNextSong(song);
 }
 
 /*
