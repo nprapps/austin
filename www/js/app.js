@@ -1139,6 +1139,18 @@ var onContinueButtonClick = function(e) {
  */
 var onSongCardClick = function(e) {
     $(this).toggleClass('small');
+
+    var songID = $(this).attr('data-song-id');
+
+    var nextSong = _.find(SONG_DATA, function(song) {
+        return songID === song['id'];
+    });
+
+    if (!nextSong) {
+        return;
+    }
+
+    playNextSong(nextSong);
 }
 
 /*
