@@ -123,7 +123,7 @@ var onDocumentLoad = function(e) {
     $(document).on('scroll', onDocumentScroll);
     $shuffleSongs.on('click', onShuffleSongsClick);
     $historyButton.on('click', showHistory);
-    $songsWrapper.on('click', '.song', onSongCardClick);
+    $songsWrapper.on('click', '.song.small', onSongCardClick);
     $songsWrapper.on('click', '.song-tools .amazon', onAmazonClick);
     $songsWrapper.on('click', '.song-tools .itunes', oniTunesClick);
     $songsWrapper.on('click', '.song-tools .rdio', onRdioClick);
