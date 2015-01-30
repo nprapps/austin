@@ -452,7 +452,7 @@ var playNextSong = function($nextSong) {
         $nextSong = $songs.eq(0);
     }
 
-    var songID = $nextSong.attr('id').replace('song-', '');
+    var slug = $nextSong.attr('id');
     var artist = $nextSong.data('artist');
     var title = $nextSong.data('title');
     var mediaURL = $nextSong.attr('data-media-url');
@@ -475,7 +475,7 @@ var playNextSong = function($nextSong) {
     }
 
     // window.location.hash = '#' + nextSong['id'];
-    window.history.replaceState(undefined, undefined, '#' + songID)
+    window.history.replaceState(undefined, undefined, '#' + slug)
 
     $play.hide();
     $pause.show();
@@ -524,7 +524,7 @@ var playNextSong = function($nextSong) {
         });
     }
 
-    markSongPlayed(songID);
+    markSongPlayed(slug);
     updateTotalSongsPlayed();
 }
 
@@ -532,9 +532,9 @@ var playNextSong = function($nextSong) {
  * Play song specified in hash URL.
  */
 var playSongFromHash = function() {
-    var songID = window.location.hash.substring(1);
+    var slug = window.location.hash.substring(1);
 
-    var $song = $('#song-' + songID);
+    var $song = $('#' + slug);
 
     if (!$song) {
         return;
@@ -699,8 +699,8 @@ var resetState = function() {
 /*
  * Mark the current song as played and save state.
  */
-var markSongPlayed = function(songID) {
-    playedSongs.push(songID)
+var markSongPlayed = function(slug) {
+    playedSongs.push(slug)
 
     simpleStorage.set('playedSongs', playedSongs);
 }
