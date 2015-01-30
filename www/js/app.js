@@ -12,6 +12,7 @@ var $allTags = null;
 var $playlistLength = null;
 var $totalSongs = null;
 var $skip = null;
+var $songsWrapper = null;
 var $songs = null;
 var $landing = null;
 var $genreFilters = null;
@@ -43,7 +44,6 @@ var ALL_HISTORY = (window.location.search.indexOf('allhistory') >= 0);
 var firstShareLoad = true;
 var playedSongs = [];
 var playlist = [];
-var currentSong = null;
 var selectedTag = null;
 var playlistLength = null;
 var onWelcome = true;
@@ -72,7 +72,8 @@ var onDocumentLoad = function(e) {
     $goButton = $('.go');
     $continueButton = $('.continue');
     $audioPlayer = $('#audio-player');
-    $songs = $('.songs');
+    $songsWrapper = $('.songs-wrapper');
+    $songs = $songsWrapper.find('.song');
     $skip = $('.skip');
     $playerArtist = $('.player .artist');
     $playerTitle = $('.player .song-title');
@@ -122,11 +123,11 @@ var onDocumentLoad = function(e) {
     $(document).on('scroll', onDocumentScroll);
     $shuffleSongs.on('click', onShuffleSongsClick);
     $historyButton.on('click', showHistory);
-    $songs.on('click', '.song', onSongCardClick);
-    $songs.on('click', '.song-tools .amazon', onAmazonClick);
-    $songs.on('click', '.song-tools .itunes', oniTunesClick);
-    $songs.on('click', '.song-tools .rdio', onRdioClick);
-    $songs.on('click', '.song-tools .spotify', onSpotifyClick);
+    $songsWrapper.on('click', '.song', onSongCardClick);
+    $songsWrapper.on('click', '.song-tools .amazon', onAmazonClick);
+    $songsWrapper.on('click', '.song-tools .itunes', oniTunesClick);
+    $songsWrapper.on('click', '.song-tools .rdio', onRdioClick);
+    $songsWrapper.on('click', '.song-tools .spotify', onSpotifyClick);
     $landing.on('click', '.poster.shrink', onFilterTipClick);
 
     $castStart.on('click', onCastStartClick);
@@ -425,32 +426,47 @@ var playIntroAudio = function() {
 /*
  * Play the next song in the playlist.
  */
-var playNextSong = function(nextSong) {
+var playNextSong = function($nextSong) {
+    if (_.isUndefined($nextSong)) {    
+        var $currentSong = getCurrentSong();
 
-    if (!nextSong) {
-        // if this is the first song in a curator playlist
-        // get one reviewed by the curator        
-        nextSong = _.find(playlist, function(song) {
-            return !(_.contains(playedSongs, song['id']));
-        });
+        if ($currentSong.length > 0) {
+            $nextSong = $currentSong.next();
+        }
     }
 
-    // if we don't have a song, get a new playlist
-    if (!nextSong) {
-        nextPlaylist();
-        return;
+    if (_.isUndefined($nextSong)) {
+        if (playedSongs.length == $songs.length) {
+            // if all songs have been played, reset to shuffle
+            resetState();
+        }
+
+        /*if (IS_CAST_RECEIVER) {
+            castReceiver.sendMessage('tag-ended');
+        }*/
+
+        //_gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'tag-finish', selectedTag]);
+
+        //switchTag(null);
+
+        $nextSong = $songs.eq(0);
     }
 
-    var $song = $('.song[data-song-id=' + nextSong['id'] + ']');
+    var songID = $nextSong.attr('id');
+    var artist = $nextSong.data('artist');
+    var title = $nextSong.data('title');
+    console.log(title)
+    var mediaURL = $nextSong.attr('data-media-url');
+    console.log(mediaURL)
 
-    $songs.find('.song').addClass('small');
-    $song.removeClass('small');    
+    $songs.addClass('small');
+    $nextSong.removeClass('small');    
 
-    $playerArtist.html(nextSong['artist']);
-    $playerTitle.html(nextSong['title']);
-    document.title = nextSong['artist'] + ' \u2014 \u2018' + nextSong['title'] + '\u2019 | ' + COPY.content['project_name'];
+    $playerArtist.html(artist);
+    $playerTitle.html(title);
+    document.title = artist + ' \u2014 \u2018' + title + '\u2019 | ' + COPY.content['project_name'];
 
-    var nextsongURL = 'http://podcastdownload.npr.org/anon.npr-mp3' + nextSong['media_url'] + '.mp3';
+    var nextsongURL = 'http://podcastdownload.npr.org/anon.npr-mp3' + mediaURL + '.mp3';
 
     inPreroll = false;
 
@@ -461,20 +477,20 @@ var playNextSong = function(nextSong) {
     }
 
     // window.location.hash = '#' + nextSong['id'];
-    window.history.replaceState(undefined, undefined, '#' + nextSong['id'])
+    window.history.replaceState(undefined, undefined, '#' + songID)
 
     $play.hide();
     $pause.show();
 
     if (onWelcome) {
-        $song.css('min-height', songHeight).show();
-        $song.find('.container-fluid').css('height', songHeight);
+        $nextSong.css('min-height', songHeight).show();
+        $nextSong.find('.container-fluid').css('height', songHeight);
 
         hideWelcome();
     } else {
         setCurrentSongHeight();
-        $song.find('.container-fluid').css('height', songHeight);
-        $song.prev().velocity("scroll", {
+        $nextSong.find('.container-fluid').css('height', songHeight);
+        $nextSong.prev().velocity("scroll", {
             duration: 350,
             offset: -fixedHeaderHeight,
             begin: function() {
@@ -484,10 +500,10 @@ var playNextSong = function(nextSong) {
                 $('.stack .poster').velocity('fadeOut', {
                     duration: 500
                 });
-                $song.prev().find('.container-fluid').css('height', '0');
-                $song.prev().find('.song-info').css('min-height', 0);
-                $song.prev().css('min-height', '0').addClass('small');
-                $song.css('min-height', songHeight)
+                $nextSong.prev().find('.container-fluid').css('height', '0');
+                $nextSong.prev().find('.song-info').css('min-height', 0);
+                $nextSong.prev().css('min-height', '0').addClass('small');
+                $nextSong.css('min-height', songHeight)
                     .velocity('fadeIn', {
                         duration: 300,
                         complete: function(){
@@ -510,8 +526,7 @@ var playNextSong = function(nextSong) {
         });
     }
 
-    currentSong = nextSong;
-    markSongPlayed(currentSong);
+    markSongPlayed(songID);
     updateTotalSongsPlayed();
 }
 
@@ -521,18 +536,16 @@ var playNextSong = function(nextSong) {
 var playSongFromHash = function() {
     var songID = window.location.hash.substring(1);
 
-    var song = _.find(SONG_DATA, function(song) {
-        return songID === song['id']
-    });
+    var $song = $('#song-' + songID);
 
-    if (!song) {
+    if (!$song) {
         return;
     }
 
     buildPlaylist();
     updateTagDisplay();
     $landing.velocity('fadeOut');
-    playNextSong(song);
+    playNextSong($song);
 }
 
 /*
@@ -542,29 +555,10 @@ var setCurrentSongHeight = function(){
     windowHeight = Modernizr.touch ? window.innerHeight || $(window).height() : $(window).height();
     songHeight = windowHeight - $player.height() - $fixedHeader.height() - $fixedControls.height();
 
-    // TODO: set song height on currently playing track, no last
-    /*$songs.children().last().find('.container-fluid').css('height', songHeight);
-    $songs.children().last().css('min-height', songHeight);*/
+    var $currentSong = getCurrentSong();
+    $currentSong.find('.container-fluid').css('height', songHeight);
+    $currentSong.css('min-height', songHeight);
 }
-
-/*
- * Get the next playlist when one is finished
- */
-var nextPlaylist = function() {
-    if (playedSongs.length == SONG_DATA.length) {
-        // if all songs have been played, reset to shuffle
-        resetState();
-    }
-
-    if (IS_CAST_RECEIVER) {
-        castReceiver.sendMessage('tag-ended');
-    }
-
-    _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'tag-finish', selectedTag]);
-
-    switchTag(null);
-}
-
 
 /*
  * Update the total songs played
@@ -672,12 +666,12 @@ var loadState = function() {
     songHistory = simpleStorage.get('songHistory') || {};
 
     if (ALL_HISTORY) {
-        for (var i=1; i < SONG_DATA.length; i++) {
-            markSongPlayed(SONG_DATA[i]);
-        }
+        $songs.each(function($song) {
+            markSongPlayed($song.attr('id'));
+        });
     }
 
-    if (playedSongs.length === SONG_DATA.length) {
+    if (playedSongs.length === $songs.length) {
         playedSongs = [];
     }
 
@@ -707,8 +701,8 @@ var resetState = function() {
 /*
  * Mark the current song as played and save state.
  */
-var markSongPlayed = function(song) {
-    playedSongs.push(song['id'])
+var markSongPlayed = function(songID) {
+    playedSongs.push(songID)
 
     simpleStorage.set('playedSongs', playedSongs);
 }
@@ -738,19 +732,20 @@ var buildListeningHistory = function() {
  * Build a playlist from a set of tags.
  */
 var buildPlaylist = function() {
-    if (selectedTag === null) {
-        playlist = SONG_DATA;
-    } else {
-        playlist = _.filter(SONG_DATA, function(song) {
-            var tags = song['genre_tags'].concat(song['curator_tags']);
+    // TOOD: filter playlist divs
+    // if (selectedTag === null) {
+    //     playlist = SONG_DATA;
+    // } else {
+    //     playlist = _.filter(SONG_DATA, function(song) {
+    //         var tags = song['genre_tags'];
 
-            for (var i = 0; i < tags.length; i++) {
-                if (selectedTag === tags[i]) {
-                    return true;
-                }
-            }
-        });
-    }
+    //         for (var i = 0; i < tags.length; i++) {
+    //             if (selectedTag === tags[i]) {
+    //                 return true;
+    //             }
+    //         }
+    //     });
+    // }
     updatePlaylistLength();
 }
 
@@ -759,16 +754,18 @@ var buildPlaylist = function() {
  * Shuffle the entire list of songs.
  */
 var shuffleSongs = function() {
-    // TODO: shuffle .song divs
-    SONG_DATA = _.shuffle(SONG_DATA);
+    $songs.detach();
+    $songs = $(_.shuffle($songs));
+    $songsWrapper.append($songs);
 }
 
 /*
  * Update playlist length display.
  */
 var updatePlaylistLength = function() {
+    // TODO: how do we filter playlists?
     $playlistLength.text(playlist.length);
-    $totalSongs.text(SONG_DATA.length);
+    $totalSongs.text($songs.length);
 }
 
 /*
@@ -800,12 +797,7 @@ var switchTag = function(tag, noAutoplay) {
     }
 
     updateTagDisplay();
-    shuffleSongs();
     buildPlaylist();
-
-    if (noAutoplay !== true) {
-        playIntroAudio();
-    }
 
     _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'switch-tag', selectedTag]);
 }
@@ -845,6 +837,11 @@ var onShuffleSongsClick = function(e) {
     playIntroAudio();
 }
 
+var getCurrentSong = function() {
+    var $currentSong = $songs.not('.small');  
+    return $currentSong;  
+}
+
 /*
  * Hide the welcome screen and show the playing song
  */
@@ -857,7 +854,9 @@ var hideWelcome  = function() {
     $fixedHeader.show();
     setCurrentSongHeight();
 
-    $songs.find('.song').last().velocity("scroll", { duration: 750, offset: -fixedHeaderHeight });
+    var $currentSong = getCurrentSong();
+
+    $currentSong.velocity("scroll", { duration: 750, offset: -fixedHeaderHeight });
 
     $landing.velocity({
         bottom: '5rem',
@@ -947,17 +946,7 @@ var onContinueButtonClick = function(e) {
  */
 var onSongCardClick = function(e) {
 
-    var songID = $(this).attr('data-song-id');
-
-    var nextSong = _.find(SONG_DATA, function(song) {
-        return songID === song['id'];
-    });
-
-    if (!nextSong) {
-        return;
-    }
-
-    playNextSong(nextSong);
+    playNextSong($(this));
 }
 
 /*
@@ -1050,7 +1039,7 @@ var getSong = function($el) {
  * Scroll to the top of the history
  */
 var showHistory = function() {
-    $songs.velocity('scroll');
+    $songsWrapper.velocity('scroll');
 }
 
 /*
@@ -1061,8 +1050,9 @@ var toggleHistoryButton = function(e) {
         return;
     }
 
-    // TODO: dont use last song
-    var currentSongOffset = $songs.find('.song').last().offset().top - 50;
+    var $currentSong = getCurrentSong();
+
+    var currentSongOffset = $currentSong.offset().top - 50;
     var windowScrollTop = $(window).scrollTop();
     if (currentSongOffset < windowScrollTop + fixedHeaderHeight){
         $historyButton.removeClass('offscreen');

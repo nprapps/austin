@@ -1,4 +1,4 @@
-<div class="song small" data-song-id="{{ song.id }}">
+<div id="song-{{ song.id }}" class="song small" data-artist="{{ song.artist }}" data-title="{{ song.title }}" data-media-url="{{ song.media_url }}">
     <div class="container-fluid">
         <div class="song-info">
             <img class="album-cover img-responsive" src="http://npr.org{{ song.song_art }}">
@@ -14,7 +14,7 @@
                         {% endfor %}
                     </ul>
                 </div>
-                
+
                 <ul class="song-tools list-unstyled">
                     {% if song.ASIN %}
                     <li><a target="_blank" href="http://amazon.com/dp/{{ song.ASIN }}?tag=npr-5-20" class="amazon"><span class="icon-amazon"></span></a></li>
