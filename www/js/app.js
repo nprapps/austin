@@ -43,6 +43,7 @@ var ALL_HISTORY = (window.location.search.indexOf('allhistory') >= 0);
 // Global state
 var firstShareLoad = true;
 var playedSongs = [];
+var songOrder = [];
 var playlist = [];
 var selectedTag = null;
 var playlistLength = null;
@@ -144,15 +145,16 @@ var onDocumentLoad = function(e) {
         clippy.on('aftercopy', onClippyCopy);
     });
 
-    // set up the app
-    shuffleSongs();
-
     if (RESET_STATE) {
         resetState();
     }
 
     setupAudio();
     loadState();
+
+    if (songOrder.length == 0) {
+        shuffleSongs();
+    }
 
     if (window.location.hash) {
         playSongFromHash();
@@ -658,10 +660,19 @@ var skipSong = function() {
  */
 var loadState = function() {
     playedSongs = simpleStorage.get('playedSongs') || [];
+    songOrder = simpleStorage.get('songOrder') || [];
     selectedTag = simpleStorage.get('selectedTag') || null;
-    usedSkips = simpleStorage.get('usedSkips') || [];
     totalSongsPlayed = simpleStorage.get('totalSongsPlayed') || 0;
-    songHistory = simpleStorage.get('songHistory') || {};
+
+    if (songOrder.length > 0) {
+        var orderedPlaylist = [];
+        for (var i = 0; i < songOrder.length; i++) {
+            var $matchingSong = $songsWrapper.find('#' + songOrder[i]);
+            $matchingSong = $matchingSong.detach();
+            orderedPlaylist.push($matchingSong);
+        }
+        $songsWrapper.append(orderedPlaylist);
+    }
 
     if (ALL_HISTORY) {
         $songs.each(function($song) {
@@ -671,10 +682,6 @@ var loadState = function() {
 
     if (playedSongs.length === $songs.length) {
         playedSongs = [];
-    }
-
-    if (playedSongs.length > 0) {
-        buildListeningHistory();
     }
 
     if (playedSongs.length > 0 || selectedTag !== null) {
@@ -688,9 +695,11 @@ var loadState = function() {
  * Reset everything we can legally reset
  */
 var resetState = function() {
+    songOrder = [];
     playedSongs = [];
     selectedTag = null;
 
+    simpleStorage.set('songOrder', songOrder);
     simpleStorage.set('playedSongs', playedSongs);
     simpleStorage.set('selectedTag', selectedTag);
     simpleStorage.set('playedPreroll', false);
@@ -703,27 +712,6 @@ var markSongPlayed = function(slug) {
     playedSongs.push(slug)
 
     simpleStorage.set('playedSongs', playedSongs);
-}
-
-/*
- * Reconstruct listening history from stashed id's.
- */
-var buildListeningHistory = function() {
-    // for (var i = 0; i < playedSongs.length; i++) {
-    //     var songID = playedSongs[i];
-
-    //     var song = _.find(SONG_DATA, function(song) {
-    //         return songID === song['id']
-    //     });
-
-
-    //     var context = $.extend(APP_CONFIG, song, {
-    //         'mixtapeName': makeMixtapeName(song)
-    //     });
-    //     var html = JST.song(context);
-    //     $songs.append(html);
-    // };
-    // $songs.find('.song').addClass('small');
 }
 
 /*
@@ -755,6 +743,15 @@ var shuffleSongs = function() {
     $songs.detach();
     $songs = $(_.shuffle($songs));
     $songsWrapper.append($songs);
+
+    songOrder = [];
+
+    $songs.each(function(i, song) {      
+        songOrder.push($(song).attr('id'));
+
+    });
+
+    simpleStorage.set('songOrder', songOrder); 
 }
 
 /*
