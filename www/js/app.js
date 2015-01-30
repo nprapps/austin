@@ -548,6 +548,19 @@ var playSongFromHash = function() {
     playNextSong($song);
 }
 
+var playLastSongFromHistory = function() {
+    var $song = $('#' + lastSongPlayed);
+
+    if (!$song) {
+        return;
+    }
+
+    buildPlaylist();
+    updateTagDisplay();
+    $landing.velocity('fadeOut');
+    playNextSong($song);
+}
+
 /*
  *  Set the height of the currently playing song to fill the viewport.
  */
@@ -663,6 +676,7 @@ var loadState = function() {
     songOrder = simpleStorage.get('songOrder') || [];
     selectedTag = simpleStorage.get('selectedTag') || null;
     totalSongsPlayed = simpleStorage.get('totalSongsPlayed') || 0;
+    lastSongPlayed = simpleStorage.get('lastSongPlayed') || null;
 
     if (songOrder.length > 0) {
         var orderedPlaylist = [];
@@ -698,7 +712,9 @@ var resetState = function() {
     songOrder = [];
     playedSongs = [];
     selectedTag = null;
+    lastSongPlayed = null;
 
+    simpleStorage.set('lastSongPlayed', lastSongPlayed);
     simpleStorage.set('songOrder', songOrder);
     simpleStorage.set('playedSongs', playedSongs);
     simpleStorage.set('selectedTag', selectedTag);
@@ -709,8 +725,8 @@ var resetState = function() {
  * Mark the current song as played and save state.
  */
 var markSongPlayed = function(slug) {
-    playedSongs.push(slug)
-
+    simpleStorage.set('lastSongPlayed', slug);
+    playedSongs.push(slug);
     simpleStorage.set('playedSongs', playedSongs);
 }
 
@@ -933,7 +949,13 @@ var onContinueButtonClick = function(e) {
     buildPlaylist();
     updateTagDisplay();
     $landing.velocity('fadeOut');
-    playNextSong();
+    
+    if (lastSongPlayed) {
+        var $song = $('#' + lastSongPlayed);
+        playNextSong($song);        
+    } else {
+        playNextSong();
+    }
 }
 
 /*
