@@ -452,12 +452,10 @@ var playNextSong = function($nextSong) {
         $nextSong = $songs.eq(0);
     }
 
-    var songID = $nextSong.attr('id');
+    var songID = $nextSong.attr('id').replace('song-', '');
     var artist = $nextSong.data('artist');
     var title = $nextSong.data('title');
-    console.log(title)
     var mediaURL = $nextSong.attr('data-media-url');
-    console.log(mediaURL)
 
     $songs.addClass('small');
     $nextSong.removeClass('small');    
