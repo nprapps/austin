@@ -15,7 +15,6 @@ var $skip = null;
 var $songs = null;
 var $landing = null;
 var $genreFilters = null;
-var $reviewerFilters = null;
 var $filtersPanel = null;
 var $fixedHeader = null;
 var $landingReturnDeck = null;
@@ -56,7 +55,6 @@ var songHeight = null;
 var fixedHeaderHeight = null;
 var is_small_screen = false
 var inPreroll = false;
-var firstReviewerSong = false;
 
 var isCasting = false;
 var castSender = null;
@@ -85,7 +83,6 @@ var onDocumentLoad = function(e) {
     $tagsWrapper = $('.tags-wrapper');
     $landing = $('.landing');
     $genreFilters = $('.genre li a.genre-btn');
-    $reviewerFilters = $('.reviewer li a');
     $filtersPanel = $('.playlist-filters');
     $fixedHeader = $('.fixed-header');
     $landingReturnDeck = $('.landing-return-deck');
@@ -117,7 +114,6 @@ var onDocumentLoad = function(e) {
     $goButton.on('click', onGoButtonClick);
     $continueButton.on('click', onContinueButtonClick);
     $genreFilters.on('click', onGenreClick);
-    $reviewerFilters.on('click', onReviewerClick);
     $skip.on('click', onSkipClick);
     $play.on('click', onPlayClick);
     $pause.on('click', onPauseClick);
@@ -131,7 +127,6 @@ var onDocumentLoad = function(e) {
     $songs.on('click', '.song-tools .itunes', oniTunesClick);
     $songs.on('click', '.song-tools .rdio', onRdioClick);
     $songs.on('click', '.song-tools .spotify', onSpotifyClick);
-    $songs.on('click', '.byline .reviewer-link', onReviewerLinkClick);
     $landing.on('click', '.poster.shrink', onFilterTipClick);
 
     $castStart.on('click', onCastStartClick);
@@ -231,7 +226,6 @@ var onCastSenderStarted = function() {
     castSender.sendMessage('init');
 
     castSender.onMessage('genre-ended', onCastGenreEnded);
-    castSender.onMessage('reviewer-ended', onCastReviewerEnded);
 }
 
 /*
@@ -274,11 +268,6 @@ var onCastStopClick = function(e) {
 var onCastGenreEnded = function() {
     console.log('fired');
     resetGenreFilters();
-}
-
-var onCastReviewerEnded = function() {
-    console.log('fired');
-    getNextReviewer();
 }
 
 var onCastReceiverToggleAudio = function(message) {
@@ -434,27 +423,6 @@ var playIntroAudio = function() {
 }
 
 /*
- * Generate a reader-friendly mixtape name.
- */
-var makeMixtapeName = function(song) {
-    var mixtapeName = null;
-
-    if (selectedTag !== song['reviewer']) {
-        if (_.contains(APP_CONFIG.REVIEWER_TAGS, song['reviewer'])) {
-            mixtapeName = song['reviewer'].split(' ')[0];
-
-            if (mixtapeName[mixtapeName.length - 11] == 's') {
-                mixtapeName += '&rsquo;'
-            } else {
-                mixtapeName += '&rsquo;' + 's';
-            }
-        }
-    }
-
-    return mixtapeName;
-}
-
-/*
  * Play the next song in the playlist.
  */
 var playNextSong = function(nextSong) {
@@ -463,23 +431,9 @@ var playNextSong = function(nextSong) {
         // if this is the first song in a curator playlist
         // get one reviewed by the curator        
         nextSong = _.find(playlist, function(song) {
-            if (!firstReviewerSong) {
-                return !(_.contains(playedSongs, song['id']));
-            } else {
-                return !(_.contains(playedSongs, song['id'])) && song['reviewer'] === selectedTag;
-            }
+            return !(_.contains(playedSongs, song['id']));
         });
-
-        // some mixtape curators have not reviewed anything
-        // in this case, just use the normal filter
-        if (firstReviewerSong && !nextSong) {
-            nextSong = _.find(playlist, function(song) {
-                return !(_.contains(playedSongs, song['id']));
-            });
-        }
     }
-
-    firstReviewerSong = false;
 
     // if we don't have a song, get a new playlist
     if (!nextSong) {
@@ -487,9 +441,6 @@ var playNextSong = function(nextSong) {
         return;
     }
 
-    var context = $.extend(APP_CONFIG, nextSong, {
-        'mixtapeName': makeMixtapeName(nextSong)
-    });
     var $song = $('.song[data-song-id=' + nextSong['id'] + ']');
 
     $songs.find('.song').addClass('small');
@@ -610,15 +561,8 @@ var nextPlaylist = function() {
     }
 
     _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'tag-finish', selectedTag]);
-    var tag = null;
 
-    if (selectedTag === null || _.contains(APP_CONFIG.GENRE_TAGS, selectedTag)) {
-        // go to shuffle
-    } else {
-        tag = getNextReviewer();
-        firstReviewerSong = true;
-    }
-    switchTag(tag);
+    switchTag(null);
 }
 
 
@@ -828,55 +772,6 @@ var updatePlaylistLength = function() {
 }
 
 /*
- * Cycle to the next curator in the list.
- */
-var getNextReviewer = function() {
-    var $nextReviewer = null;
-    for (i = 0; i < $reviewerFilters.length; i++) {
-        if (!($reviewerFilters.eq(i).hasClass('disabled'))) {
-            if (i == $reviewerFilters.length - 1) {
-                $nextReviewer = $reviewerFilters.eq(0);
-            }
-            else {
-                $nextReviewer = $reviewerFilters.eq(i + 1);
-            }
-        }
-    }
-
-    $reviewerFilters.addClass('disabled');
-    $nextReviewer.removeClass('disabled');
-    return $nextReviewer.data('tag');
-}
-
-/*
- * Handle clicks on curators.
- */
-var onReviewerClick = function(e) {
-    e.preventDefault();
-
-    var reviewer = $(this).data('tag');
-    firstReviewerSong = true;
-
-    if (isCasting) {
-        castSender.sendMessage('toggle-curator', curator);
-    } else {
-        switchTag(reviewer);
-    }
-
-    toggleFilterPanel();
-}
-
-/*
- * Handle clicks on inline reviewer links in song jst.
- */
-var onReviewerLinkClick = function(e) {
-    e.preventDefault();
-
-    var reviewer = $(this).data('tag');
-    switchTag(reviewer);
-}
-
-/*
  * Handle clicks on genre buttons
  */
 var onGenreClick = function(e) {
@@ -927,19 +822,8 @@ var updateTagDisplay = function() {
         $currentDj.text(allSongsText);
         $shuffleSongs.removeClass('disabled');
     } else {
-        var tag = null;
-        if (selectedTag == '\\m/ >_< \\m/') {
-            tag = selectedTag;
-        } else {
-            tag = selectedTag
-
-            if (_.contains(APP_CONFIG.REVIEWER_TAGS, selectedTag)) {
-                if (selectedTag[selectedTag.length - 1] == 's') {
-                    tag += '\u2019 Mixtape'
-                } else {
-                    tag += '\u2019' + 's Mixtape';
-                }
-            }
+        var tag = selectedTag;
+        if (selectedTag !== '\\m/ >_< \\m/') {
             tag = tag.toUpperCase();
         }
 

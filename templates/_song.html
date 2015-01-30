@@ -14,16 +14,7 @@
                         {% endfor %}
                     </ul>
                 </div>
-
-                <div class="review-wrapper">
-                    <p class="review">{{ song.review }}</p>
-                    <p class="byline"><span class="mug"><img src="{{ S3_BASE_URL }}/assets/img/headshots/{{ REVIEWER_IMAGES[reviewer] }}"></span> <span class="name">{{ song.reviewer }}{% if song.reviewer_affiliation %}, <a href="{{ affiliate_link }}" target="_blank">{{ song.reviewer_affiliation }}</a>{% endif %}</span>
-                    {% if song.mixtapeName %}
-                        <a href="#" class="reviewer-link" data-tag="{{ song.reviewer }}"><span class="icon-play"></span> Play {{ song.mixtapeName }} mixtape</a>
-                        </p>
-                    {% endif %}
-                </div>
-
+                
                 <ul class="song-tools list-unstyled">
                     {% if song.ASIN %}
                     <li><a target="_blank" href="http://amazon.com/dp/{{ song.ASIN }}?tag=npr-5-20" class="amazon"><span class="icon-amazon"></span></a></li>
