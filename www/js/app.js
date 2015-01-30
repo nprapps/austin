@@ -45,6 +45,7 @@ var firstShareLoad = true;
 var playedSongs = [];
 var songOrder = [];
 var playlist = [];
+var favoritedSongs = [];
 var selectedTag = null;
 var playlistLength = null;
 var onWelcome = true;
@@ -125,6 +126,7 @@ var onDocumentLoad = function(e) {
     $shuffleSongs.on('click', onShuffleSongsClick);
     $historyButton.on('click', showHistory);
     $songsWrapper.on('click', '.song.small', onSongCardClick);
+    $songsWrapper.on('click', '.song-tools .stars', onStarClick);
     $songsWrapper.on('click', '.song-tools .amazon', onAmazonClick);
     $songsWrapper.on('click', '.song-tools .itunes', oniTunesClick);
     $songsWrapper.on('click', '.song-tools .rdio', onRdioClick);
@@ -160,6 +162,22 @@ var onDocumentLoad = function(e) {
         playSongFromHash();
     }
 
+    if (simpleStorage.get('favoritedSongs').length > 0) {
+        for (var i = 0; i < simpleStorage.get('favoritedSongs').length; i++) {
+            var songs = $('#' + simpleStorage.get('favoritedSongs')[i]);
+
+ 
+            var $songsFavoriteStars = $songs.find('.stars');
+            
+            console.log($songsFavoriteStars)
+
+            for (var j = 0; j < $songsFavoriteStars.length; j++) {
+                // console.log($songsFavoriteStars[j])
+                $songsFavoriteStars[j].switchClass('fa-star-o', 'fa-star');
+            }
+        }
+    }
+
     /*Newscast({
         'namespace': APP_CONFIG.CHROMECAST_NAMESPACE,
         'appId': APP_CONFIG.CHROMECAST_APP_ID,
@@ -181,7 +199,6 @@ var onCastReceiverCreated = function(receiver) {
     castReceiver.onMessage('toggle-audio', onCastReceiverToggleAudio);
     castReceiver.onMessage('skip-song', onCastReceiverSkipSong);
     castReceiver.onMessage('toggle-genre', onCastReceiverToggleGenre);
-    castReceiver.onMessage('toggle-curator', onCastReceiverToggleCurator);
     castReceiver.onMessage('send-playlist', onCastReceiverPlaylist);
     castReceiver.onMessage('send-tags', onCastReceiverTags);
     castReceiver.onMessage('send-history', onCastReceiverHistory);
@@ -992,6 +1009,26 @@ var onDocumentKeyDown = function(e) {
             break;
     }
     return true;
+}
+
+var onStarClick = function(e) {
+
+    $(this).toggleClass('fa-star-o fa-star');        
+
+    var slug = $(this).parents('.song').attr('id');
+
+    if ($(this).hasClass('fa-star')) {
+        favoritedSongs.push(slug);
+        simpleStorage.set('favoritedSongs', favoritedSongs);
+        console.log(favoritedSongs)
+    } else {
+        for (var i = 0; i < favoritedSongs.length; i++) {
+            if (favoritedSongs[i] == slug) {
+                favoritedSongs.splice($.inArray(favoritedSongs[i], favoritedSongs), 1);
+            } 
+        }
+    } 
+    e.stopPropagation();
 }
 
 /*
