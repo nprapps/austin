@@ -164,17 +164,12 @@ var onDocumentLoad = function(e) {
 
     if (simpleStorage.get('favoritedSongs').length > 0) {
         for (var i = 0; i < simpleStorage.get('favoritedSongs').length; i++) {
-            var songs = $('#' + simpleStorage.get('favoritedSongs')[i]);
+            var $favoritedSongs = $('#' + simpleStorage.get('favoritedSongs')[i]);
 
- 
-            var $songsFavoriteStars = $songs.find('.stars');
+            var $songsFavoriteStars = $favoritedSongs.find('.stars');
             
-            console.log($songsFavoriteStars)
-
-            for (var j = 0; j < $songsFavoriteStars.length; j++) {
-                // console.log($songsFavoriteStars[j])
-                $songsFavoriteStars[j].switchClass('fa-star-o', 'fa-star');
-            }
+            $songsFavoriteStars.removeClass('fa-star-o');
+            $songsFavoriteStars.addClass('fa-star');
         }
     }
 
