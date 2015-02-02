@@ -441,6 +441,8 @@ var playIntroAudio = function() {
  * Play the next song in the playlist.
  */
 var playNextSong = function($nextSong) {
+    var $currentSong = getCurrentSong();
+
     if (_.isUndefined($nextSong)) {    
         var $currentSong = getCurrentSong();
 
@@ -471,8 +473,6 @@ var playNextSong = function($nextSong) {
     var title = $nextSong.data('title');
     var mediaURL = $nextSong.attr('data-media-url');
 
-    $songs.addClass('small');
-    $nextSong.removeClass('small');    
 
     $playerArtist.html(artist);
     $playerTitle.html(title);
@@ -495,47 +495,34 @@ var playNextSong = function($nextSong) {
     $pause.show();
 
     if (onWelcome) {
+        $nextSong.removeClass('small');
         $nextSong.css('min-height', songHeight).show();
         $nextSong.find('.container-fluid').css('height', songHeight);
 
         hideWelcome();
     } else {
         setCurrentSongHeight();
-        $nextSong.find('.container-fluid').css('height', songHeight);
-        $nextSong.prev().velocity("scroll", {
-            duration: 350,
-            offset: -fixedHeaderHeight,
-            begin: function() {
-                $(document).off('scroll');
-            },
-            complete: function() {
-                $('.stack .poster').velocity('fadeOut', {
-                    duration: 500
-                });
-                $nextSong.prev().find('.container-fluid').css('height', '0');
-                $nextSong.prev().find('.song-info').css('min-height', 0);
-                $nextSong.prev().css('min-height', '0').addClass('small');
-                $nextSong.css('min-height', songHeight)
-                    .velocity('fadeIn', {
-                        duration: 300,
-                        complete: function(){
-                                $(this).velocity("scroll", {
-                                duration: 500,
-                                offset: -fixedHeaderHeight,
-                                delay: 300,
-                                complete: function() {
-                                    $(document).on('scroll', onDocumentScroll);
 
-                                    if (playedSongs.length > 1) {
-                                        $historyButton.show();
-                                        $historyButton.removeClass('offscreen');
-                                    }
-                                }
-                            });
-                        }
-                    });
-            }
-        });
+        $currentSong.find('.container-fluid').css('height', '0');
+        $currentSong.find('.song-info').css('min-height', 0);
+        $currentSong.css('min-height', '0').addClass('small');
+
+
+        $nextSong.css('min-height', songHeight);
+        $nextSong.find('.container-fluid').css('height', songHeight);
+        $nextSong.removeClass('small');
+
+        $nextSong.velocity("scroll", {
+                duration: 500,
+                offset: -fixedHeaderHeight,
+                delay: 1000,
+                complete: function() {
+                    if (playedSongs.length > 1) {
+                        $historyButton.show();
+                        $historyButton.removeClass('offscreen');
+                    }
+                }
+            });
     }
 
     markSongPlayed(slug);
