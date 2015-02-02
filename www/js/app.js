@@ -29,6 +29,7 @@ var $currentDj = null;
 var $fixedControls = null;
 var $historyButton = null;
 var $fullscreenButton = null;
+var $favorites = null;
 
 var $castButtons = null;
 var $castStart = null;
@@ -98,6 +99,7 @@ var onDocumentLoad = function(e) {
     $currentDj = $('.current-dj');
     $fixedControls = $('.fixed-controls');
     $historyButton = $('.js-show-history');
+    $favorites = $('.favorites');
 
     $fullscreenButtons = $('.fullscreen');
     $fullscreenStart = $('.fullscreen .start');
@@ -132,6 +134,7 @@ var onDocumentLoad = function(e) {
     $songsWrapper.on('click', '.song-tools .rdio', onRdioClick);
     $songsWrapper.on('click', '.song-tools .spotify', onSpotifyClick);
     $landing.on('click', '.poster.shrink', onFilterTipClick);
+    $favorites.on('click', onFavoritesClick);
 
     $castStart.on('click', onCastStartClick);
     $castStop.on('click', onCastStopClick);
@@ -317,6 +320,19 @@ var onCastReceiverInit = function() {
     $landing.hide();
     $('.songs, .player-container, .playlist-filters').show();
     _.delay(playNextSong, 1000);
+}
+
+var onFavoritesClick = function() {
+    $songs.hide();
+
+    for (var i = 0; i < favoritedSongs.length; i++) {
+        $('#' + favoritedSongs[i]).show();
+    }
+
+    var $currentSong = getCurrentSong();
+
+    $nextSong = $songs.filter(':visible').eq(0);
+    playNextSong($nextSong);
 }
 
 /*
@@ -702,7 +718,6 @@ var loadState = function() {
     }
 
     if (favoritedSongs.length > 0) {
-        console.log(favoritedSongs)
         for (var i = 0; i < favoritedSongs.length; i++) {
             var $favoritedSongs = $('#' + favoritedSongs[i]);
 
