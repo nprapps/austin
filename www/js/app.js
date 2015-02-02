@@ -1020,12 +1020,11 @@ var onStarClick = function(e) {
         favoritedSongs.push(slug);
         simpleStorage.set('favoritedSongs', favoritedSongs);
     } else {
-        console.log('made it here')
         for (var i = 0; i < favoritedSongs.length; i++) {
             if (favoritedSongs[i] == slug) {
                 favoritedSongs.splice($.inArray(favoritedSongs[i], favoritedSongs), 1);
+                simpleStorage.set('favoritedSongs', favoritedSongs);
             } 
-            console.log('removed')
         }
     } 
     e.stopPropagation();
