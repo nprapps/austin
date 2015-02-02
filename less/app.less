@@ -656,10 +656,15 @@ h1,h2,h3,h4,h5,h6 {
 }
 
 .song {
-	background: darken(@music-hp-dark, 5%);
+	background: transparent;
 	border-top: 2px solid @music-hp-dark;
 	.transition(0.3s all ease-in-out);
 	-webkit-backface-visibility: hidden; // prevent flickering in Safari
+
+	&.small {
+		background: darken(@music-hp-dark, 5%);
+		cursor: pointer;
+	}
 
 	> .container-fluid {
 		.transition(0.3s height ease-in-out);
@@ -677,15 +682,6 @@ h1,h2,h3,h4,h5,h6 {
 
 	&:first-child {
 		border-color: transparent;
-	}
-
-	&:last-child {
-		background: transparent;
-		border-color: transparent;
-	}
-
-	&:not(:last-child) {
-		cursor: pointer;
 	}
 
 	.song-info {

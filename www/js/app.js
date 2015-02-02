@@ -74,7 +74,7 @@ var onDocumentLoad = function(e) {
     $goButton = $('.go');
     $continueButton = $('.continue');
     $audioPlayer = $('#audio-player');
-    $songsWrapper = $('.songs-wrapper');
+    $songsWrapper = $('.songs');
     $songs = $songsWrapper.find('.song');
     $skip = $('.skip');
     $playerArtist = $('.player .artist');
@@ -270,7 +270,6 @@ var onCastStopClick = function(e) {
 }
 
 var onCastGenreEnded = function() {
-    console.log('fired');
     resetGenreFilters();
 }
 
@@ -296,17 +295,14 @@ var onCastReceiverToggleCurator = function(message) {
 
 var onCastReceiverPlaylist = function(message) {
     playlist = JSON.parse(message);
-    console.log(playlist);
 }
 
 var onCastReceiverTags = function(message) {
     selectedTags = JSON.parse(message);
-    console.log(selectedTags);
 }
 
 var onCastReceiverHistory = function(message) {
     songHistory = JSON.parse(message);
-    console.log(songHistory);
 }
 
 var onCastReceiverPlayed = function(message) {
@@ -315,7 +311,6 @@ var onCastReceiverPlayed = function(message) {
     for (i = 0; i < playedSongs.length; i++) {
         playedSongs[i] = parseInt(playedSongs[i]);
     }
-    console.log(playedSongs);
 }
 
 var onCastReceiverInit = function() {
