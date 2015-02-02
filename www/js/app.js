@@ -58,7 +58,7 @@ var songHeight = null;
 var fixedHeaderHeight = null;
 var is_small_screen = false
 var inPreroll = false;
-var playMode = null;
+var playFavoritesMode = false;
 
 var isCasting = false;
 var castSender = null;
@@ -324,8 +324,8 @@ var onCastReceiverInit = function() {
 }
 
 var onFavoritesClick = function() {
+    playFavoritesMode = true;
     $songs.hide();
-
     for (var i = 0; i < favoritedSongs.length; i++) {
         $('#' + favoritedSongs[i]).show();
     }
@@ -1020,6 +1020,11 @@ var onStarClick = function(e) {
         simpleStorage.set('favoritedSongs', favoritedSongs);
     } else {
         var indexOfSongToUnfavorite = _.indexOf(favoritedSongs, slug);
+
+        if (playFavoritesMode) {
+           $('#' + favoritedSongs[indexOfSongToUnfavorite]).hide(); 
+        }
+
         favoritedSongs.splice(indexOfSongToUnfavorite, 1);
         simpleStorage.set('favoritedSongs', favoritedSongs);
     } 
