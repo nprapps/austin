@@ -1011,6 +1011,7 @@ var onDocumentKeyDown = function(e) {
 }
 
 var onStarClick = function(e) {
+    e.stopPropagation();
 
     $(this).toggleClass('fa-star-o fa-star');        
 
@@ -1020,14 +1021,13 @@ var onStarClick = function(e) {
         favoritedSongs.push(slug);
         simpleStorage.set('favoritedSongs', favoritedSongs);
     } else {
-        for (var i = 0; i < favoritedSongs.length; i++) {
-            if (favoritedSongs[i] == slug) {
-                favoritedSongs.splice($.inArray(favoritedSongs[i], favoritedSongs), 1);
+        _.find(favoritedSongs, function(songToUnfavorite) {
+            if (songToUnfavorite == slug) {
+                favoritedSongs.splice($.inArray(songToUnfavorite, favoritedSongs), 1);
                 simpleStorage.set('favoritedSongs', favoritedSongs);
-            } 
-        }
+            }  
+        });
     } 
-    e.stopPropagation();
 }
 
 /*
