@@ -74,7 +74,7 @@ var onDocumentLoad = function(e) {
     $goButton = $('.go');
     $continueButton = $('.continue');
     $audioPlayer = $('#audio-player');
-    $songsWrapper = $('.songs');
+    $songsWrapper = $('.songs-wrapper');
     $songs = $songsWrapper.find('.song');
     $skip = $('.skip');
     $playerArtist = $('.player .artist');
@@ -702,6 +702,7 @@ var loadState = function() {
     }
 
     if (favoritedSongs.length > 0) {
+        console.log(favoritedSongs)
         for (var i = 0; i < favoritedSongs.length; i++) {
             var $favoritedSongs = $('#' + favoritedSongs[i]);
 
