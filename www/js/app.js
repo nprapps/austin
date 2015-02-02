@@ -58,6 +58,7 @@ var songHeight = null;
 var fixedHeaderHeight = null;
 var is_small_screen = false
 var inPreroll = false;
+var playMode = null;
 
 var isCasting = false;
 var castSender = null;
@@ -75,7 +76,7 @@ var onDocumentLoad = function(e) {
     $goButton = $('.go');
     $continueButton = $('.continue');
     $audioPlayer = $('#audio-player');
-    $songsWrapper = $('.songs-wrapper');
+    $songsWrapper = $('.songs');
     $songs = $songsWrapper.find('.song');
     $skip = $('.skip');
     $playerArtist = $('.player .artist');
