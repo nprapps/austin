@@ -162,18 +162,6 @@ var onDocumentLoad = function(e) {
         playSongFromHash();
     }
 
-    if (simpleStorage.get('favoritedSongs').length > 0) {
-        console.log(simpleStorage.get('favoritedSongs'))
-        for (var i = 0; i < simpleStorage.get('favoritedSongs').length; i++) {
-            var $favoritedSongs = $('#' + simpleStorage.get('favoritedSongs')[i]);
-
-            var $songsFavoriteStars = $favoritedSongs.find('.stars');
-            
-            $songsFavoriteStars.removeClass('fa-star-o');
-            $songsFavoriteStars.addClass('fa-star');
-        }
-    }
-
     /*Newscast({
         'namespace': APP_CONFIG.CHROMECAST_NAMESPACE,
         'appId': APP_CONFIG.CHROMECAST_APP_ID,
@@ -716,6 +704,17 @@ var loadState = function() {
         $landingReturnDeck.show();
     } else {
         $landingFirstDeck.show();
+    }
+
+    if (favoritedSongs.length > 0) {
+        for (var i = 0; i < favoritedSongs.length; i++) {
+            var $favoritedSongs = $('#' + favoritedSongs[i]);
+
+            var $songsFavoriteStars = $favoritedSongs.find('.stars');
+            
+            $songsFavoriteStars.removeClass('fa-star-o');
+            $songsFavoriteStars.addClass('fa-star');
+        }
     }
 }
 
