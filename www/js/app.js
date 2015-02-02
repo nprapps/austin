@@ -1022,7 +1022,7 @@ var onStarClick = function(e) {
         var indexOfSongToUnfavorite = _.indexOf(favoritedSongs, slug);
 
         if (playFavoritesMode) {
-           $('#' + favoritedSongs[indexOfSongToUnfavorite]).hide(); 
+           $('#' + favoritedSongs[indexOfSongToUnfavorite]).hide('slow'); 
         }
 
         favoritedSongs.splice(indexOfSongToUnfavorite, 1);
