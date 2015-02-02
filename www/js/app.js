@@ -30,6 +30,7 @@ var $fixedControls = null;
 var $historyButton = null;
 var $fullscreenButton = null;
 var $favorites = null;
+var $allSongs = null;
 
 var $castButtons = null;
 var $castStart = null;
@@ -101,6 +102,7 @@ var onDocumentLoad = function(e) {
     $fixedControls = $('.fixed-controls');
     $historyButton = $('.js-show-history');
     $favorites = $('.favorites');
+    $allSongs = $('.all-songs');
 
     $fullscreenButtons = $('.fullscreen');
     $fullscreenStart = $('.fullscreen .start');
@@ -136,6 +138,7 @@ var onDocumentLoad = function(e) {
     $songsWrapper.on('click', '.song-tools .spotify', onSpotifyClick);
     $landing.on('click', '.poster.shrink', onFilterTipClick);
     $favorites.on('click', onFavoritesClick);
+    $allSongs.on('click', onAllSongsClick);
 
     $castStart.on('click', onCastStartClick);
     $castStop.on('click', onCastStopClick);
@@ -334,6 +337,11 @@ var onFavoritesClick = function() {
 
     $nextSong = $songs.filter(':visible').eq(0);
     playNextSong($nextSong);
+}
+
+var onAllSongsClick = function() {
+    playFavoritesMode = false;
+    $songs.show();
 }
 
 /*
