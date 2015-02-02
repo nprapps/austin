@@ -1020,12 +1020,9 @@ var onStarClick = function(e) {
         favoritedSongs.push(slug);
         simpleStorage.set('favoritedSongs', favoritedSongs);
     } else {
-        _.find(favoritedSongs, function(songToUnfavorite) {
-            if (songToUnfavorite == slug) {
-                favoritedSongs.splice($.inArray(songToUnfavorite, favoritedSongs), 1);
-                simpleStorage.set('favoritedSongs', favoritedSongs);
-            }  
-        });
+        var indexOfSongToUnfavorite = _.indexOf(favoritedSongs, slug);
+        favoritedSongs.splice(indexOfSongToUnfavorite, 1);
+        simpleStorage.set('favoritedSongs', favoritedSongs);
     } 
 }
 
