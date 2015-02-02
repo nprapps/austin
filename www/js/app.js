@@ -43,6 +43,7 @@ var ALL_HISTORY = (window.location.search.indexOf('allhistory') >= 0);
 // Global state
 var firstShareLoad = true;
 var playedSongs = [];
+var favoritedSongs = [];
 var songOrder = [];
 var playlist = [];
 var selectedTag = null;
@@ -73,7 +74,7 @@ var onDocumentLoad = function(e) {
     $goButton = $('.go');
     $continueButton = $('.continue');
     $audioPlayer = $('#audio-player');
-    $songsWrapper = $('.songs');
+    $songsWrapper = $('.songs-wrapper');
     $songs = $songsWrapper.find('.song');
     $skip = $('.skip');
     $playerArtist = $('.player .artist');
@@ -125,6 +126,7 @@ var onDocumentLoad = function(e) {
     $shuffleSongs.on('click', onShuffleSongsClick);
     $historyButton.on('click', showHistory);
     $songsWrapper.on('click', '.song.small', onSongCardClick);
+    $songsWrapper.on('click', '.song-tools .stars', onStarClick);
     $songsWrapper.on('click', '.song-tools .amazon', onAmazonClick);
     $songsWrapper.on('click', '.song-tools .itunes', oniTunesClick);
     $songsWrapper.on('click', '.song-tools .rdio', onRdioClick);
@@ -181,7 +183,6 @@ var onCastReceiverCreated = function(receiver) {
     castReceiver.onMessage('toggle-audio', onCastReceiverToggleAudio);
     castReceiver.onMessage('skip-song', onCastReceiverSkipSong);
     castReceiver.onMessage('toggle-genre', onCastReceiverToggleGenre);
-    castReceiver.onMessage('toggle-curator', onCastReceiverToggleCurator);
     castReceiver.onMessage('send-playlist', onCastReceiverPlaylist);
     castReceiver.onMessage('send-tags', onCastReceiverTags);
     castReceiver.onMessage('send-history', onCastReceiverHistory);
@@ -654,6 +655,7 @@ var skipSong = function() {
  * Load state from browser storage
  */
 var loadState = function() {
+    favoritedSongs = simpleStorage.get('favoritedSongs') || [];
     playedSongs = simpleStorage.get('playedSongs') || [];
     songOrder = simpleStorage.get('songOrder') || [];
     selectedTag = simpleStorage.get('selectedTag') || null;
@@ -685,6 +687,18 @@ var loadState = function() {
     } else {
         $landingFirstDeck.show();
     }
+
+    if (favoritedSongs.length > 0) {
+        console.log(favoritedSongs)
+        for (var i = 0; i < favoritedSongs.length; i++) {
+            var $favoritedSongs = $('#' + favoritedSongs[i]);
+
+            var $songsFavoriteStars = $favoritedSongs.find('.stars');
+            
+            $songsFavoriteStars.removeClass('fa-star-o');
+            $songsFavoriteStars.addClass('fa-star');
+        }
+    }
 }
 
 /*
@@ -693,9 +707,11 @@ var loadState = function() {
 var resetState = function() {
     songOrder = [];
     playedSongs = [];
+    favoritedSongs = [];
     selectedTag = null;
     lastSongPlayed = null;
 
+    simpleStorage.set('favoritedSongs', favoritedSongs);
     simpleStorage.set('lastSongPlayed', lastSongPlayed);
     simpleStorage.set('songOrder', songOrder);
     simpleStorage.set('playedSongs', playedSongs);
@@ -974,6 +990,23 @@ var onDocumentKeyDown = function(e) {
             break;
     }
     return true;
+}
+
+var onStarClick = function(e) {
+    e.stopPropagation();
+
+    $(this).toggleClass('fa-star-o fa-star');        
+
+    var slug = $(this).parents('.song').attr('id');
+
+    if ($(this).hasClass('fa-star')) {
+        favoritedSongs.push(slug);
+        simpleStorage.set('favoritedSongs', favoritedSongs);
+    } else {
+        var indexOfSongToUnfavorite = _.indexOf(favoritedSongs, slug);
+        favoritedSongs.splice(indexOfSongToUnfavorite, 1);
+        simpleStorage.set('favoritedSongs', favoritedSongs);
+    } 
 }
 
 /*
