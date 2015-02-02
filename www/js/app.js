@@ -43,9 +43,9 @@ var ALL_HISTORY = (window.location.search.indexOf('allhistory') >= 0);
 // Global state
 var firstShareLoad = true;
 var playedSongs = [];
+var favoritedSongs = [];
 var songOrder = [];
 var playlist = [];
-var favoritedSongs = [];
 var selectedTag = null;
 var playlistLength = null;
 var onWelcome = true;
@@ -163,6 +163,7 @@ var onDocumentLoad = function(e) {
     }
 
     if (simpleStorage.get('favoritedSongs').length > 0) {
+        console.log(simpleStorage.get('favoritedSongs'))
         for (var i = 0; i < simpleStorage.get('favoritedSongs').length; i++) {
             var $favoritedSongs = $('#' + simpleStorage.get('favoritedSongs')[i]);
 
@@ -684,6 +685,7 @@ var skipSong = function() {
  * Load state from browser storage
  */
 var loadState = function() {
+    favoritedSongs = simpleStorage.get('favoritedSongs') || [];
     playedSongs = simpleStorage.get('playedSongs') || [];
     songOrder = simpleStorage.get('songOrder') || [];
     selectedTag = simpleStorage.get('selectedTag') || null;
@@ -723,9 +725,11 @@ var loadState = function() {
 var resetState = function() {
     songOrder = [];
     playedSongs = [];
+    favoritedSongs = [];
     selectedTag = null;
     lastSongPlayed = null;
 
+    simpleStorage.set('favoritedSongs', favoritedSongs);
     simpleStorage.set('lastSongPlayed', lastSongPlayed);
     simpleStorage.set('songOrder', songOrder);
     simpleStorage.set('playedSongs', playedSongs);
@@ -1015,12 +1019,13 @@ var onStarClick = function(e) {
     if ($(this).hasClass('fa-star')) {
         favoritedSongs.push(slug);
         simpleStorage.set('favoritedSongs', favoritedSongs);
-        console.log(favoritedSongs)
     } else {
+        console.log('made it here')
         for (var i = 0; i < favoritedSongs.length; i++) {
             if (favoritedSongs[i] == slug) {
                 favoritedSongs.splice($.inArray(favoritedSongs[i], favoritedSongs), 1);
             } 
+            console.log('removed')
         }
     } 
     e.stopPropagation();
