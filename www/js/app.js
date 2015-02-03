@@ -40,7 +40,6 @@ var $castScreen = null;
 // URL params
 var NO_AUDIO = (window.location.search.indexOf('noaudio') >= 0);
 var RESET_STATE = (window.location.search.indexOf('resetstate') >= 0);
-var ALL_HISTORY = (window.location.search.indexOf('allhistory') >= 0);
 
 // Global state
 var firstShareLoad = true;
@@ -696,13 +695,6 @@ var loadState = function() {
             orderedPlaylist.push($matchingSong);
         }
         $songsWrapper.append(orderedPlaylist);
-    }
-
-    if (ALL_HISTORY) {
-
-        $songs.each(function(i, song) {
-            markSongPlayed(song['id']);
-        });
     }
 
     if (playedSongs.length === $songs.length) {
