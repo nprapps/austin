@@ -509,7 +509,7 @@ var playNextSong = function($nextSong) {
         $nextSong.find('.container-fluid').css('height', songHeight);
 
         hideWelcome();
-    } else {
+    } else {      
         setCurrentSongHeight();
 
         $currentSong.find('.container-fluid').css('height', '0');
@@ -550,10 +550,11 @@ var playSongFromHash = function() {
         return;
     }
 
+    $landing.hide();
     buildPlaylist();
     updateTagDisplay();
-    $landing.velocity('fadeOut');
     playNextSong($song);
+
 }
 
 var playLastSongFromHistory = function() {
