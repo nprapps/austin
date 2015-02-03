@@ -699,8 +699,9 @@ var loadState = function() {
     }
 
     if (ALL_HISTORY) {
-        $songs.each(function($song) {
-            markSongPlayed($song.attr('id'));
+
+        $songs.each(function(i, song) {
+            markSongPlayed(song['id']);
         });
     }
 
