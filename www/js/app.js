@@ -454,12 +454,12 @@ var playNextSong = function($nextSong) {
     if (_.isUndefined($nextSong)) {    
         var $currentSong = getCurrentSong();
 
-        if ($currentSong.length > 0) {
+        if ($currentSong.length > 0) {        
             $nextSong = $currentSong.next();
         }
     }
 
-    if (_.isUndefined($nextSong)) {
+    if ($nextSong.length == 0) {
         if (playedSongs.length == $songs.length) {
             // if all songs have been played, reset to shuffle
             resetState();
@@ -472,7 +472,6 @@ var playNextSong = function($nextSong) {
         //_gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'tag-finish', selectedTag]);
 
         //switchTag(null);
-
         $nextSong = $songs.eq(0);
     }
 
