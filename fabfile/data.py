@@ -29,7 +29,7 @@ def update():
 
 @task
 def update_songs(verify='false'):
-    local('Curl -s -o data/songs.csv https://docs.google.com/spreadsheets/d/19J4Fi2bpeEicoM5475lu1L345fF8hiBn4owbiCKdqIU/export?format=csv&id=19J4Fi2bpeEicoM5475lu1L345fF8hiBn4owbiCKdqIU&gid=0')
+    local('Curl -s -o data/songs.csv https://docs.google.com/spreadsheets/d/1zvJ-RLAOd8UujpwN_1v6QyvZDassZ1UcqigmlPl2nxA/export?format=csv&id=1zvJ-RLAOd8UujpwN_1v6QyvZDassZ1UcqigmlPl2nxA&gid=0')
 
     # Hack: for some reason downloaded file does not exist yet without this
     sleep(1)
