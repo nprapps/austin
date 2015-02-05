@@ -12,10 +12,10 @@ var $allTags = null;
 var $playlistLength = null;
 var $totalSongs = null;
 var $skip = null;
-var $songsWrapper = null;
 var $songs = null;
 var $landing = null;
 var $genreFilters = null;
+var $reviewerFilters = null;
 var $filtersPanel = null;
 var $fixedHeader = null;
 var $landingReturnDeck = null;
@@ -28,9 +28,7 @@ var $filtersButton = null;
 var $currentDj = null;
 var $fixedControls = null;
 var $historyButton = null;
-var $fullscreenButton = null;
-var $favorites = null;
-var $allSongs = null;
+var $skipsRemaining = null;
 
 var $castButtons = null;
 var $castStart = null;
@@ -40,17 +38,18 @@ var $castScreen = null;
 // URL params
 var NO_AUDIO = (window.location.search.indexOf('noaudio') >= 0);
 var RESET_STATE = (window.location.search.indexOf('resetstate') >= 0);
+var ALL_HISTORY = (window.location.search.indexOf('allhistory') >= 0);
 
 // Global state
 var firstShareLoad = true;
 var playedSongs = [];
-var favoritedSongs = [];
-var songOrder = [];
 var playlist = [];
+var currentSong = null;
 var selectedTag = null;
 var playlistLength = null;
 var onWelcome = true;
 var playedsongCount = null;
+var usedSkips = [];
 var curator = null;
 var totalSongsPlayed = 0;
 var songHistory = {};
@@ -58,12 +57,11 @@ var songHeight = null;
 var fixedHeaderHeight = null;
 var is_small_screen = false
 var inPreroll = false;
-var playFavoritesMode = false;
+var firstReviewerSong = false;
 
 var isCasting = false;
 var castSender = null;
 var castReceiver = null;
-var IS_CAST_RECEIVER = false;
 
 /*
  * Run on page load.
@@ -76,8 +74,7 @@ var onDocumentLoad = function(e) {
     $goButton = $('.go');
     $continueButton = $('.continue');
     $audioPlayer = $('#audio-player');
-    $songsWrapper = $('.songs');
-    $songs = $songsWrapper.find('.song');
+    $songs = $('.songs');
     $skip = $('.skip');
     $playerArtist = $('.player .artist');
     $playerTitle = $('.player .song-title');
@@ -88,6 +85,7 @@ var onDocumentLoad = function(e) {
     $tagsWrapper = $('.tags-wrapper');
     $landing = $('.landing');
     $genreFilters = $('.genre li a.genre-btn');
+    $reviewerFilters = $('.reviewer li a');
     $filtersPanel = $('.playlist-filters');
     $fixedHeader = $('.fixed-header');
     $landingReturnDeck = $('.landing-return-deck');
@@ -100,12 +98,7 @@ var onDocumentLoad = function(e) {
     $currentDj = $('.current-dj');
     $fixedControls = $('.fixed-controls');
     $historyButton = $('.js-show-history');
-    $favorites = $('.favorites');
-    $allSongs = $('.all-songs');
-
-    $fullscreenButtons = $('.fullscreen');
-    $fullscreenStart = $('.fullscreen .start');
-    $fullscreenStop = $('.fullscreen .stop');
+    $skipsRemaining = $('.skips-remaining');
 
     $castButtons = $('.chromecast');
     $castStart = $('.chromecast .start');
@@ -121,6 +114,7 @@ var onDocumentLoad = function(e) {
     $goButton.on('click', onGoButtonClick);
     $continueButton.on('click', onContinueButtonClick);
     $genreFilters.on('click', onGenreClick);
+    $reviewerFilters.on('click', onReviewerClick);
     $skip.on('click', onSkipClick);
     $play.on('click', onPlayClick);
     $pause.on('click', onPauseClick);
@@ -129,21 +123,16 @@ var onDocumentLoad = function(e) {
     $(document).on('scroll', onDocumentScroll);
     $shuffleSongs.on('click', onShuffleSongsClick);
     $historyButton.on('click', showHistory);
-    $songsWrapper.on('click', '.song.small', onSongCardClick);
-    $songsWrapper.on('click', '.song-tools .stars', onStarClick);
-    $songsWrapper.on('click', '.song-tools .amazon', onAmazonClick);
-    $songsWrapper.on('click', '.song-tools .itunes', oniTunesClick);
-    $songsWrapper.on('click', '.song-tools .rdio', onRdioClick);
-    $songsWrapper.on('click', '.song-tools .spotify', onSpotifyClick);
+    $songs.on('click', '.song:not(:last-child)', onSongCardClick);
+    $songs.on('click', '.song-tools .amazon', onAmazonClick);
+    $songs.on('click', '.song-tools .itunes', oniTunesClick);
+    $songs.on('click', '.song-tools .rdio', onRdioClick);
+    $songs.on('click', '.song-tools .spotify', onSpotifyClick);
+    $songs.on('click', '.byline .reviewer-link', onReviewerLinkClick);
     $landing.on('click', '.poster.shrink', onFilterTipClick);
-    $favorites.on('click', onFavoritesClick);
-    $allSongs.on('click', onAllSongsClick);
 
     $castStart.on('click', onCastStartClick);
     $castStop.on('click', onCastStopClick);
-
-    $fullscreenStart.on('click', onFullscreenStartClick);
-    $fullscreenStop.on('click', onFullscreenStopClick);
 
     // configure ZeroClipboard on share panel
     ZeroClipboard.config({ swfPath: 'js/lib/ZeroClipboard.swf' });
@@ -153,22 +142,20 @@ var onDocumentLoad = function(e) {
         clippy.on('aftercopy', onClippyCopy);
     });
 
+    // set up the app
+    shuffleSongs();
+
     if (RESET_STATE) {
         resetState();
+        resetLegalLimits();
     }
 
     setupAudio();
     loadState();
 
-    if (songOrder.length == 0) {
-        shuffleSongs();
-    }
+    setInterval(checkSkips, 60000);
 
-    if (window.location.hash) {
-        playSongFromHash();
-    }
-
-    /*Newscast({
+    Newscast({
         'namespace': APP_CONFIG.CHROMECAST_NAMESPACE,
         'appId': APP_CONFIG.CHROMECAST_APP_ID,
         'onReceiverCreated': onCastReceiverCreated,
@@ -177,7 +164,7 @@ var onDocumentLoad = function(e) {
         'onSenderStarted': onCastSenderStarted,
         'onSenderStopped': onCastSenderStopped,
         'debug': true
-    });*/
+    });
 }
 
 /*
@@ -189,11 +176,13 @@ var onCastReceiverCreated = function(receiver) {
     castReceiver.onMessage('toggle-audio', onCastReceiverToggleAudio);
     castReceiver.onMessage('skip-song', onCastReceiverSkipSong);
     castReceiver.onMessage('toggle-genre', onCastReceiverToggleGenre);
+    castReceiver.onMessage('toggle-curator', onCastReceiverToggleCurator);
     castReceiver.onMessage('send-playlist', onCastReceiverPlaylist);
     castReceiver.onMessage('send-tags', onCastReceiverTags);
     castReceiver.onMessage('send-history', onCastReceiverHistory);
     castReceiver.onMessage('send-played', onCastReceiverPlayed);
     castReceiver.onMessage('init', onCastReceiverInit);
+
 }
 
 /*
@@ -236,6 +225,7 @@ var onCastSenderStarted = function() {
     castSender.sendMessage('init');
 
     castSender.onMessage('genre-ended', onCastGenreEnded);
+    castSender.onMessage('reviewer-ended', onCastReviewerEnded);
 }
 
 /*
@@ -276,7 +266,13 @@ var onCastStopClick = function(e) {
 }
 
 var onCastGenreEnded = function() {
+    console.log('fired');
     resetGenreFilters();
+}
+
+var onCastReviewerEnded = function() {
+    console.log('fired');
+    getNextReviewer();
 }
 
 var onCastReceiverToggleAudio = function(message) {
@@ -301,14 +297,17 @@ var onCastReceiverToggleCurator = function(message) {
 
 var onCastReceiverPlaylist = function(message) {
     playlist = JSON.parse(message);
+    console.log(playlist);
 }
 
 var onCastReceiverTags = function(message) {
     selectedTags = JSON.parse(message);
+    console.log(selectedTags);
 }
 
 var onCastReceiverHistory = function(message) {
     songHistory = JSON.parse(message);
+    console.log(songHistory);
 }
 
 var onCastReceiverPlayed = function(message) {
@@ -317,6 +316,7 @@ var onCastReceiverPlayed = function(message) {
     for (i = 0; i < playedSongs.length; i++) {
         playedSongs[i] = parseInt(playedSongs[i]);
     }
+    console.log(playedSongs);
 }
 
 var onCastReceiverInit = function() {
@@ -325,50 +325,22 @@ var onCastReceiverInit = function() {
     _.delay(playNextSong, 1000);
 }
 
-var onFavoritesClick = function() {
-    playFavoritesMode = true;
-    $songs.hide();
-    for (var i = 0; i < favoritedSongs.length; i++) {
-        $('#' + favoritedSongs[i]).show();
-    }
-
-    var $currentSong = getCurrentSong();
-
-    $nextSong = $songs.filter(':visible').eq(0);
-    playNextSong($nextSong);
-}
-
-var onAllSongsClick = function() {
-    playFavoritesMode = false;
-    $songs.show();
-}
-
 /*
- * Initiate fullscreen
+ * Shorten Bob's playlist to 3 songs for testing
+ * how the end of a playlist works easier.
  */
-var onFullscreenStartClick = function(e) {
-    e.preventDefault();
+var shortenBob = function() {
+    var bobSongs = _.filter(SONG_DATA, function(song) {
+        var tags = song['genre_tags'].concat(song['curator_tags']);
+        for (var i = 0; i < song['curator_tags'].length; i++) {
+            if (song['curator_tags'][i] === 'Bob Boilen') {
+                return true;
+            }
+        }
+    });
 
-    _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'fullscreen-start']);
-
-    screenfull.request();
-
-    $fullscreenStop.show();
-    $fullscreenStart.hide();
-}
-
-/*
- * Exit fullscreen
- */
-var onFullscreenStopClick = function(e) {
-    e.preventDefault();
-
-    _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'fullscreen-stop']);
-
-    screenfull.exit();
-
-    $fullscreenStop.hide();
-    $fullscreenStart.show();
+    bobSongs = bobSongs.splice(0, bobSongs.length - 3);
+    SONG_DATA = _.difference(SONG_DATA, bobSongs);
 }
 
 /*
@@ -420,6 +392,11 @@ var playIntroAudio = function() {
         audioFile = APP_CONFIG.WELCOME_AUDIO;
     }
 
+    // if we have a selected tag, find its audio
+    if (selectedTag && !onWelcome) {
+        audioFile = APP_CONFIG.TAG_AUDIO_INTROS[selectedTag];
+    }
+
     // if there is no audio (i.e. genres), just play the next song
     if (!audioFile) {
         playNextSong();
@@ -430,6 +407,7 @@ var playIntroAudio = function() {
 
     if (!onWelcome) {
         $('.stack .poster').velocity('fadeIn');
+        $skipsRemaining.hide();
     }
 
     $audioPlayer.jPlayer('setMedia', {
@@ -446,46 +424,79 @@ var playIntroAudio = function() {
 }
 
 /*
+ * Generate a reader-friendly mixtape name.
+ */
+var makeMixtapeName = function(song) {
+    var mixtapeName = null;
+
+    if (selectedTag !== song['reviewer']) {
+        if (_.contains(APP_CONFIG.REVIEWER_TAGS, song['reviewer'])) {
+            mixtapeName = song['reviewer'].split(' ')[0];
+
+            if (mixtapeName[mixtapeName.length - 11] == 's') {
+                mixtapeName += '&rsquo;'
+            } else {
+                mixtapeName += '&rsquo;' + 's';
+            }
+        }
+    }
+
+    return mixtapeName;
+}
+
+/*
  * Play the next song in the playlist.
  */
-var playNextSong = function($nextSong) {
-    var $currentSong = getCurrentSong();
-
-    if (_.isUndefined($nextSong)) {    
-        var $currentSong = getCurrentSong();
-
-        if ($currentSong.length > 0) {        
-            $nextSong = $currentSong.next();
+var playNextSong = function() {
+    // if this is the first song in a curator playlist
+    // get one reviewed by the curator
+    var nextSong = _.find(playlist, function(song) {
+        if (!firstReviewerSong) {
+            return !(_.contains(playedSongs, song['id']));
+        } else {
+            return !(_.contains(playedSongs, song['id'])) && song['reviewer'] === selectedTag;
         }
+    });
+
+    // some mixtape curators have not reviewed anything
+    // in this case, just use the normal filter
+    if (firstReviewerSong && !nextSong) {
+        var nextSong = _.find(playlist, function(song) {
+            return !(_.contains(playedSongs, song['id']));
+        });
     }
 
-    if ($nextSong.length == 0) {
-        if (playedSongs.length == $songs.length) {
-            // if all songs have been played, reset to shuffle
-            resetState();
+    firstReviewerSong = false;
+
+    // check if we can play the song legally (4 times per 3 hours)
+    // if we don't have a song, get a new playlist
+    if (nextSong) {
+        var canPlaySong = checkSongHistory(nextSong);
+        if (!canPlaySong) {
+            return;
         }
-
-        /*if (IS_CAST_RECEIVER) {
-            castReceiver.sendMessage('tag-ended');
-        }*/
-
-        //_gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'tag-finish', selectedTag]);
-
-        //switchTag(null);
-        $nextSong = $songs.eq(0);
+    } else {
+        nextPlaylist();
+        return;
     }
 
-    var slug = $nextSong.attr('id');
-    var artist = $nextSong.data('artist');
-    var title = $nextSong.data('title');
-    var mediaURL = $nextSong.attr('data-media-url');
+    var context = $.extend(APP_CONFIG, nextSong, {
+        'mixtapeName': makeMixtapeName(nextSong)
+    });
+    var $html = $(JST.song(context));
 
+    if (isCasting) {
+        $songs.prepend($html);
+    } else {
+        $songs.append($html);
+    }
 
-    $playerArtist.html(artist);
-    $playerTitle.html(title);
-    document.title = artist + ' \u2014 \u2018' + title + '\u2019 | ' + COPY.content['project_name'];
+    $playerArtist.html(nextSong['artist']);
+    $playerTitle.html(nextSong['title']);
+    document.title = nextSong['artist'] + ' \u2014 \u2018' + nextSong['title'] + '\u2019 | ' + COPY.content['project_name'];
+    $skipsRemaining.show();
 
-    var nextsongURL = 'http://podcastdownload.npr.org/anon.npr-mp3' + mediaURL + '.mp3';
+    var nextsongURL = 'http://podcastdownload.npr.org/anon.npr-mp3' + nextSong['media_url'] + '.mp3';
 
     inPreroll = false;
 
@@ -494,78 +505,84 @@ var playNextSong = function($nextSong) {
             mp3: nextsongURL
         }).jPlayer('play');
     }
-
-    // window.location.hash = '#' + nextSong['id'];
-    window.history.replaceState(undefined, undefined, '#' + slug)
-
     $play.hide();
     $pause.show();
 
     if (onWelcome) {
-        $nextSong.removeClass('small');
-        $nextSong.css('min-height', songHeight).show();
-        $nextSong.find('.container-fluid').css('height', songHeight);
+        $html.css('min-height', songHeight).show();
+        $html.find('.container-fluid').css('height', songHeight);
 
         hideWelcome();
-    } else {      
-        setCurrentSongHeight();
-
-        $currentSong.find('.container-fluid').css('height', '0');
-        $currentSong.find('.song-info').css('min-height', 0);
-        $currentSong.css('min-height', '0').addClass('small');
-
-
-        $nextSong.css('min-height', songHeight);
-        $nextSong.find('.container-fluid').css('height', songHeight);
-        $nextSong.removeClass('small');
-
-        $nextSong.velocity("scroll", {
-                duration: 500,
+    } else {
+        if (IS_CAST_RECEIVER) {
+            $html.prev().hide();
+            $html.css('min-height', songHeight);
+            $html.find('.container-fluid').css('min-height', songHeight);
+            $html.show();
+        } else {
+            setCurrentSongHeight();
+            $html.find('.container-fluid').css('height', songHeight);
+            $html.prev().velocity("scroll", {
+                duration: 350,
                 offset: -fixedHeaderHeight,
-                delay: 1000,
+                begin: function() {
+                    $(document).off('scroll');
+                },
                 complete: function() {
-                    if (playedSongs.length > 1) {
-                        $historyButton.show();
-                        $historyButton.removeClass('offscreen');
-                    }
+                    $('.stack .poster').velocity('fadeOut', {
+                        duration: 500
+                    });
+                    $html.prev().find('.container-fluid').css('height', '0');
+                    $html.prev().find('.song-info').css('min-height', 0);
+                    $html.prev().css('min-height', '0').addClass('small');
+                    $html.css('min-height', songHeight)
+                        .velocity('fadeIn', {
+                            duration: 300,
+                            complete: function(){
+                                    $(this).velocity("scroll", {
+                                    duration: 500,
+                                    offset: -fixedHeaderHeight,
+                                    delay: 300,
+                                    complete: function() {
+                                        $(document).on('scroll', onDocumentScroll);
+
+                                        if (playedSongs.length > 1) {
+                                            $historyButton.show();
+                                            $historyButton.removeClass('offscreen');
+                                        }
+                                    }
+                                });
+                            }
+                        });
                 }
             });
+        }
     }
 
-    markSongPlayed(slug);
+    currentSong = nextSong;
+    markSongPlayed(currentSong);
     updateTotalSongsPlayed();
+    writeSkipsRemaining();
+    preloadSongImages();
 }
 
 /*
- * Play song specified in hash URL.
+ * Preload song art and reviewer headshot to make things smoother.
  */
-var playSongFromHash = function() {
-    var slug = window.location.hash.substring(1);
+var preloadSongImages = function() {
+    var nextSong = _.find(playlist, function(song) {
+        return !(_.contains(playedSongs, song['id']));
+    });
 
-    var $song = $('#' + slug);
-
-    if (!$song) {
+    if (!nextSong) {
         return;
     }
 
-    $landing.hide();
-    buildPlaylist();
-    updateTagDisplay();
-    playNextSong($song);
+    var songArt = new Image();
+    songArt.src = 'http://npr.org' + nextSong['song_art'];
 
-}
-
-var playLastSongFromHistory = function() {
-    var $song = $('#' + lastSongPlayed);
-
-    if (!$song) {
-        return;
-    }
-
-    buildPlaylist();
-    updateTagDisplay();
-    $landing.velocity('fadeOut');
-    playNextSong($song);
+    var reviewerImage = new Image();
+    reviewerImage.src = APP_CONFIG.S3_BASE_URL + '/assets/img/' + APP_CONFIG.REVIEWER_IMAGES[nextSong['reviewer']];
 }
 
 /*
@@ -575,10 +592,63 @@ var setCurrentSongHeight = function(){
     windowHeight = Modernizr.touch ? window.innerHeight || $(window).height() : $(window).height();
     songHeight = windowHeight - $player.height() - $fixedHeader.height() - $fixedControls.height();
 
-    var $currentSong = getCurrentSong();
-    $currentSong.find('.container-fluid').css('height', songHeight);
-    $currentSong.css('min-height', songHeight);
+    $songs.children().last().find('.container-fluid').css('height', songHeight);
+    $songs.children().last().css('min-height', songHeight);
 }
+
+/*
+ * Check the song history to see if you've played it
+ * more than 4 times in 3 hours
+ */
+var checkSongHistory = function(song) {
+    if (songHistory[song['id']]) {
+        for (var i = 0; i < songHistory[song['id']].length; i++) {
+            var now = moment.utc();
+            if (now.subtract(3, 'hours').isAfter(songHistory[song['id']][i])) {
+                songHistory[song['id']].splice(i,1);
+            }
+        }
+
+        if (songHistory[song['id']].length >= 4) {
+            markSongPlayed(song);
+            playNextSong();
+            return false;
+        }
+    } else {
+        songHistory[song['id']] = [];
+    }
+
+    songHistory[song['id']].push(moment.utc());
+    simpleStorage.set('songHistory', songHistory);
+
+    return true;
+}
+
+/*
+ * Get the next playlist when one is finished
+ */
+var nextPlaylist = function() {
+    if (playedSongs.length == SONG_DATA.length) {
+        // if all songs have been played, reset to shuffle
+        resetState();
+    }
+
+    if (IS_CAST_RECEIVER) {
+        castReceiver.sendMessage('tag-ended');
+    }
+
+    _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'tag-finish', selectedTag]);
+    var tag = null;
+
+    if (selectedTag === null || _.contains(APP_CONFIG.GENRE_TAGS, selectedTag)) {
+        // go to shuffle
+    } else {
+        tag = getNextReviewer();
+        firstReviewerSong = true;
+    }
+    switchTag(tag);
+}
+
 
 /*
  * Update the total songs played
@@ -668,36 +738,83 @@ var onSkipClick = function(e) {
  * Skip to the next song
  */
 var skipSong = function() {
-    if (!inPreroll) {
-        _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'song-skip', $playerArtist.text() + ' - ' + $playerTitle.text(), 1]);
+    if (inPreroll || usedSkips.length < APP_CONFIG.SKIP_LIMIT) {
+        if (!inPreroll) {
+            usedSkips.push(moment.utc());
+            _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'song-skip', $playerArtist.text() + ' - ' + $playerTitle.text(), usedSkips.length]);
+        }
+
+        playNextSong();
+        simpleStorage.set('usedSkips', usedSkips);
+        writeSkipsRemaining();
+    }
+}
+
+/*
+ * Check to see if some skips are past the skip limit window
+ */
+var checkSkips = function() {
+    var now = moment.utc();
+    var skipped = true;
+
+    while (skipped) {
+        skipped = false;
+
+        for (i = 0; i < usedSkips.length; i++) {
+            if (now.subtract(1, 'hour').isAfter(usedSkips[i])) {
+                usedSkips.splice(i, 1);
+                skipped = true;
+                break;
+            }
+        }
     }
 
-    playNextSong();
+    simpleStorage.set('usedSkips', usedSkips);
+    writeSkipsRemaining();
+}
+
+/*
+ * Update the skip limit display
+ */
+var writeSkipsRemaining = function() {
+    if (usedSkips.length == APP_CONFIG.SKIP_LIMIT - 1) {
+        $skipsRemaining.text(APP_CONFIG.SKIP_LIMIT - usedSkips.length + ' skip available')
+        $skip.removeClass('disabled');
+    }
+    else if (usedSkips.length == APP_CONFIG.SKIP_LIMIT) {
+        var text = 'Skipping available in ';
+            text += moment(usedSkips[usedSkips.length - 1]).add(1, 'hour').fromNow(true);
+        $skipsRemaining.text(text);
+        $skip.addClass('disabled');
+    }
+    else {
+        $skipsRemaining.text(APP_CONFIG.SKIP_LIMIT - usedSkips.length + ' skips available')
+        $skip.removeClass('disabled');
+    }
 }
 
 /*
  * Load state from browser storage
  */
 var loadState = function() {
-    favoritedSongs = simpleStorage.get('favoritedSongs') || [];
     playedSongs = simpleStorage.get('playedSongs') || [];
-    songOrder = simpleStorage.get('songOrder') || [];
     selectedTag = simpleStorage.get('selectedTag') || null;
+    usedSkips = simpleStorage.get('usedSkips') || [];
     totalSongsPlayed = simpleStorage.get('totalSongsPlayed') || 0;
-    lastSongPlayed = simpleStorage.get('lastSongPlayed') || null;
+    songHistory = simpleStorage.get('songHistory') || {};
 
-    if (songOrder.length > 0) {
-        var orderedPlaylist = [];
-        for (var i = 0; i < songOrder.length; i++) {
-            var $matchingSong = $songsWrapper.find('#' + songOrder[i]);
-            $matchingSong = $matchingSong.detach();
-            orderedPlaylist.push($matchingSong);
+    if (ALL_HISTORY) {
+        for (var i=1; i < SONG_DATA.length; i++) {
+            markSongPlayed(SONG_DATA[i]);
         }
-        $songsWrapper.append(orderedPlaylist);
     }
 
-    if (playedSongs.length === $songs.length) {
+    if (playedSongs.length === SONG_DATA.length) {
         playedSongs = [];
+    }
+
+    if (playedSongs.length > 0) {
+        buildListeningHistory();
     }
 
     if (playedSongs.length > 0 || selectedTag !== null) {
@@ -706,63 +823,78 @@ var loadState = function() {
         $landingFirstDeck.show();
     }
 
-    if (favoritedSongs.length > 0) {
-        for (var i = 0; i < favoritedSongs.length; i++) {
-            var $favoritedSongs = $('#' + favoritedSongs[i]);
-
-            var $songsFavoriteStars = $favoritedSongs.find('.stars');
-            
-            $songsFavoriteStars.removeClass('fa-star-o');
-            $songsFavoriteStars.addClass('fa-star');
-        }
-    }
+    checkSkips();
 }
 
 /*
  * Reset everything we can legally reset
  */
 var resetState = function() {
-    songOrder = [];
     playedSongs = [];
-    favoritedSongs = [];
     selectedTag = null;
-    lastSongPlayed = null;
 
-    simpleStorage.set('favoritedSongs', favoritedSongs);
-    simpleStorage.set('lastSongPlayed', lastSongPlayed);
-    simpleStorage.set('songOrder', songOrder);
     simpleStorage.set('playedSongs', playedSongs);
     simpleStorage.set('selectedTag', selectedTag);
     simpleStorage.set('playedPreroll', false);
 }
 
 /*
+ * Reset the legal limitations. For development only.
+ */
+var resetLegalLimits = function() {
+    usedSkips = [];
+    simpleStorage.set('usedSkips', usedSkips);
+    songHistory = {}
+    simpleStorage.set('songHistory', songHistory);
+}
+
+/*
  * Mark the current song as played and save state.
  */
-var markSongPlayed = function(slug) {
-    simpleStorage.set('lastSongPlayed', slug);
-    playedSongs.push(slug);
+var markSongPlayed = function(song) {
+    playedSongs.push(song['id'])
+
     simpleStorage.set('playedSongs', playedSongs);
+}
+
+/*
+ * Reconstruct listening history from stashed id's.
+ */
+var buildListeningHistory = function() {
+    for (var i = 0; i < playedSongs.length; i++) {
+        var songID = playedSongs[i];
+
+        var song = _.find(SONG_DATA, function(song) {
+            return songID === song['id']
+        });
+
+
+        var context = $.extend(APP_CONFIG, song, {
+            'mixtapeName': makeMixtapeName(song)
+        });
+        var html = JST.song(context);
+        $songs.append(html);
+    };
+    $songs.find('.song').addClass('small');
 }
 
 /*
  * Build a playlist from a set of tags.
  */
 var buildPlaylist = function() {
-    // TOOD: filter playlist divs
-    // if (selectedTag === null) {
-    //     playlist = SONG_DATA;
-    // } else {
-    //     playlist = _.filter(SONG_DATA, function(song) {
-    //         var tags = song['genre_tags'];
+    if (selectedTag === null) {
+        playlist = SONG_DATA;
+    } else {
+        playlist = _.filter(SONG_DATA, function(song) {
+            var tags = song['genre_tags'].concat(song['curator_tags']);
 
-    //         for (var i = 0; i < tags.length; i++) {
-    //             if (selectedTag === tags[i]) {
-    //                 return true;
-    //             }
-    //         }
-    //     });
-    // }
+            for (var i = 0; i < tags.length; i++) {
+                if (selectedTag === tags[i]) {
+                    return true;
+                }
+            }
+        });
+    }
     updatePlaylistLength();
 }
 
@@ -771,27 +903,64 @@ var buildPlaylist = function() {
  * Shuffle the entire list of songs.
  */
 var shuffleSongs = function() {
-    $songs.detach();
-    $songs = $(_.shuffle($songs));
-    $songsWrapper.append($songs);
-
-    songOrder = [];
-
-    $songs.each(function(i, song) {      
-        songOrder.push($(song).attr('id'));
-
-    });
-
-    simpleStorage.set('songOrder', songOrder); 
+    SONG_DATA = _.shuffle(SONG_DATA);
 }
 
 /*
  * Update playlist length display.
  */
 var updatePlaylistLength = function() {
-    // TODO: how do we filter playlists?
     $playlistLength.text(playlist.length);
-    $totalSongs.text($songs.length);
+    $totalSongs.text(SONG_DATA.length);
+}
+
+/*
+ * Cycle to the next curator in the list.
+ */
+var getNextReviewer = function() {
+    var $nextReviewer = null;
+    for (i = 0; i < $reviewerFilters.length; i++) {
+        if (!($reviewerFilters.eq(i).hasClass('disabled'))) {
+            if (i == $reviewerFilters.length - 1) {
+                $nextReviewer = $reviewerFilters.eq(0);
+            }
+            else {
+                $nextReviewer = $reviewerFilters.eq(i + 1);
+            }
+        }
+    }
+
+    $reviewerFilters.addClass('disabled');
+    $nextReviewer.removeClass('disabled');
+    return $nextReviewer.data('tag');
+}
+
+/*
+ * Handle clicks on curators.
+ */
+var onReviewerClick = function(e) {
+    e.preventDefault();
+
+    var reviewer = $(this).data('tag');
+    firstReviewerSong = true;
+
+    if (isCasting) {
+        castSender.sendMessage('toggle-curator', curator);
+    } else {
+        switchTag(reviewer);
+    }
+        
+    toggleFilterPanel();
+}
+
+/*
+ * Handle clicks on inline reviewer links in song jst.
+ */
+var onReviewerLinkClick = function(e) {
+    e.preventDefault();
+
+    var reviewer = $(this).data('tag');
+    switchTag(reviewer);
 }
 
 /*
@@ -823,7 +992,13 @@ var switchTag = function(tag, noAutoplay) {
     }
 
     updateTagDisplay();
+    shuffleSongs();
     buildPlaylist();
+    preloadSongImages();
+
+    if (noAutoplay !== true) {
+        playIntroAudio();
+    }
 
     _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'switch-tag', selectedTag]);
 }
@@ -840,8 +1015,19 @@ var updateTagDisplay = function() {
         $currentDj.text(allSongsText);
         $shuffleSongs.removeClass('disabled');
     } else {
-        var tag = selectedTag;
-        if (selectedTag !== '\\m/ >_< \\m/') {
+        var tag = null;
+        if (selectedTag == '\\m/ >_< \\m/') {
+            tag = selectedTag;
+        } else {
+            tag = selectedTag
+
+            if (_.contains(APP_CONFIG.REVIEWER_TAGS, selectedTag)) {
+                if (selectedTag[selectedTag.length - 1] == 's') {
+                    tag += '\u2019 Mixtape'
+                } else {
+                    tag += '\u2019' + 's Mixtape';
+                }
+            }
             tag = tag.toUpperCase();
         }
 
@@ -863,11 +1049,6 @@ var onShuffleSongsClick = function(e) {
     playIntroAudio();
 }
 
-var getCurrentSong = function() {
-    var $currentSong = $songs.not('.small');  
-    return $currentSong;  
-}
-
 /*
  * Hide the welcome screen and show the playing song
  */
@@ -880,9 +1061,7 @@ var hideWelcome  = function() {
     $fixedHeader.show();
     setCurrentSongHeight();
 
-    var $currentSong = getCurrentSong();
-
-    $currentSong.velocity("scroll", { duration: 750, offset: -fixedHeaderHeight });
+    $songs.find('.song').last().velocity("scroll", { duration: 750, offset: -fixedHeaderHeight });
 
     $landing.velocity({
         bottom: '5rem',
@@ -948,6 +1127,7 @@ var swapTapeDeck = function() {
 var onGoButtonClick = function(e) {
     e.preventDefault();
     swapTapeDeck();
+    $songs.find('.song').remove();
     playedSongs = [];
     simpleStorage.set('playedSongs', playedSongs);
     switchTag(null, true);
@@ -964,21 +1144,14 @@ var onContinueButtonClick = function(e) {
     buildPlaylist();
     updateTagDisplay();
     $landing.velocity('fadeOut');
-    
-    if (lastSongPlayed) {
-        var $song = $('#' + lastSongPlayed);
-        playNextSong($song);        
-    } else {
-        playNextSong();
-    }
+    playNextSong();
 }
 
 /*
  * Toggle played song card size
  */
 var onSongCardClick = function(e) {
-
-    playNextSong($(this));
+    $(this).toggleClass('small');
 }
 
 /*
@@ -1007,28 +1180,6 @@ var onDocumentKeyDown = function(e) {
             break;
     }
     return true;
-}
-
-var onStarClick = function(e) {
-    e.stopPropagation();
-
-    $(this).toggleClass('fa-star-o fa-star');        
-
-    var slug = $(this).parents('.song').attr('id');
-
-    if ($(this).hasClass('fa-star')) {
-        favoritedSongs.push(slug);
-        simpleStorage.set('favoritedSongs', favoritedSongs);
-    } else {
-        var indexOfSongToUnfavorite = _.indexOf(favoritedSongs, slug);
-
-        if (playFavoritesMode) {
-           $('#' + favoritedSongs[indexOfSongToUnfavorite]).hide('slow'); 
-        }
-
-        favoritedSongs.splice(indexOfSongToUnfavorite, 1);
-        simpleStorage.set('favoritedSongs', favoritedSongs);
-    } 
 }
 
 /*
@@ -1093,7 +1244,8 @@ var getSong = function($el) {
  * Scroll to the top of the history
  */
 var showHistory = function() {
-    $songsWrapper.velocity('scroll');
+    $songs.find('.song:not(:last)').addClass('small');
+    $songs.velocity('scroll');
 }
 
 /*
@@ -1104,9 +1256,7 @@ var toggleHistoryButton = function(e) {
         return;
     }
 
-    var $currentSong = getCurrentSong();
-
-    var currentSongOffset = $currentSong.offset().top - 50;
+    var currentSongOffset = $songs.find('.song').last().offset().top - 50;
     var windowScrollTop = $(window).scrollTop();
     if (currentSongOffset < windowScrollTop + fixedHeaderHeight){
         $historyButton.removeClass('offscreen');

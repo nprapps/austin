@@ -17,7 +17,22 @@
                 {% endfor %}
             </ul>
         </div>
-        
+
+        <div class="reviewer">
+            <h3>Select a reviewer mixtape</h3>
+
+            <ul class="reviewers tags list-unstyled">
+                {% for reviewer in REVIEWER_TAGS %}
+                <li>
+                    <a class="disabled" data-tag="{{ reviewer }}" href="#">
+                        <span class="mug"><img src="{{ S3_BASE_URL }}/assets/img/headshots/{{ REVIEWER_IMAGES[reviewer] }}"></span>
+                        <span class="bio"><span class="name">{{ reviewer }}</span> {{ REVIEWER_BIOS[reviewer]|safe }}</span>
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+
         <p class="instructions">Currently playing <span class="song-count"><span class="playlist-length"></span> songs out of <span class="total-songs"></span>.</span>
 
         <div class="tools visible-xs">
