@@ -62,6 +62,9 @@ var isCasting = false;
 var castSender = null;
 var castReceiver = null;
 
+// Change to true to enforce skip limit
+ENFORCE_SKIP_LIMIT = false;
+
 /*
  * Run on page load.
  */
@@ -701,15 +704,19 @@ var onSkipClick = function(e) {
  * Skip to the next song
  */
 var skipSong = function() {
-    if (inPreroll || usedSkips.length < APP_CONFIG.SKIP_LIMIT) {
-        if (!inPreroll) {
-            usedSkips.push(moment.utc());
-            _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'song-skip', $playerArtist.text() + ' - ' + $playerTitle.text(), usedSkips.length]);
-        }
+    if (ENFORCE_SKIP_LIMIT) {
+        if (inPreroll || usedSkips.length < APP_CONFIG.SKIP_LIMIT) {
+            if (!inPreroll) {
+                usedSkips.push(moment.utc());
+                _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'song-skip', $playerArtist.text() + ' - ' + $playerTitle.text(), usedSkips.length]);
+            }
 
+            playNextSong();
+            simpleStorage.set('usedSkips', usedSkips);
+            writeSkipsRemaining();
+        } 
+    } else {
         playNextSong();
-        simpleStorage.set('usedSkips', usedSkips);
-        writeSkipsRemaining();
     }
 }
 
@@ -740,19 +747,23 @@ var checkSkips = function() {
  * Update the skip limit display
  */
 var writeSkipsRemaining = function() {
-    if (usedSkips.length == APP_CONFIG.SKIP_LIMIT - 1) {
-        $skipsRemaining.text(APP_CONFIG.SKIP_LIMIT - usedSkips.length + ' skip available')
-        $skip.removeClass('disabled');
-    }
-    else if (usedSkips.length == APP_CONFIG.SKIP_LIMIT) {
-        var text = 'Skipping available in ';
-            text += moment(usedSkips[usedSkips.length - 1]).add(1, 'hour').fromNow(true);
-        $skipsRemaining.text(text);
-        $skip.addClass('disabled');
-    }
-    else {
-        $skipsRemaining.text(APP_CONFIG.SKIP_LIMIT - usedSkips.length + ' skips available')
-        $skip.removeClass('disabled');
+    if (ENFORCE_SKIP_LIMIT) {
+        if (usedSkips.length == APP_CONFIG.SKIP_LIMIT - 1) {
+            $skipsRemaining.text(APP_CONFIG.SKIP_LIMIT - usedSkips.length + ' skip available')
+            $skip.removeClass('disabled');
+        }
+        else if (usedSkips.length == APP_CONFIG.SKIP_LIMIT) {
+            var text = 'Skipping available in ';
+                text += moment(usedSkips[usedSkips.length - 1]).add(1, 'hour').fromNow(true);
+            $skipsRemaining.text(text);
+            $skip.addClass('disabled');
+        }
+        else {
+            $skipsRemaining.text(APP_CONFIG.SKIP_LIMIT - usedSkips.length + ' skips available')
+            $skip.removeClass('disabled');
+        }
+    } else {
+        return null;
     }
 }
 
