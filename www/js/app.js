@@ -427,7 +427,6 @@ var makeMixtapeName = function(song) {
  * Play the next song in the playlist.
  */
 var playNextSong = function() {
-    console.log(playedSongs)
     var nextSong = _.find(playlist, function(song) {
             return !(_.contains(playedSongs, song['id']));
     });

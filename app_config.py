@@ -144,25 +144,6 @@ GENRE_TAGS = [
 
 WELCOME_AUDIO = '/npr/specialmusic/2014/12/20141208_specialmusic_welcome.mp3'
 
-TAG_AUDIO_INTROS = {
-    'Bob Boilen': '/npr/specialmusic/2014/12/20141208_specialmusic_bob.mp3',
-    'Robin Hilton': '/npr/specialmusic/2014/12/20141208_specialmusic_robin.mp3',
-    'Ann Powers': '/npr/specialmusic/2014/12/20141208_specialmusic_ann.mp3',
-    'Stephen Thompson': '/npr/specialmusic/2014/12/20141208_specialmusic_stephen.mp3',
-    'Anastasia Tsioulcas': '/npr/specialmusic/2014/12/20141208_specialmusic_anastasia.mp3',
-    'Tom Huizenga': '/npr/specialmusic/2014/12/20141208_specialmusic_tom.mp3',
-    'Patrick Jarenwattananon': '/npr/specialmusic/2014/12/20141208_specialmusic_patrick.mp3',
-    'Lars Gotrich': '/npr/specialmusic/2014/12/20141208_specialmusic_lars.mp3',
-    'Frannie Kelley': '/npr/specialmusic/2014/12/20141208_specialmusic_frannie.mp3',
-    'Jason King': '/npr/specialmusic/2014/12/20141208_specialmusic_jason.mp3',
-    'Felix Contreras': '/npr/specialmusic/2014/12/20141208_specialmusic_felix.mp3',
-    'Jasmine Garsd': '/npr/specialmusic/2014/12/20141208_specialmusic_jasmine.mp3',
-    'Jason Bentley': '/npr/specialmusic/2014/12/20141209_specialmusic_jasonbentleycurator.mp3',
-    'David Dye': '/npr/specialmusic/2014/12/20141208_specialmusic_david.mp3',
-    'Rita Houston': '/npr/specialmusic/2014/12/20141208_specialmusic_rita.mp3',
-    'Kevin Cole': '/npr/specialmusic/2014/12/20141208_specialmusic_kevin.mp3',
-}
-
 SKIP_LIMIT = 6
 
 
