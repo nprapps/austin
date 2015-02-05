@@ -1,4 +1,4 @@
-<div class="song">
+<div class="song" id='<%= id %>'>
     <div class="container-fluid">
         <div class="song-info">
             <img class="album-cover img-responsive" src="http://npr.org<%= song_art %>">
@@ -16,6 +16,7 @@
                 </div>
 
                 <ul class="song-tools list-unstyled">
+                    <li><a class="star fa fa-star-o"></span></a></li>
                     <% if (ASIN) { %>
                     <li><a target="_blank" href="http://amazon.com/dp/<%= ASIN %>?tag=npr-5-20" class="amazon"><span class="icon-amazon"></span></a></li>
                     <% } %>
