@@ -56,6 +56,7 @@ var songHeight = null;
 var fixedHeaderHeight = null;
 var is_small_screen = false
 var inPreroll = false;
+var favoritedSongs = [];
 
 var isCasting = false;
 var castSender = null;
@@ -124,6 +125,7 @@ var onDocumentLoad = function(e) {
     $songs.on('click', '.song-tools .itunes', oniTunesClick);
     $songs.on('click', '.song-tools .rdio', onRdioClick);
     $songs.on('click', '.song-tools .spotify', onSpotifyClick);
+    $songs.on('click', '.song-tools .star', onStarClick);
     $landing.on('click', '.poster.shrink', onFilterTipClick);
 
     $castStart.on('click', onCastStartClick);
@@ -444,7 +446,6 @@ var playNextSong = function() {
     var context = $.extend(APP_CONFIG, nextSong, {
         'mixtapeName': makeMixtapeName(nextSong)
     });
-    console.log(context)
     var $html = $(JST.song(context));
 
     if (isCasting) {
@@ -526,6 +527,23 @@ var playNextSong = function() {
     updateTotalSongsPlayed();
     writeSkipsRemaining();
     preloadSongImages();
+}
+
+var onStarClick = function(e) {
+    e.stopPropagation();
+
+    $(this).toggleClass('fa-star-o fa-star'); 
+
+    var songID = $(this).parents('.song').attr('id');
+
+    if ($(this).hasClass('fa-star')) {
+        favoritedSongs.push(songID);
+        simpleStorage.set('favoritedSongs', favoritedSongs);
+    } else {
+        var indexOfSongToUnfavorite = _.indexOf(favoritedSongs, songID);
+        favoritedSongs.splice(indexOfSongToUnfavorite, 1);
+        simpleStorage.set('favoritedSongs', favoritedSongs);
+    }
 }
 
 /*
@@ -753,6 +771,7 @@ var writeSkipsRemaining = function() {
  * Load state from browser storage
  */
 var loadState = function() {
+    favoritedSongs = simpleStorage.get('favoritedSongs') || [];
     playedSongs = simpleStorage.get('playedSongs') || [];
     selectedTag = simpleStorage.get('selectedTag') || null;
     usedSkips = simpleStorage.get('usedSkips') || [];
@@ -779,6 +798,17 @@ var loadState = function() {
         $landingFirstDeck.show();
     }
 
+    if (favoritedSongs.length > 0) {
+        for (var i = 0; i < favoritedSongs.length; i++) {
+            var $favoritedSongs = $('#' + favoritedSongs[i]);
+
+            var $songsFavoriteStars = $favoritedSongs.find('.star');
+            
+            $songsFavoriteStars.removeClass('fa-star-o');
+            $songsFavoriteStars.addClass('fa-star');
+        }
+    }
+
     checkSkips();
 }
 
@@ -788,9 +818,11 @@ var loadState = function() {
 var resetState = function() {
     playedSongs = [];
     selectedTag = null;
+    favoritedSongs = [];
 
     simpleStorage.set('playedSongs', playedSongs);
     simpleStorage.set('selectedTag', selectedTag);
+    simpleStorage.set('favoritedSongs', favoritedSongs);
     simpleStorage.set('playedPreroll', false);
 }
 
@@ -809,7 +841,6 @@ var resetLegalLimits = function() {
  */
 var markSongPlayed = function(song) {
     playedSongs.push(song['id'])
-
     simpleStorage.set('playedSongs', playedSongs);
 }
 
@@ -828,7 +859,6 @@ var buildListeningHistory = function() {
         var context = $.extend(APP_CONFIG, song, {
             'mixtapeName': makeMixtapeName(song)
         });
-        console.log(context)
         var html = JST.song(context);
         $songs.append(html);
     };
