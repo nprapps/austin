@@ -427,6 +427,7 @@ var makeMixtapeName = function(song) {
  * Play the next song in the playlist.
  */
 var playNextSong = function() {
+    console.log(playedSongs)
     var nextSong = _.find(playlist, function(song) {
             return !(_.contains(playedSongs, song['id']));
     });
@@ -477,49 +478,42 @@ var playNextSong = function() {
 
         hideWelcome();
     } else {
-        if (IS_CAST_RECEIVER) {
-            $html.prev().hide();
-            $html.css('min-height', songHeight);
-            $html.find('.container-fluid').css('min-height', songHeight);
-            $html.show();
-        } else {
-            setCurrentSongHeight();
-            $html.find('.container-fluid').css('height', songHeight);
-            $html.prev().velocity("scroll", {
-                duration: 350,
-                offset: -fixedHeaderHeight,
-                begin: function() {
-                    $(document).off('scroll');
-                },
-                complete: function() {
-                    $('.stack .poster').velocity('fadeOut', {
-                        duration: 500
-                    });
-                    $html.prev().find('.container-fluid').css('height', '0');
-                    $html.prev().find('.song-info').css('min-height', 0);
-                    $html.prev().css('min-height', '0').addClass('small');
-                    $html.css('min-height', songHeight)
-                        .velocity('fadeIn', {
-                            duration: 300,
-                            complete: function(){
-                                    $(this).velocity("scroll", {
-                                    duration: 500,
-                                    offset: -fixedHeaderHeight,
-                                    delay: 300,
-                                    complete: function() {
-                                        $(document).on('scroll', onDocumentScroll);
+        setCurrentSongHeight();
+        $html.find('.container-fluid').css('height', songHeight);
+        $html.prev().velocity("scroll", {
+            duration: 350,
+            offset: -fixedHeaderHeight,
+            begin: function() {
+                $(document).off('scroll');
+            },
+            complete: function() {
+                $('.stack .poster').velocity('fadeOut', {
+                    duration: 500
+                });
+                $html.prev().find('.container-fluid').css('height', '0');
+                $html.prev().find('.song-info').css('min-height', 0);
+                $html.prev().css('min-height', '0').addClass('small');
+                $html.css('min-height', songHeight)
+                    .velocity('fadeIn', {
+                        duration: 300,
+                        complete: function(){
+                                $(this).velocity("scroll", {
+                                duration: 500,
+                                offset: -fixedHeaderHeight,
+                                delay: 300,
+                                complete: function() {
+                                    $(document).on('scroll', onDocumentScroll);
 
-                                        if (playedSongs.length > 1) {
-                                            $historyButton.show();
-                                            $historyButton.removeClass('offscreen');
-                                        }
+                                    if (playedSongs.length > 1) {
+                                        $historyButton.show();
+                                        $historyButton.removeClass('offscreen');
                                     }
-                                });
-                            }
-                        });
-                }
-            });
-        }
+                                }
+                            });
+                        }
+                    });
+            }
+        });
     }
 
     currentSong = nextSong;
@@ -608,10 +602,6 @@ var nextPlaylist = function() {
     if (playedSongs.length == SONG_DATA.length) {
         // if all songs have been played, reset to shuffle
         resetState();
-    }
-
-    if (IS_CAST_RECEIVER) {
-        castReceiver.sendMessage('tag-ended');
     }
 
     _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'tag-finish', selectedTag]);
