@@ -391,9 +391,18 @@ var playNextSong = function(nextSongID) {
         if (isFirstPlay && playedSongs.length > 0) {
             nextSongID = playedSongs[playedSongs.length-1];
         } else {
-            nextSongID = _.find(songOrder, function(songID) {
-                return !(_.contains(playedSongs, songID));
-            })
+
+            var currentSongID = getSongIDFromHTML($currentSong);
+
+            var indexOfCurrentSong = _.indexOf(playedSongs, currentSongID);
+
+            if (indexOfCurrentSong < playedSongs.length - 1) {
+                nextSongID = playedSongs[indexOfCurrentSong + 1];      
+            } else {
+                nextSongID = _.find(songOrder, function(songID) {
+                    return !(_.contains(playedSongs, songID));
+                })
+            }
         }
     }
 
@@ -499,12 +508,16 @@ var playNextSong = function(nextSongID) {
     preloadSongImages();
 }
 
+var getSongIDFromHTML = function($song) {
+    return $song.attr('id').split('-')[1];
+}
+
 var onStarClick = function(e) {
     e.stopPropagation();
 
     $(this).toggleClass('fa-star-o fa-star'); 
 
-    var songID = $(this).parents('.song').attr('id').split('-')[1];
+    var songID = getSongIDFromHTML($(this).parents('.song'));
 
     if ($(this).hasClass('fa-star')) {
         favoritedSongs.push(songID);
@@ -636,7 +649,7 @@ var onSkipClick = function(e) {
 var onBackClick = function(e) {
     e.preventDefault();
 
-    var songID = $currentSong.attr('id').split('-')[1];
+    var songID = getSongIDFromHTML($currentSong);
     var playedIndex = _.indexOf(playedSongs, songID);
     var previousSongID = playedSongs[playedIndex - 1];
 
