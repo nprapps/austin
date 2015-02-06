@@ -828,26 +828,12 @@ var hideWelcome  = function() {
     setCurrentSongHeight();
 
     $song.velocity("scroll", { duration: 750, offset: -fixedHeaderHeight });
-
-    $landing.velocity({
-        bottom: '5rem',
-        height: '4rem',
-    }, {
+    $('.landing-wrapper').hide().css('height', '');
+    $landing.velocity('fadeOut', {
+        delay: 4000,
         duration: 1000,
-        timing: 'ease-in-out',
-        begin: function() {
-            $('.landing-wrapper').hide().css('height', '');
-            // $(this).find('.tip-three').removeClass('show');
-            // $(this).find('.poster').addClass('shrink');
-        },
         complete: function() {
-            $landing.velocity('fadeOut', {
-                delay: 4000,
-                duration: 1000,
-                complete: function() {
-                    $('.poster').removeClass('shrink').attr('style','');
-                }
-            });
+            $('.poster').removeClass('shrink').attr('style','');
         }
     });
 
