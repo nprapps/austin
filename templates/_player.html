@@ -1,6 +1,5 @@
 <div class="player-container">
     <div class="player-wrapper">
-        <a href="javascript:;" class="back" title="back"><span>back</span></a>
         <div>
             <span class="played-songs"></span>/{{ total_songs }}
         </div>      
@@ -10,8 +9,12 @@
                 <div class="jp-type-single">
                     <div class="gui">
                         <div class="controls">
+                            <a href="javascript:;" class="back player-button" title="back"><span class="icon-backward"></a>
+
                             <a href="javascript:;" class="play player-button" title="play"><span class="icon-play"></span></a>
                             <a href="javascript:;" class="pause player-button" style="display: none;" title="pause"><span class="icon-pause"></span></a>
+
+                            <a class="skip player-button" href="#"><span class="icon-forward"></span></a>
                         </div>
                         <div class="jp-progress-container">
                             <div class="player-progress jp-progress">
@@ -24,8 +27,6 @@
                             <div class="current-time"></div>
                             <p class="skips"><span class="skips-remaining"></span></p>
                         </div>
-
-                        <a class="skip player-button" href="#"><span class="icon-forward"></span></a>
                     </div>
                 </div>
             </div> <!-- end .jp-audio -->

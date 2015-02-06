@@ -1039,10 +1039,8 @@ h1,h2,h3,h4,h5,h6 {
 		z-index: @z-player-controls;
 	}
 
-	.skip {
-		position: absolute;
-		right: 0;
-		top: 0;
+	.skip,
+	.back {
 		&.disabled {
 			background: lighten(@music-red, 20%);
 			cursor: not-allowed;
@@ -1073,10 +1071,10 @@ h1,h2,h3,h4,h5,h6 {
 
 	.player-progress {
 		position: absolute;
-		left: 5rem;
+		left: 9rem;
 		top: 0;
 		bottom: 0;
-		right: 5rem;
+		right: 0;
 
 		.bar {
 			position: absolute;
@@ -1088,7 +1086,7 @@ h1,h2,h3,h4,h5,h6 {
 		}
 	}
 	.playback-info {
-		right: 5.5rem;
+		right: 0.5rem;
 		text-align: right;
 		line-height: 1;
 		.vertical-center;
@@ -1101,18 +1099,25 @@ h1,h2,h3,h4,h5,h6 {
 .player-button:visited,
 .player-button:hover {
 	display: block;
+	float: left;
 	.square(5rem);
-	background: @music-red-light;
-	color: #fff;
+	background: @gray-dark;
+	color: @music-red-light;
 	line-height: 5rem;
 	text-align: center;
 	font-size: @font-size-base * 3;
+
+	&.back,
+	&.skip {
+		width: 2rem;
+		font-size: @font-size-base * 2;
+	}
 
 
 	.no-touch & {
 		&:hover {
 			color: #fff;
-			background: lighten(@music-red-light, 10%);
+			// background: lighten(@music-red-light, 10%);
 			text-decoration: none;
 		}
 	}
@@ -1120,7 +1125,7 @@ h1,h2,h3,h4,h5,h6 {
 	.touch & {
 		&:active {
 			color: #fff;
-			background: lighten(@music-red-light, 10%);
+			// background: lighten(@music-red-light, 10%);
 			text-decoration: none;
 		}
 	}
