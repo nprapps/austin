@@ -41,7 +41,7 @@ def update_songs(verify='false'):
 
 @task
 def clean_songs(verify):
-    output = []
+    output = {}
     unique_audio = []
     unique_song_art = []
     unique_song_title = []
@@ -142,7 +142,7 @@ def clean_songs(verify):
                 else:
                     unique_song_title.append(row['title'])
 
-            output.append(row)
+            output[row['id']] = row
 
     return output
 
