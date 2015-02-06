@@ -391,18 +391,20 @@ var playNextSong = function(nextSongID) {
     if (_.isUndefined(nextSongID)) {
     // nextSongID would've only been defined in onBackClick()        
         if (playedSongs.length > 0) {
-        // If the user has played songs before; should we be using onWelcome here?
+        // If the user has played songs before; should we be using onWelcome = false here?
             if (isFirstPlay) {
-            // If this is the first time this song is being played
+            // If this is the first play of the session, play the last song that was ever played
                 nextSongID = playedSongs[playedSongs.length-1];             
             } else {
-            // If this ISN'T the first time this song is being played, which means the user has rewinded to a previous song in their history
+            // If this ISN'T the first play of the session
                 var currentSongID = getSongIDFromHTML($currentSong);
                 var indexOfCurrentSong = _.indexOf(playedSongs, currentSongID);
 
                 if (indexOfCurrentSong < playedSongs.length - 1) {
+                // If this song has been played before
                     nextSongID = playedSongs[indexOfCurrentSong + 1];      
                 } else {
+                // If this song has never been played before, draw up an unheard one for the next song
                     nextSongID = _.find(songOrder, function(songID) {
                         return !(_.contains(playedSongs, songID));
                     })
