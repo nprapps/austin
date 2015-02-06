@@ -23,6 +23,7 @@ var $back = null;
 var $historyButton = null;
 var $skipsRemaining = null;
 var $currentSong = null;
+var $fullscreenButton = null;
 
 var $castButtons = null;
 var $castStart = null;
@@ -86,6 +87,10 @@ var onDocumentLoad = function(e) {
     $historyButton = $('.js-show-history');
     $skipsRemaining = $('.skips-remaining');
 
+    $fullscreenButtons = $('.fullscreen');
+    $fullscreenStart = $('.fullscreen .start');
+    $fullscreenStop = $('.fullscreen .stop');    
+
     $castButtons = $('.chromecast');
     $castStart = $('.chromecast .start');
     $castStop = $('.chromecast .stop');
@@ -113,6 +118,10 @@ var onDocumentLoad = function(e) {
     $songs.on('click', '.song-tools .rdio', onRdioClick);
     $songs.on('click', '.song-tools .spotify', onSpotifyClick);
     $songs.on('click', '.song-tools .star', onStarClick);
+
+    $fullscreenStart.on('click',onFullscreenStartClick);
+    $fullscreenStop.on('click', onFullscreenStopClick); 
+    $(document).on(screenfull.raw.fullscreenchange, onFullscreenChange);
 
     $castStart.on('click', onCastStartClick);
     $castStop.on('click', onCastStopClick);
@@ -1008,6 +1017,42 @@ var toggleHistoryButton = function(e) {
         $historyButton.removeClass('offscreen');
     } else {
         $historyButton.addClass('offscreen');
+    }
+}
+
+/*
+ * Initiate fullscreen
+ */
+var onFullscreenStartClick = function(e) {
+    e.preventDefault();
+
+    if (screenfull.enabled) {
+        screenfull.request();  
+    }
+}
+
+/*
+ * Exit fullscreen
+ */
+var onFullscreenStopClick = function(e) {
+    e.preventDefault();
+
+    if (screenfull.enabled) {
+        screenfull.exit();      
+    }
+}
+
+var onFullscreenChange = function() {
+    console.log('hi')
+    console.log(screenfull.isFullscreen)
+    if (screenfull.isFullscreen) {
+        _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'fullscreen-start']);        
+        $fullscreenStop.show();
+        $fullscreenStart.hide();         
+    } else {
+        _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'fullscreen-stop']);        
+        $fullscreenStop.hide();
+        $fullscreenStart.show();          
     }
 }
 
