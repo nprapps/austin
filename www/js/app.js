@@ -389,21 +389,28 @@ var playIntroAudio = function() {
  */
 var playNextSong = function(nextSongID) {
     if (_.isUndefined(nextSongID)) {
-        if (isFirstPlay && playedSongs.length > 0) {
-            nextSongID = playedSongs[playedSongs.length-1];
-        } else {
-
-            var currentSongID = getSongIDFromHTML($currentSong);
-
-            var indexOfCurrentSong = _.indexOf(playedSongs, currentSongID);
-
-            if (indexOfCurrentSong < playedSongs.length - 1) {
-                nextSongID = playedSongs[indexOfCurrentSong + 1];      
+    // nextSongID would've only been defined in onBackClick()        
+        if (playedSongs.length > 0) {
+        // If the user has played songs before; should we be using onWelcome here?
+            if (isFirstPlay) {
+            // If this is the first time this song is being played
+                nextSongID = playedSongs[playedSongs.length-1];             
             } else {
-                nextSongID = _.find(songOrder, function(songID) {
-                    return !(_.contains(playedSongs, songID));
-                })
+            // If this ISN'T the first time this song is being played, which means the user has rewinded to a previous song in their history
+                var currentSongID = getSongIDFromHTML($currentSong);
+                var indexOfCurrentSong = _.indexOf(playedSongs, currentSongID);
+
+                if (indexOfCurrentSong < playedSongs.length - 1) {
+                    nextSongID = playedSongs[indexOfCurrentSong + 1];      
+                } else {
+                    nextSongID = _.find(songOrder, function(songID) {
+                        return !(_.contains(playedSongs, songID));
+                    })
+                }                
             }
+        } else {
+        // If this is the first time the user is playing any song
+            nextSongID = songOrder[0];
         }
     }
 
