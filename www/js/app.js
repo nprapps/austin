@@ -8,7 +8,7 @@ var $audioPlayer = null;
 var $playerArtist = null;
 var $playerTitle = null;
 var $currentTime = null;
-var $totalSongs = null;
+var $playedSongs = null;
 var $skip = null;
 var $songs = null;
 var $landing = null;
@@ -73,7 +73,7 @@ var onDocumentLoad = function(e) {
     $playerArtist = $('.player .artist');
     $playerTitle = $('.player .song-title');
     $currentTime = $('.current-time');
-    $totalSongs = $('.total-songs');
+    $playedSongs = $('.played-songs');
     $landing = $('.landing');
     $fixedHeader = $('.fixed-header');
     $landingReturnDeck = $('.landing-return-deck');
@@ -571,12 +571,12 @@ var checkSongHistory = function(song) {
  * Update the total songs played
  */
 var updateTotalSongsPlayed = function() {
-    totalSongsPlayed++;
-    simpleStorage.set('totalSongsPlayed', totalSongsPlayed);
 
-    if (totalSongsPlayed % 5 === 0) {
-        _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'songs-played', '', totalSongsPlayed]);
-    }
+    $playedSongs.text(playedSongs.length);
+
+    // if (totalSongsPlayed % 5 === 0) {
+    //     _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'songs-played', '', totalSongsPlayed]);
+    // }
 }
 
 /*
