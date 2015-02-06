@@ -19,8 +19,10 @@ var $shuffleSongs = null;
 var $player = null;
 var $play = null;
 var $pause = null;
+var $back = null;
 var $historyButton = null;
 var $skipsRemaining = null;
+var $currentSong = null;
 
 var $castButtons = null;
 var $castStart = null;
@@ -79,6 +81,7 @@ var onDocumentLoad = function(e) {
     $shuffleSongs = $('.shuffle-songs');
     $player = $('.player-container')
     $play = $('.play');
+    $back = $('.back');
     $pause = $('.pause');
     $historyButton = $('.js-show-history');
     $skipsRemaining = $('.skips-remaining');
@@ -98,6 +101,7 @@ var onDocumentLoad = function(e) {
     $continueButton.on('click', onContinueButtonClick);
     $skip.on('click', onSkipClick);
     $play.on('click', onPlayClick);
+    $back.on('click', onBackClick);
     $pause.on('click', onPauseClick);
     $(window).on('resize', onWindowResize);
     $(document).on('scroll', onDocumentScroll);
@@ -373,13 +377,15 @@ var playIntroAudio = function() {
 /*
  * Play the next song in the playlist.
  */
-var playNextSong = function() {
-    if (isFirstPlay && playedSongs.length > 0) {
-        var nextSongID = playedSongs[playedSongs.length-1];
-    } else {
-        var nextSongID = _.find(songOrder, function(songID) {
-            return !(_.contains(playedSongs, songID));
-        })
+var playNextSong = function(nextSongID) {
+    if (_.isUndefined(nextSongID)) {
+        if (isFirstPlay && playedSongs.length > 0) {
+            nextSongID = playedSongs[playedSongs.length-1];
+        } else {
+            nextSongID = _.find(songOrder, function(songID) {
+                return !(_.contains(playedSongs, songID));
+            })
+        }
     }
 
     isFirstPlay = false;
@@ -399,14 +405,23 @@ var playNextSong = function() {
         }
     }
 
-    var context = $.extend(APP_CONFIG, nextSong);
-    var $html = $(JST.song(context));
+    $currentSong = $('#song-' + nextSongID);
 
-    if (isCasting) {
-        $songs.prepend($html);
-    } else {
-        $songs.append($html);
+    if ($currentSong.length == 0) {
+        var context = $.extend(APP_CONFIG, nextSong);
+        $currentSong = $(JST.song(context));
+
+        if (isCasting) {
+            $songs.prepend($currentSong);
+        } else {
+            $songs.append($currentSong);
+        }        
     }
+
+    $songs.find('.song').addClass('small');
+    $songs.find('.song .container-fluid').css('height', 0);
+    $songs.find('.song').css('min-height', 0);
+    $currentSong.removeClass('small');
 
     $playerArtist.html(nextSong['artist']);
     $playerTitle.html(nextSong['title']);
@@ -426,14 +441,14 @@ var playNextSong = function() {
     $pause.show();
 
     if (onWelcome) {
-        $html.css('min-height', songHeight).show();
-        $html.find('.container-fluid').css('height', songHeight);
+        $currentSong.css('min-height', songHeight).show();
+        $currentSong.find('.container-fluid').css('height', songHeight);
 
         hideWelcome();
     } else {
         setCurrentSongHeight();
-        $html.find('.container-fluid').css('height', songHeight);
-        $html.prev().velocity("scroll", {
+        $currentSong.find('.container-fluid').css('height', songHeight);
+        $currentSong.prev().velocity("scroll", {
             duration: 350,
             offset: -fixedHeaderHeight,
             begin: function() {
@@ -443,10 +458,10 @@ var playNextSong = function() {
                 $('.stack .poster').velocity('fadeOut', {
                     duration: 500
                 });
-                $html.prev().find('.container-fluid').css('height', '0');
-                $html.prev().find('.song-info').css('min-height', 0);
-                $html.prev().css('min-height', '0').addClass('small');
-                $html.css('min-height', songHeight)
+                $currentSong.prev().find('.container-fluid').css('height', '0');
+                $currentSong.prev().find('.song-info').css('min-height', 0);
+                $currentSong.prev().css('min-height', '0').addClass('small');
+                $currentSong.css('min-height', songHeight)
                     .velocity('fadeIn', {
                         duration: 300,
                         complete: function(){
@@ -480,7 +495,7 @@ var onStarClick = function(e) {
 
     $(this).toggleClass('fa-star-o fa-star'); 
 
-    var songID = $(this).parents('.song').attr('id');
+    var songID = $(this).parents('.song').attr('id').split('-')[1];
 
     if ($(this).hasClass('fa-star')) {
         favoritedSongs.push(songID);
@@ -514,12 +529,15 @@ var preloadSongImages = function() {
  *  Set the height of the currently playing song to fill the viewport.
  */
 var setCurrentSongHeight = function(){
-    windowHeight = Modernizr.touch ? window.innerHeight || $(window).height() : $(window).height();
-    songHeight = windowHeight - $player.height() - $fixedHeader.height();
+    if ($currentSong !== null) {
+        windowHeight = Modernizr.touch ? window.innerHeight || $(window).height() : $(window).height();
+        songHeight = windowHeight - $player.height() - $fixedHeader.height();
 
-    $songs.children().last().find('.container-fluid').css('height', songHeight);
-    $songs.children().last().css('min-height', songHeight);
+        $currentSong.find('.container-fluid').css('height', songHeight);
+        $currentSong.css('min-height', songHeight);
+    }
 }
+
 
 /*
  * Check the song history to see if you've played it
@@ -604,6 +622,17 @@ var onSkipClick = function(e) {
     } else {
         skipSong();
     }
+}
+
+var onBackClick = function(e) {
+    e.preventDefault();
+
+    var songID = $currentSong.attr('id').split('-')[1];
+    var playedIndex = _.indexOf(playedSongs, songID);
+    var previousSongID = playedSongs[playedIndex - 1];
+
+    playNextSong(previousSongID);
+    console.log('last song played: ' + previousSongID)
 }
 
 /*
@@ -793,9 +822,12 @@ var hideWelcome  = function() {
 
     $('.songs, .player-container').show();
     $fixedHeader.show();
+
+    var $song = $songs.find('.song').last();
+
     setCurrentSongHeight();
 
-    $songs.find('.song').last().velocity("scroll", { duration: 750, offset: -fixedHeaderHeight });
+    $song.velocity("scroll", { duration: 750, offset: -fixedHeaderHeight });
 
     $landing.velocity({
         bottom: '5rem',
