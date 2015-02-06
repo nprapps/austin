@@ -128,20 +128,6 @@ DISQUS_UUID = '211d091e-a573-11e4-a82b-14109fed4b76'
 CHROMECAST_APP_ID = None
 CHROMECAST_NAMESPACE = 'urn:x-cast:nprviz.austin'
 
-GENRE_TAGS = [
-    'Classical',
-    'Country/Americana',
-    'Electronic',
-    'Hip-Hop',
-    'Jazz',
-    'Latin',
-    'Pop',
-    'R&B',
-    'Rock',
-    '\m/ >_< \m/',
-    'World'
-]
-
 WELCOME_AUDIO = '/npr/specialmusic/2014/12/20141208_specialmusic_welcome.mp3'
 
 SKIP_LIMIT = 6

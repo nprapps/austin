@@ -8,12 +8,10 @@ var $audioPlayer = null;
 var $playerArtist = null;
 var $playerTitle = null;
 var $currentTime = null;
-var $allTags = null;
 var $totalSongs = null;
 var $skip = null;
 var $songs = null;
 var $landing = null;
-var $filtersPanel = null;
 var $fixedHeader = null;
 var $landingReturnDeck = null;
 var $landingFirstDeck = null;
@@ -21,9 +19,6 @@ var $shuffleSongs = null;
 var $player = null;
 var $play = null;
 var $pause = null;
-var $filtersButton = null;
-var $currentDj = null;
-var $fixedControls = null;
 var $historyButton = null;
 var $skipsRemaining = null;
 
@@ -78,7 +73,6 @@ var onDocumentLoad = function(e) {
     $playerTitle = $('.player .song-title');
     $currentTime = $('.current-time');
     $totalSongs = $('.total-songs');
-    $tagsWrapper = $('.tags-wrapper');
     $landing = $('.landing');
     $fixedHeader = $('.fixed-header');
     $landingReturnDeck = $('.landing-return-deck');
@@ -87,9 +81,6 @@ var onDocumentLoad = function(e) {
     $player = $('.player-container')
     $play = $('.play');
     $pause = $('.pause');
-    $filtersButton = $('.js-toggle-filters');
-    $currentDj = $('.current-dj');
-    $fixedControls = $('.fixed-controls');
     $historyButton = $('.js-show-history');
     $skipsRemaining = $('.skips-remaining');
 
@@ -109,7 +100,6 @@ var onDocumentLoad = function(e) {
     $skip.on('click', onSkipClick);
     $play.on('click', onPlayClick);
     $pause.on('click', onPauseClick);
-    $filtersButton.on('click', onFiltersButtonClick);
     $(window).on('resize', onWindowResize);
     $(document).on('scroll', onDocumentScroll);
     $shuffleSongs.on('click', onShuffleSongsClick);
@@ -120,7 +110,6 @@ var onDocumentLoad = function(e) {
     $songs.on('click', '.song-tools .rdio', onRdioClick);
     $songs.on('click', '.song-tools .spotify', onSpotifyClick);
     $songs.on('click', '.song-tools .star', onStarClick);
-    $landing.on('click', '.poster.shrink', onFilterTipClick);
 
     $castStart.on('click', onCastStartClick);
     $castStop.on('click', onCastStopClick);
@@ -383,20 +372,9 @@ var playIntroAudio = function() {
 }
 
 /*
- * Generate a reader-friendly mixtape name.
- */
-var makeMixtapeName = function(song) {
-    var mixtapeName = null;
-
-    return mixtapeName;
-}
-
-/*
  * Play the next song in the playlist.
  */
 var playNextSong = function() {
-
-    console.log(playedSongs)
     if (isFirstPlay && playedSongs.length > 0) {
         var nextSongID = playedSongs[playedSongs.length-1];
         isFirstPlay = false;
@@ -421,9 +399,7 @@ var playNextSong = function() {
         }
     }
 
-    var context = $.extend(APP_CONFIG, nextSong, {
-        'mixtapeName': makeMixtapeName(nextSong)
-    });
+    var context = $.extend(APP_CONFIG, nextSong);
     var $html = $(JST.song(context));
 
     if (isCasting) {
@@ -539,7 +515,7 @@ var preloadSongImages = function() {
  */
 var setCurrentSongHeight = function(){
     windowHeight = Modernizr.touch ? window.innerHeight || $(window).height() : $(window).height();
-    songHeight = windowHeight - $player.height() - $fixedHeader.height() - $fixedControls.height();
+    songHeight = windowHeight - $player.height() - $fixedHeader.height();
 
     $songs.children().last().find('.container-fluid').css('height', songHeight);
     $songs.children().last().css('min-height', songHeight);
@@ -616,33 +592,6 @@ var onPauseClick = function(e) {
     $pause.hide();
     $play.show();
 }
-
-/*
- * Toggle filter panel
- */
-var onFiltersButtonClick = function(e) {
-    e.preventDefault();
-    toggleFilterPanel();
-    $filtersPanel.scrollTop(0);
-}
-
-var onFilterTipClick = function(e) {
-    e.preventDefault();
-    toggleFilterPanel();
-    $(this).velocity('fadeOut', {
-        duration: 300
-    });
-}
-
-var toggleFilterPanel = function() {
-    if (!$fixedControls.hasClass('expand')) {
-
-        $fixedControls.addClass('expand');
-    } else {
-        $fixedControls.removeClass('expand');
-    }
-}
-
 
 /*
  * Handle clicks on the skip button.
@@ -808,9 +757,7 @@ var buildListeningHistory = function() {
 
         var song = SONG_DATA[songID];
 
-        var context = $.extend(APP_CONFIG, song, {
-            'mixtapeName': makeMixtapeName(song)
-        });
+        var context = $.extend(APP_CONFIG, song);
         var html = JST.song(context);
         $songs.append(html);
     };
@@ -858,11 +805,8 @@ var hideWelcome  = function() {
         timing: 'ease-in-out',
         begin: function() {
             $('.landing-wrapper').hide().css('height', '');
-            $(this).find('.tip-three').removeClass('show');
-            $(this).find('.done').velocity('fadeIn', {
-                delay: 500
-            });
-            $(this).find('.poster').addClass('shrink');
+            // $(this).find('.tip-three').removeClass('show');
+            // $(this).find('.poster').addClass('shrink');
         },
         complete: function() {
             $landing.velocity('fadeOut', {

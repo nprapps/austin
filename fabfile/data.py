@@ -93,40 +93,8 @@ def clean_songs(verify):
                 except:
                     print '--> request.head failed'
 
-            row['genre_tags'] = []
-
-            for i in range(1,4):
-                key = 'genre%i' % i
-
-                if row[key]:
-                    row['genre_tags'].append(row[key])
-
-                if key != 'genre1':
-                    del row[key]
-
-            row['curator_tags'] = []
-
-            for i in range(1,7):
-                key = 'curator%i' % i
-
-                if row[key]:
-                    row['curator_tags'].append(row[key])
-
-                del row[key]
-
             # Verify tags
             if verify:
-                for song_genre in row['genre_tags']:
-                    if song_genre not in app_config.GENRE_TAGS:
-                        print "--> Genre %s is not a valid genre" % (song_genre)
-
-                for song_curator in row['curator_tags']:
-                    if song_curator not in app_config.REVIEWER_TAGS:
-                        print "--> Genre %s is not a valid genre" % (song_curator)
-
-                if row['reviewer'] not in app_config.REVIEWER_IMAGES:
-                    print '--> Reviewer %s does not have a headshot' % row['reviewer']
-
                 if row['media_url'] in unique_audio:
                     print '--> Duplicate audio url: %s' % row['media_url']
                 else:
