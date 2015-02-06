@@ -23,6 +23,7 @@ var $back = null;
 var $historyButton = null;
 var $skipsRemaining = null;
 var $currentSong = null;
+var $previousSong = null;
 
 var $castButtons = null;
 var $castStart = null;
@@ -399,12 +400,13 @@ var playNextSong = function(nextSongID) {
         if (!canPlaySong) {
             return;
         } else {
-            // TODO: go back and play first song in playedSongs? 
+            // TODO: go back and play first song in playedSongs?
             // nextPlaylist();
             // return;
         }
     }
 
+    $previousSong = $currentSong;
     $currentSong = $('#song-' + nextSongID);
 
     if ($currentSong.length == 0) {
@@ -415,13 +417,8 @@ var playNextSong = function(nextSongID) {
             $songs.prepend($currentSong);
         } else {
             $songs.append($currentSong);
-        }        
+        }
     }
-
-    $songs.find('.song').addClass('small');
-    $songs.find('.song .container-fluid').css('height', 0);
-    $songs.find('.song').css('min-height', 0);
-    $currentSong.removeClass('small');
 
     $playerArtist.html(nextSong['artist']);
     $playerTitle.html(nextSong['title']);
@@ -441,31 +438,43 @@ var playNextSong = function(nextSongID) {
     $pause.show();
 
     if (onWelcome) {
-        $currentSong.css('min-height', songHeight).show();
-        $currentSong.find('.container-fluid').css('height', songHeight);
-
+        setCurrentSongHeight();
         hideWelcome();
     } else {
-        setCurrentSongHeight();
-        $currentSong.find('.container-fluid').css('height', songHeight);
-        $currentSong.prev().velocity("scroll", {
-            duration: 350,
-            offset: -fixedHeaderHeight,
-            begin: function() {
-                $(document).off('scroll');
-            },
-            complete: function() {
-                $('.stack .poster').velocity('fadeOut', {
-                    duration: 500
-                });
-                $currentSong.prev().find('.container-fluid').css('height', '0');
-                $currentSong.prev().find('.song-info').css('min-height', 0);
-                $currentSong.prev().css('min-height', '0').addClass('small');
-                $currentSong.css('min-height', songHeight)
-                    .velocity('fadeIn', {
+        if ($currentSong.offset().top < $previousSong.offset().top) {
+            console.log('scroll up');
+            $currentSong.velocity("scroll", {
+                duration: 350,
+                offset: -fixedHeaderHeight,
+                begin: function() {
+                    $(document).off('scroll');
+                },
+                complete: function() {
+                    setCurrentSongHeight();
+                    shrinkSong($previousSong);
+
+                    $(document).on('scroll', onDocumentScroll);
+
+                    if (playedSongs.length > 1) {
+                        $historyButton.show();
+                        $historyButton.removeClass('offscreen');
+                    }
+                }
+            });
+        } else {
+            setCurrentSongHeight();
+            $previousSong.velocity("scroll", {
+                duration: 350,
+                offset: -fixedHeaderHeight,
+                begin: function() {
+                    $(document).off('scroll');
+                },
+                complete: function() {
+                    shrinkSong($previousSong);
+                    $currentSong.velocity('fadeIn', {
                         duration: 300,
                         complete: function(){
-                                $(this).velocity("scroll", {
+                            $(this).velocity("scroll", {
                                 duration: 500,
                                 offset: -fixedHeaderHeight,
                                 delay: 300,
@@ -480,8 +489,9 @@ var playNextSong = function(nextSongID) {
                             });
                         }
                     });
-            }
-        });
+                }
+            });
+        }
     }
 
     markSongPlayed(nextSong);
@@ -490,10 +500,18 @@ var playNextSong = function(nextSongID) {
     preloadSongImages();
 }
 
+/*
+ *  Display a song in the condensed layout
+ */
+var shrinkSong = function($el) {
+    $el.css('min-height', '0').addClass('small');
+    $el.find('.container-fluid').css('height', 0);
+}
+
 var onStarClick = function(e) {
     e.stopPropagation();
 
-    $(this).toggleClass('fa-star-o fa-star'); 
+    $(this).toggleClass('fa-star-o fa-star');
 
     var songID = $(this).parents('.song').attr('id').split('-')[1];
 
@@ -535,6 +553,7 @@ var setCurrentSongHeight = function(){
 
         $currentSong.find('.container-fluid').css('height', songHeight);
         $currentSong.css('min-height', songHeight);
+        $currentSong.removeClass('small');
     }
 }
 
