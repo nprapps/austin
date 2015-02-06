@@ -24,6 +24,7 @@ var $historyButton = null;
 var $skipsRemaining = null;
 var $currentSong = null;
 var $previousSong = null;
+var $fullscreenButton = null;
 
 var $castButtons = null;
 var $castStart = null;
@@ -87,6 +88,10 @@ var onDocumentLoad = function(e) {
     $historyButton = $('.js-show-history');
     $skipsRemaining = $('.skips-remaining');
 
+    $fullscreenButtons = $('.fullscreen');
+    $fullscreenStart = $('.fullscreen .start');
+    $fullscreenStop = $('.fullscreen .stop');    
+
     $castButtons = $('.chromecast');
     $castStart = $('.chromecast .start');
     $castStop = $('.chromecast .stop');
@@ -114,6 +119,10 @@ var onDocumentLoad = function(e) {
     $songs.on('click', '.song-tools .rdio', onRdioClick);
     $songs.on('click', '.song-tools .spotify', onSpotifyClick);
     $songs.on('click', '.song-tools .star', onStarClick);
+
+    $fullscreenStart.on('click',onFullscreenStartClick);
+    $fullscreenStop.on('click', onFullscreenStopClick); 
+    $(document).on(screenfull.raw.fullscreenchange, onFullscreenChange);
 
     $castStart.on('click', onCastStartClick);
     $castStop.on('click', onCastStopClick);
@@ -383,9 +392,18 @@ var playNextSong = function(nextSongID) {
         if (isFirstPlay && playedSongs.length > 0) {
             nextSongID = playedSongs[playedSongs.length-1];
         } else {
-            nextSongID = _.find(songOrder, function(songID) {
-                return !(_.contains(playedSongs, songID));
-            })
+
+            var currentSongID = getSongIDFromHTML($currentSong);
+
+            var indexOfCurrentSong = _.indexOf(playedSongs, currentSongID);
+
+            if (indexOfCurrentSong < playedSongs.length - 1) {
+                nextSongID = playedSongs[indexOfCurrentSong + 1];      
+            } else {
+                nextSongID = _.find(songOrder, function(songID) {
+                    return !(_.contains(playedSongs, songID));
+                })
+            }
         }
     }
 
@@ -508,12 +526,16 @@ var shrinkSong = function($el) {
     $el.find('.container-fluid').css('height', 0);
 }
 
+var getSongIDFromHTML = function($song) {
+    return $song.attr('id').split('-')[1];
+}
+
 var onStarClick = function(e) {
     e.stopPropagation();
 
     $(this).toggleClass('fa-star-o fa-star');
 
-    var songID = $(this).parents('.song').attr('id').split('-')[1];
+    var songID = getSongIDFromHTML($(this).parents('.song'));
 
     if ($(this).hasClass('fa-star')) {
         favoritedSongs.push(songID);
@@ -646,7 +668,7 @@ var onSkipClick = function(e) {
 var onBackClick = function(e) {
     e.preventDefault();
 
-    var songID = $currentSong.attr('id').split('-')[1];
+    var songID = getSongIDFromHTML($currentSong);
     var playedIndex = _.indexOf(playedSongs, songID);
     var previousSongID = playedSongs[playedIndex - 1];
 
@@ -1027,6 +1049,42 @@ var toggleHistoryButton = function(e) {
         $historyButton.removeClass('offscreen');
     } else {
         $historyButton.addClass('offscreen');
+    }
+}
+
+/*
+ * Initiate fullscreen
+ */
+var onFullscreenStartClick = function(e) {
+    e.preventDefault();
+
+    if (screenfull.enabled) {
+        screenfull.request();  
+    }
+}
+
+/*
+ * Exit fullscreen
+ */
+var onFullscreenStopClick = function(e) {
+    e.preventDefault();
+
+    if (screenfull.enabled) {
+        screenfull.exit();      
+    }
+}
+
+var onFullscreenChange = function() {
+    console.log('hi')
+    console.log(screenfull.isFullscreen)
+    if (screenfull.isFullscreen) {
+        _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'fullscreen-start']);        
+        $fullscreenStop.show();
+        $fullscreenStart.hide();         
+    } else {
+        _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'fullscreen-stop']);        
+        $fullscreenStop.hide();
+        $fullscreenStart.show();          
     }
 }
 
