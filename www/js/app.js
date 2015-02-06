@@ -38,7 +38,6 @@ var playedSongs = [];
 var onWelcome = true;
 var playedsongCount = null;
 var usedSkips = [];
-var curator = null;
 var totalSongsPlayed = 0;
 var songHistory = {};
 var songHeight = null;
@@ -375,8 +374,12 @@ var playIntroAudio = function() {
  * Play the next song in the playlist.
  */
 var playNextSong = function() {
-    if (isFirstPlay && playedSongs.length > 0) {
-        var nextSongID = playedSongs[playedSongs.length-1];
+    if (isFirstPlay) {
+        if (playedSongs.length > 0) {
+            var nextSongID = playedSongs[playedSongs.length-1];
+        } else {
+            var nextSongID = songOrder[0];
+        }
         isFirstPlay = false;
     } else {
         var nextSongID = _.find(songOrder, function(songID) {
