@@ -374,18 +374,15 @@ var playIntroAudio = function() {
  * Play the next song in the playlist.
  */
 var playNextSong = function() {
-    if (isFirstPlay) {
-        if (playedSongs.length > 0) {
-            var nextSongID = playedSongs[playedSongs.length-1];
-        } else {
-            var nextSongID = songOrder[0];
-        }
-        isFirstPlay = false;
+    if (isFirstPlay && playedSongs.length > 0) {
+        var nextSongID = playedSongs[playedSongs.length-1];
     } else {
         var nextSongID = _.find(songOrder, function(songID) {
             return !(_.contains(playedSongs, songID));
         })
     }
+
+    isFirstPlay = false;
 
     var nextSong = SONG_DATA[nextSongID];
 
