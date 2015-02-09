@@ -43,7 +43,6 @@ var isPlayingWelcome = true;
 var playedsongCount = null;
 var usedSkips = [];
 var totalSongsPlayed = 0;
-var songHistory = {};
 var songHeight = null;
 var fixedHeaderHeight = null;
 var is_small_screen = false;
@@ -161,7 +160,6 @@ var onCastReceiverCreated = function(receiver) {
 
     castReceiver.onMessage('toggle-audio', onCastReceiverToggleAudio);
     castReceiver.onMessage('skip-song', onCastReceiverSkipSong);
-    castReceiver.onMessage('send-history', onCastReceiverHistory);
     castReceiver.onMessage('send-played', onCastReceiverPlayed);
     castReceiver.onMessage('init', onCastReceiverInit);
 
@@ -252,11 +250,6 @@ var onCastReceiverSkipSong = function() {
     skipSong();
 }
 
-var onCastReceiverHistory = function(message) {
-    songHistory = JSON.parse(message);
-    console.log(songHistory);
-}
-
 var onCastReceiverPlayed = function(message) {
     playedSongs = JSON.parse(message);
 
@@ -340,16 +333,6 @@ var playNextSong = function(nextSongID) {
     isFirstPlay = false;
 
     var nextSong = SONG_DATA[nextSongID];
-
-    // check if we can play the song legally (4 times per 3 hours)
-    // if we don't have a song, get a new playlist
-    if (APP_CONFIG.ENFORCE_PLAYBACK_LIMITS && nextSong) {
-        var canPlaySong = checkSongHistory(nextSong);
-
-        if (!canPlaySong) {
-            return;
-        }
-    }
 
     $nextSong = $('#song-' + nextSongID);
 
@@ -585,35 +568,6 @@ var setSongHeight = function($song){
     }
 }
 
-
-/*
- * Check the song history to see if you've played it
- * more than 4 times in 3 hours
- */
-var checkSongHistory = function(song) {
-    if (songHistory[song['id']]) {
-        for (var i = 0; i < songHistory[song['id']].length; i++) {
-            var now = moment.utc();
-            if (now.subtract(3, 'hours').isAfter(songHistory[song['id']][i])) {
-                songHistory[song['id']].splice(i,1);
-            }
-        }
-
-        if (songHistory[song['id']].length >= 4) {
-            markSongPlayed(song);
-            playNextSong();
-            return false;
-        }
-    } else {
-        songHistory[song['id']] = [];
-    }
-
-    songHistory[song['id']].push(moment.utc());
-    simpleStorage.set('songHistory', songHistory);
-
-    return true;
-}
-
 /*
  * Update the total songs played
  */
@@ -756,7 +710,6 @@ var loadState = function() {
     playedSongs = simpleStorage.get('playedSongs') || [];
     usedSkips = simpleStorage.get('usedSkips') || [];
     totalSongsPlayed = simpleStorage.get('totalSongsPlayed') || 0;
-    songHistory = simpleStorage.get('songHistory') || {};
     songOrder = simpleStorage.get('songOrder') || null;
 
     if (ALL_HISTORY) {
@@ -807,8 +760,6 @@ var resetState = function() {
 var resetLegalLimits = function() {
     usedSkips = [];
     simpleStorage.set('usedSkips', usedSkips);
-    songHistory = {}
-    simpleStorage.set('songHistory', songHistory);
 }
 
 /*
