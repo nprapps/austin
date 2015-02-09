@@ -55,9 +55,6 @@ var isCasting = false;
 var castSender = null;
 var castReceiver = null;
 
-// Change to true to enforce skip limit
-ENFORCE_SKIP_LIMIT = false;
-
 /*
  * Run on page load.
  */
@@ -379,7 +376,7 @@ var playNextSong = function(nextSongID) {
 
     // check if we can play the song legally (4 times per 3 hours)
     // if we don't have a song, get a new playlist
-    if (ENFORCE_SKIP_LIMIT && nextSong) {
+    if (APP_CONFIG.ENFORCE_PLAYBACK_LIMITS && nextSong) {
         var canPlaySong = checkSongHistory(nextSong);
 
         if (!canPlaySong) {
@@ -431,7 +428,7 @@ var playNextSong = function(nextSongID) {
     $previousSong = $currentSong;    
     $currentSong = $nextSong;
 
-    if (nextSongID == songOrder[0]){
+    if (nextSongID == songOrder[0] || APP_CONFIG.ENFORCE_PLAYBACK_LIMITS){
         $back.addClass('disabled');
     } else {
         $back.removeClass('disabled');
@@ -721,7 +718,7 @@ var onBackClick = function(e) {
  * Skip to the next song
  */
 var skipSong = function() {
-    if (ENFORCE_SKIP_LIMIT) {
+    if (APP_CONFIG.ENFORCE_PLAYBACK_LIMITS) {
         if (usedSkips.length < APP_CONFIG.SKIP_LIMIT) {
             usedSkips.push(moment.utc());
             _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'song-skip', $playerArtist.text() + ' - ' + $playerTitle.text(), usedSkips.length]);
@@ -729,7 +726,9 @@ var skipSong = function() {
             playNextSong();
             simpleStorage.set('usedSkips', usedSkips);
             writeSkipsRemaining();
-        } 
+        } else {
+            $skip.addClass('disabled');
+        }
     } else {
         playNextSong();
     }
@@ -762,7 +761,7 @@ var checkSkips = function() {
  * Update the skip limit display
  */
 var writeSkipsRemaining = function() {
-    if (ENFORCE_SKIP_LIMIT) {
+    if (APP_CONFIG.ENFORCE_PLAYBACK_LIMITS) {
         if (usedSkips.length == APP_CONFIG.SKIP_LIMIT - 1) {
             $skipsRemaining.text(APP_CONFIG.SKIP_LIMIT - usedSkips.length + ' skip available')
             $skip.removeClass('disabled');
