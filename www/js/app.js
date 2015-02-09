@@ -192,7 +192,7 @@ var onCastSenderReady = function() {
 var onCastSenderStarted = function() {
     // TODO: stop audio
 
-    $stack.hide();
+    // $stack.hide();
     $fullscreenStart.hide();
     $castStop.show();
     $castStart.hide();
@@ -222,7 +222,7 @@ var onCastSenderStopped = function() {
     isCasting = false;
 
     $chromecastScreen.hide();
-    $stack.show();
+    // $stack.show();
 }
 
 /*
