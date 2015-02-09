@@ -112,7 +112,7 @@ var onDocumentLoad = function(e) {
     $(document).on('scroll', onDocumentScroll);
     $shuffleSongs.on('click', onShuffleSongsClick);
     $historyButton.on('click', showHistory);
-    $songs.on('click', '.song:not(:last-child)', onSongCardClick);
+    $songs.on('click', '.song', onSongCardClick);
     $songs.on('click', '.song-tools .amazon', onAmazonClick);
     $songs.on('click', '.song-tools .itunes', oniTunesClick);
     $songs.on('click', '.song-tools .rdio', onRdioClick);
