@@ -1038,7 +1038,8 @@ h1,h2,h3,h4,h5,h6 {
 	.skip,
 	.back {
 		&.disabled {
-			background: lighten(@music-red, 20%);
+			color: @white;
+			opacity: 0.1;
 			cursor: not-allowed;
 		}
 	}
@@ -1067,7 +1068,7 @@ h1,h2,h3,h4,h5,h6 {
 
 	.player-progress {
 		position: absolute;
-		left: 9rem;
+		left: 10rem;
 		top: 0;
 		bottom: 0;
 		right: 0;
@@ -1096,7 +1097,8 @@ h1,h2,h3,h4,h5,h6 {
 .player-button:hover {
 	display: block;
 	float: left;
-	.square(5rem);
+	height: 5rem;
+	width: 4rem;
 	background: @gray-dark;
 	color: @music-red-light;
 	line-height: 5rem;
@@ -1105,10 +1107,18 @@ h1,h2,h3,h4,h5,h6 {
 
 	&.back,
 	&.skip {
-		width: 2rem;
+		width: 2.5rem;
 		font-size: @font-size-base * 2;
 	}
 
+
+	&.back {
+		text-align: right;
+	}
+
+	&.skip {
+		text-align: left;
+	}
 
 	.no-touch & {
 		&:hover {
