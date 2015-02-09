@@ -159,11 +159,11 @@ var onDocumentLoad = function(e) {
 var onCastReceiverCreated = function(receiver) {
     castReceiver = receiver;
 
-    // castReceiver.onMessage('toggle-audio', onCastReceiverToggleAudio);
-    // castReceiver.onMessage('skip-song', onCastReceiverSkipSong);
-    // castReceiver.onMessage('send-history', onCastReceiverHistory);
-    // castReceiver.onMessage('send-played', onCastReceiverPlayed);
-    // castReceiver.onMessage('init', onCastReceiverInit);
+    castReceiver.onMessage('toggle-audio', onCastReceiverToggleAudio);
+    castReceiver.onMessage('skip-song', onCastReceiverSkipSong);
+    castReceiver.onMessage('send-history', onCastReceiverHistory);
+    castReceiver.onMessage('send-played', onCastReceiverPlayed);
+    castReceiver.onMessage('init', onCastReceiverInit);
 
 }
 
@@ -201,8 +201,6 @@ var onCastSenderStarted = function() {
     //     $chromecastScreen.show();
     // }
 
-    castSender.sendMessage('ping', 'hi there!')
-
 }
 
 /*
@@ -222,8 +220,6 @@ var onCastSenderStopped = function() {
  */
 var onCastStartClick = function(e) {
     e.preventDefault();
-
-    castReceiver.sendMessage('pong', 'yeah i see you')
 
     _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'chromecast-start']);
 
