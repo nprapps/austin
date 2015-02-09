@@ -39,15 +39,14 @@ var ALL_HISTORY = (window.location.search.indexOf('allhistory') >= 0);
 // Global state
 var firstShareLoad = true;
 var playedSongs = [];
-var onWelcome = true;
+var isPlayingWelcome = true;
 var playedsongCount = null;
 var usedSkips = [];
 var totalSongsPlayed = 0;
 var songHistory = {};
 var songHeight = null;
 var fixedHeaderHeight = null;
-var is_small_screen = false
-var inPreroll = false;
+var is_small_screen = false;
 var favoritedSongs = [];
 var songOrder = null;
 var isFirstPlay = true;
@@ -348,32 +347,13 @@ var onTimeUpdate = function(e) {
 };
 
 /*
- * Start playing the preroll audio.
+ * Start playing the welcome audio.
  */
-var playIntroAudio = function() {
-    var audioFile = null;
-
-    // if on welcome screen, play the intro audio
-    if (onWelcome) {
-        audioFile = APP_CONFIG.WELCOME_AUDIO;
-    }
-
-    // if there is no audio (i.e. genres), just play the next song
-    if (!audioFile) {
-        playNextSong();
-        return;
-    }
-
-    inPreroll = true;
-
-    if (!onWelcome) {
-        $('.stack .poster').velocity('fadeIn');
-        $skipsRemaining.hide();
-    }
-
+var playWelcomeAudio = function() {
     $audioPlayer.jPlayer('setMedia', {
-        mp3: 'http://podcastdownload.npr.org/anon.npr-mp3' + audioFile
+        mp3: 'http://podcastdownload.npr.org/anon.npr-mp3' + APP_CONFIG.WELCOME_AUDIO
     });
+
     $playerArtist.text('');
     $playerTitle.text('');
 
@@ -389,36 +369,8 @@ var playIntroAudio = function() {
  */
 var playNextSong = function(nextSongID) {
     // nextSongID would've only been defined in onBackClick()   
-    
     if (_.isUndefined(nextSongID)) {  
-        // If the user has played songs before     
-        if (playedSongs.length > 0) {
-            // If this is the first play of the session, play the last song that was ever played
-            if (isFirstPlay) {
-                nextSongID = playedSongs[playedSongs.length-1]; 
-            
-            // If this ISN'T the first play of the session                            
-            } else {
-                var currentSongID = getSongIDFromHTML($currentSong);
-                var indexOfCurrentSong = _.indexOf(playedSongs, currentSongID);
-
-                // If this song has been played before
-                if (indexOfCurrentSong < playedSongs.length - 1) {
-
-                    nextSongID = playedSongs[indexOfCurrentSong + 1];
-
-                // If this song has never been played before, draw up an unheard one for the next song                          
-                } else {
-                    nextSongID = _.find(songOrder, function(songID) {
-                        return !(_.contains(playedSongs, songID));
-                    })
-                }                
-            }
-
-        // If this is the first time the user is playing any song            
-        } else {
-            nextSongID = songOrder[0];
-        }
+        nextSongID = getNextSongID();
     }
 
     isFirstPlay = false;
@@ -429,107 +381,154 @@ var playNextSong = function(nextSongID) {
     // if we don't have a song, get a new playlist
     if (ENFORCE_SKIP_LIMIT && nextSong) {
         var canPlaySong = checkSongHistory(nextSong);
+
         if (!canPlaySong) {
             return;
-        } else {
-            // TODO: go back and play first song in playedSongs?
-            // nextPlaylist();
-            // return;
         }
     }
 
-    $previousSong = $currentSong;
-    $currentSong = $('#song-' + nextSongID);
+    $nextSong = $('#song-' + nextSongID);
 
-    if ($currentSong.length == 0) {
+    // Render song if not already on page
+    if ($nextSong.length == 0) {
         var context = $.extend(APP_CONFIG, nextSong);
-        $currentSong = $(JST.song(context));
+        $nextSong = $(JST.song(context));
 
         if (isCasting) {
-            $songs.prepend($currentSong);
+            $songs.prepend($nextSong);
         } else {
-            $songs.append($currentSong);
+            $songs.append($nextSong);
         }
     }
 
+    // Update player display
     $playerArtist.html(nextSong['artist']);
     $playerTitle.html(nextSong['title']);
     document.title = nextSong['artist'] + ' \u2014 \u2018' + nextSong['title'] + '\u2019 | ' + COPY.content['project_name'];
     $skipsRemaining.show();
 
-    var nextsongURL = 'http://podcastdownload.npr.org/anon.npr-mp3' + nextSong['media_url'] + '.mp3';
-
-    inPreroll = false;
-
+    // Start audio playback
     if (!NO_AUDIO) {
+        var nextsongURL = 'http://podcastdownload.npr.org/anon.npr-mp3' + nextSong['media_url'] + '.mp3';
+
         $audioPlayer.jPlayer('setMedia', {
             mp3: nextsongURL
         }).jPlayer('play');
     }
+
     $play.hide();
     $pause.show();
 
-    if (onWelcome) {
-        setCurrentSongHeight();
-        hideWelcome();
+    // Animate transitions
+    if (isPlayingWelcome) {
+        setSongHeight($nextSong);
+        hideWelcome($nextSong);
     } else {
-        if ($currentSong.offset().top < $previousSong.offset().top) {
-            console.log('scroll up');
-            $currentSong.velocity("scroll", {
-                duration: 350,
-                offset: -fixedHeaderHeight,
-                begin: function() {
-                    $(document).off('scroll');
-                },
-                complete: function() {
-                    setCurrentSongHeight();
-                    shrinkSong($previousSong);
-
-                    $(document).on('scroll', onDocumentScroll);
-
-                    if (playedSongs.length > 1) {
-                        $historyButton.show();
-                        $historyButton.removeClass('offscreen');
-                    }
-                }
-            });
-        } else {
-            setCurrentSongHeight();
-            $previousSong.velocity("scroll", {
-                duration: 350,
-                offset: -fixedHeaderHeight,
-                begin: function() {
-                    $(document).off('scroll');
-                },
-                complete: function() {
-                    shrinkSong($previousSong);
-                    $currentSong.velocity('fadeIn', {
-                        duration: 300,
-                        complete: function(){
-                            $(this).velocity("scroll", {
-                                duration: 500,
-                                offset: -fixedHeaderHeight,
-                                delay: 300,
-                                complete: function() {
-                                    $(document).on('scroll', onDocumentScroll);
-
-                                    if (playedSongs.length > 1) {
-                                        $historyButton.show();
-                                        $historyButton.removeClass('offscreen');
-                                    }
-                                }
-                            });
-                        }
-                    });
-                }
-            });
-        }
+        transitionToNextSong($currentSong, $nextSong);
     }
+
+    // Rotate to new song
+    $previousSong = $currentSong;    
+    $currentSong = $nextSong;
 
     markSongPlayed(nextSong);
     updateTotalSongsPlayed();
     writeSkipsRemaining();
     preloadSongImages();
+}
+
+/*
+ * Get the next song to rotate into the player.
+ */
+var getNextSongID = function() {
+    var nextSongID = null;
+
+    // If the user has played songs before    
+    if (playedSongs.length > 0) {
+        // If this is the first play of the session, play the last song that was ever played
+        if (isFirstPlay) {
+            nextSongID = playedSongs[playedSongs.length-1]; 
+        
+        // If this ISN'T the first play of the session                            
+        } else {
+            var currentSongID = getSongIDFromHTML($currentSong);
+            var indexOfCurrentSong = _.indexOf(playedSongs, currentSongID);
+
+            // If this song has been played before
+            if (indexOfCurrentSong < playedSongs.length - 1) {
+
+                nextSongID = playedSongs[indexOfCurrentSong + 1];
+
+            // If this song has never been played before, draw up an unheard one for the next song                          
+            } else {
+                nextSongID = _.find(songOrder, function(songID) {
+                    return !(_.contains(playedSongs, songID));
+                })
+            }                
+        }
+
+    // If this is the first time the user is playing any song            
+    } else {
+        nextSongID = songOrder[0];
+    }
+
+    return nextSongID;    
+}
+
+/*
+ * Animate transition forward or backward to the next song to play.
+ */
+var transitionToNextSong = function($fromSong, $toSong) {
+    if ($toSong.offset().top < $fromSong.offset().top) {
+        $toSong.velocity("scroll", {
+            duration: 350,
+            offset: -fixedHeaderHeight,
+            begin: function() {
+                $(document).off('scroll');
+            },
+            complete: function() {
+                setSongHeight($toSong);
+                shrinkSong($fromSong);
+
+                $(document).on('scroll', onDocumentScroll);
+
+                if (playedSongs.length > 1) {
+                    $historyButton.show();
+                    $historyButton.removeClass('offscreen');
+                }
+            }
+        });
+    } else {
+        setSongHeight($toSong);
+        $fromSong.velocity("scroll", {
+            duration: 350,
+            offset: -fixedHeaderHeight,
+            begin: function() {
+                $(document).off('scroll');
+            },
+            complete: function() {
+                shrinkSong($fromSong);
+                $toSong.velocity('fadeIn', {
+                    duration: 300,
+                    complete: function(){
+                        $(this).velocity("scroll", {
+                            duration: 500,
+                            offset: -fixedHeaderHeight,
+                            delay: 300,
+                            complete: function() {
+                                $(document).on('scroll', onDocumentScroll);
+
+                                if (playedSongs.length > 1) {
+                                    $historyButton.show();
+                                    $historyButton.removeClass('offscreen');
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    }
 }
 
 /*
@@ -582,14 +581,17 @@ var preloadSongImages = function() {
 /*
  *  Set the height of the currently playing song to fill the viewport.
  */
-var setCurrentSongHeight = function(){
-    if ($currentSong !== null) {
+var setSongHeight = function($song){
+    if (_.isUndefined($song) && $currentSong !== null) {
+        $song = $currentSong;
+    }
+    if ($song !== null) {
         windowHeight = Modernizr.touch ? window.innerHeight || $(window).height() : $(window).height();
         songHeight = windowHeight - $player.height() - $fixedHeader.height();
 
-        $currentSong.find('.container-fluid').css('height', songHeight);
-        $currentSong.css('min-height', songHeight);
-        $currentSong.removeClass('small');
+        $song.find('.container-fluid').css('height', songHeight);
+        $song.css('min-height', songHeight);
+        $song.removeClass('small');
     }
 }
 
@@ -687,7 +689,6 @@ var onBackClick = function(e) {
     var previousSongID = playedSongs[playedIndex - 1];
 
     playNextSong(previousSongID);
-    console.log('last song played: ' + previousSongID)
 }
 
 /*
@@ -695,11 +696,9 @@ var onBackClick = function(e) {
  */
 var skipSong = function() {
     if (ENFORCE_SKIP_LIMIT) {
-        if (inPreroll || usedSkips.length < APP_CONFIG.SKIP_LIMIT) {
-            if (!inPreroll) {
-                usedSkips.push(moment.utc());
-                _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'song-skip', $playerArtist.text() + ' - ' + $playerTitle.text(), usedSkips.length]);
-            }
+        if (usedSkips.length < APP_CONFIG.SKIP_LIMIT) {
+            usedSkips.push(moment.utc());
+            _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'song-skip', $playerArtist.text() + ' - ' + $playerTitle.text(), usedSkips.length]);
 
             playNextSong();
             simpleStorage.set('usedSkips', usedSkips);
@@ -808,7 +807,6 @@ var resetState = function() {
 
     simpleStorage.set('playedSongs', playedSongs);
     simpleStorage.set('favoritedSongs', favoritedSongs);
-    simpleStorage.set('playedPreroll', false);
 }
 
 /*
@@ -864,23 +862,18 @@ var onShuffleSongsClick = function(e) {
 
     shuffleSongs();
     resetState();
-    playIntroAudio();
 }
 
 /*
  * Hide the welcome screen and show the playing song
  */
-var hideWelcome  = function() {
+var hideWelcome  = function($song) {
     if (isCasting) {
         $chromecastScreen.show();
     }
 
     $('.songs, .player-container').show();
     $fixedHeader.show();
-
-    var $song = $songs.find('.song').last();
-
-    setCurrentSongHeight();
 
     $song.velocity("scroll", { duration: 750, offset: -fixedHeaderHeight });
     $('.landing-wrapper').hide().css('height', '');
@@ -892,7 +885,7 @@ var hideWelcome  = function() {
         }
     });
 
-    onWelcome = false;
+    isPlayingWelcome = false;
 
     $(document).keydown(onDocumentKeyDown);
 }
@@ -934,7 +927,7 @@ var onGoButtonClick = function(e) {
     $songs.find('.song').remove();
     playedSongs = [];
     simpleStorage.set('playedSongs', playedSongs);
-    playIntroAudio();
+    playWelcomeAudio();
 
     _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'shuffle']);
 }
@@ -1089,8 +1082,6 @@ var onFullscreenStopClick = function(e) {
 }
 
 var onFullscreenChange = function() {
-    console.log('hi')
-    console.log(screenfull.isFullscreen)
     if (screenfull.isFullscreen) {
         _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'fullscreen-start']);        
         $fullscreenStop.show();
@@ -1112,7 +1103,7 @@ var onWindowResize = function(e) {
 
     is_small_screen = Modernizr.mq('screen and (max-width: 767px)');
     $landing.find('.landing-wrapper').css('height', $(window).height());
-    setCurrentSongHeight();
+    setSongHeight($currentSong);
 }
 
 /*
