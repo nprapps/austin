@@ -8,7 +8,9 @@
 
                 <ul class="song-tools list-unstyled">
                     <li><a class="star fa fa-star-o"></span></a></li>
+                    <% if (DOWNLOADS_ALLOWED) { %>
                     <li><a target="_blank" href="http://podcastdownload.npr.org/anon.npr-mp3<%= media_url %>.mp3"><span class="icon-download-cloud"></span></a></li>
+                    <% } %>
                     <% if (ASIN) { %>
                     <li><a target="_blank" href="http://amazon.com/dp/<%= ASIN %>?tag=npr-5-20" class="amazon"><span class="icon-amazon"></span></a></li>
                     <% } %>

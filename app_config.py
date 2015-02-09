@@ -132,6 +132,8 @@ WELCOME_AUDIO = '/npr/specialmusic/2014/12/20141208_specialmusic_welcome.mp3'
 
 SKIP_LIMIT = 6
 
+DOWNLOADS_ALLOWED = True
+ENFORCE_PLAYBACK_LIMITS = False
 
 """
 Utilities
