@@ -950,7 +950,9 @@ var onContinueButtonClick = function(e) {
  * Toggle played song card size
  */
 var onSongCardClick = function(e) {
-    $(this).toggleClass('small');
+    if (getSongIDFromHTML($(this)) !== getSongIDFromHTML($currentSong)) {
+        $(this).toggleClass('small');
+    }
 }
 
 /*
