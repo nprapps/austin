@@ -1,40 +1,54 @@
-/*
- * Lightweight Chromecasting library.
+/**
+ * Newscast: simple Chromecast apps.
+ *
+ * @namespace Newscast
  */
-var Newscast = function(config) {
+
+/* global module */
+/* global console */
+/* global chrome */
+/* global cast */
+
+(function(factory) {
+    if (typeof define === 'function' && define.amd) {
+        define(factory);
+    } else if (typeof module !== 'undefined' && module.exports) {
+        module.exports = factory();
+    } else {
+        window.Newscast = factory.call(this);
+    }
+})(function() {
     var MESSAGE_DELIMITER = 'NEWSCAST';
-    var _messageRegex = new RegExp('(\\S+)' + MESSAGE_DELIMITER + '(.+)$');
-
-    var _isReceiver = (window.location.search.indexOf('chromecast') >= 0);
-    var _namespace = config['namespace'];
-    var _appId = config['appId'];
-    var _onReceiverCreated = config['onReceiverCreated'];
-    var _onSenderCreated = config['onSenderCreated'];
-    var _onSenderReady = config['onSenderReady'];
-    var _onSenderStarted = config['onSenderStarted'];
-    var _onSenderStopped = config['onSenderStopped'];
-    var _debug = config['debug'] || false;
-
-    /*
-     * Receiver
+    var MESSAGE_REGEX = new RegExp('(\\S+)' + MESSAGE_DELIMITER + '(.+)$');
+  
+    /**
+     * The Chromecast receiver that runs on the device.
+     *
+     * @memberof Newscast
+     * @class Receiver
+     * @param {Object} config Configuration object
+     * @param {String} config.namespace Chromecast namespace for this application.
+     * @param {Boolean} config.debug If true, debug information will be logged to the console.
      */
-    var Receiver = function() {
+    var Receiver = function(config) {
+        var _config = config;
+
         var _customMessageBus = null;
         var _senderId = null;
         var _messageHandlers = {};
-        
+
         /*
          * Log a debugging message.
          */
         var _log = function(message, raw) {
-            if (_debug) {
+            if (config['debug']) {
                 if (!raw) {
-                    message = 'NEWSCAST.Receiver: ' + message;
+                    message = 'Newscast.Receiver: ' + message;
                 }
 
                 console.log(message);
             }
-        }
+        };
 
         /*
          * Receiver ready.
@@ -43,7 +57,7 @@ var Newscast = function(config) {
             _senderId = e.data.launchingSenderId;
             
             _log('Got sender id: ' + _senderId);
-        }
+        };
 
         /*
          * New message received.
@@ -51,15 +65,15 @@ var Newscast = function(config) {
         var _onReceiveMessage = function(e) {
             _log('Received message: ' + e.data);
 
-            var match = e.data.match(_messageRegex);
+            var match = e.data.match(MESSAGE_REGEX);
 
             var messageType = match[1];
             var message = match[2];
 
             _fire(messageType, message);
-        }
+        };
 
-        /*
+        /*;
          * Fire handler callbacks for a given message.
          */
         var _fire = function(messageType, message) {
@@ -70,8 +84,13 @@ var Newscast = function(config) {
             }
         };
 
-        /*
+        /**
          * Register a new message handler callback.
+         *
+         * @memberof Newscast.Receiver
+         * @method #onMessage
+         * @param {String} messageType Name of message type to listen for.
+         * @param {Receiver~onMessageCallback} callback The callback to invoke when the given message type is received.
          */
         var onMessage = function(messageType, callback) {
             if (!(messageType in _messageHandlers)) {
@@ -79,10 +98,20 @@ var Newscast = function(config) {
             }
 
             _messageHandlers[messageType].push(callback);
-        }
+        };
 
-        /*
+        /**
+         * @callback Parent~onMessageCallback
+         * @param {String} message The message data.
+         */
+
+        /**
          * Send a message to the Sender.
+         *
+         * @memberof Newscast.Receiver
+         * @method #sendMessage
+         * @param {String} messageType Name of the message type to send.
+         * @param {String} message Message data to send.
          */
         var sendMessage = function(messageType, message) {
             message = messageType + MESSAGE_DELIMITER + message;
@@ -90,15 +119,15 @@ var Newscast = function(config) {
             _log('Sending message: ' + message);
             
             _customMessageBus.send(
-                senderId,
+                _senderId,
                 message
-            )
-        }
+            );
+        };
 
-        _log('Initailizing receiver');
+        _log('Initializing receiver');
 
         var castReceiverManager = cast.receiver.CastReceiverManager.getInstance();
-        _customMessageBus = castReceiverManager.getCastMessageBus(_namespace);
+        _customMessageBus = castReceiverManager.getCastMessageBus(_config['namespace']);
 
         castReceiverManager.onReady = _onCastReceiverReady;
         _customMessageBus.onMessage = _onReceiveMessage; 
@@ -109,12 +138,24 @@ var Newscast = function(config) {
             'onMessage': onMessage,
             'sendMessage': sendMessage
         };
-    }
+    };
 
-    /*
-     * Sender
+    /**
+     * The Chromecast app Sender that runs in the user's browser. 
+     *
+     * @memberof Newscast
+     * @class Sender
+     * @param {Object} config Configuration object
+     * @param {String} config.namespace Chromecast namespace for this application.
+     * @param {String} config.appId Chromecast application identifier.
+     * @param {Sender~onSenderReadyCallback} config.onSenderReady Callback to be fired when a device is available to be cast to.
+     * @param {Sender~onSenderStartedCallback} config.onSenderStarted Callback to be fired when casting has begun.
+     * @param {Sender~onSenderStoppedCallback} config.onSenderStopped Callback to be fired when casting has ceased.
+     * @param {Boolean} config.debug If true, debug information will be logged to the console.
      */
-    var Sender = function() {
+    var Sender = function(config) {
+        var _config = config;
+
         var _session = null;
         var _messageHandlers = {};
 
@@ -122,63 +163,68 @@ var Newscast = function(config) {
          * Log a debugging message.
          */
         var _log = function(message, raw) {
-            if (_debug) {
+            if (config['debug']) {
                 if (!raw) {
-                    message = 'NEWSCAST.Sender: ' + message;
+                    message = 'Newscast.Sender: ' + message;
                 }
 
                 console.log(message);
             }
-        }
+        };
 
         /*
          * Listen for existing sessions with the receiver.
          */
         var _sessionListener = function(session) {
-            _log('Session created')
+            _log('Session created');
 
             _session = session;
             _session.addUpdateListener(_sessionUpdateListener);
 
-            if (_onSenderStarted) {
-                _onSenderStarted();
+            if (config['onSenderStarted']) {
+                config['onSenderStarted']();
             }
-        }
+        };
 
         /*
          * Listen for changes to the session status.
          */
         var _sessionUpdateListener = function(isAlive) {
             if (!isAlive) {
-                _log('Session no longer alive')
+                _log('Session no longer alive');
 
-                if (_onSenderStopped) {
-                    _onSenderStopped();
+                if (config['onSenderStopped']) {
+                    config['onSenderStopped']();
                 }
             }
-        }
+        };
 
         /*
          * Listen for receivers to become available.
          */
         var _receiverListener = function(e) {
             if (e === chrome.cast.ReceiverAvailability.AVAILABLE) {
-                _log('Receiver is available')
+                _log('Receiver is available');
 
-                if (_onSenderReady) {
-                    _onSenderReady();
+                if (config['onSenderReady']) {
+                    config['onSenderReady']();
                 }
-            } else if (e === chrome.cast.ReceiverAvaibility.UNAVAILABLE) {
-                _log('Receiver not available')
+            } else if (e === chrome.cast.ReceiverAvailability.UNAVAILABLE) {
+                _log('Receiver not available');
+                _log(e, true);
             }
-        }
+        };
+
+        /**
+         * @callback Sender~onSenderReadyCallback
+         */
 
         /*
          * Environment successfully initialized.
          */
-        var _onInitSuccess = function(e) {
-            _log('Chromecast initialized')
-        }
+        var _onInitSuccess = function() {
+            _log('Chromecast initialized');
+        };
 
         /*
          * Error initializing.
@@ -186,16 +232,20 @@ var Newscast = function(config) {
         var _onInitError = function(e) {
             _log('Chromecast initialization failed, error:');
             _log(e, true);
-        }
+        };
 
-        /*
-         * Start casting.
+        /**
+         * Request to start a Chromecasting session. Will cause the
+         * browser plugin device selection dialog to open.
+         *
+         * @memberof Newscast.Sender
+         * @method #startCasting
          */
         var startCasting = function() {
             _log('Starting cast');
 
             chrome.cast.requestSession(_onRequestSessionSuccess, _onRequestSessionError);
-        }
+        };
 
         /*
          * Casting session begun successfully.
@@ -205,11 +255,16 @@ var Newscast = function(config) {
 
             _session = session;
             _session.addUpdateListener(_sessionUpdateListener);
+            _session.addMessageListener(_config['namespace'], _onReceiveMessage); 
 
-            if (_onSenderStarted) {
-                _onSenderStarted();
+            if (_config['onSenderStarted']) {
+                _config['onSenderStarted']();
             }
-        }
+        };
+
+        /**
+         * @callback Sender~onSenderStartedCallback
+         */
 
         /*
          * Casting session failed to start.
@@ -217,16 +272,19 @@ var Newscast = function(config) {
         var _onRequestSessionError = function(e) {
             _log('Failed to create session, error:');
             _log(e, true);
-        }
+        };
 
-        /*
-         * Stop casting.
+        /**
+         * Stop casting an ongoing Chromecast session.
+         *
+         * @memberof Newscast.Sender
+         * @method #stopCasting
          */
         var stopCasting = function() {
             _log('Stopping cast');
 
             _session.stop(_onSessionStopSuccess, _onSessionStopError);
-        }
+        };
 
         /*
          * Inform client the session has stopped.
@@ -234,10 +292,14 @@ var Newscast = function(config) {
         var _onSessionStopSuccess = function() {
             _log('Cast stopped');
 
-            if (_onSenderStopped) {
-                _onSenderStopped();
+            if (config['onSenderStopped']) {
+                config['onSenderStopped']();
             }
-        }
+        };
+
+        /**
+         * @callback Sender~onSenderStoppedCallback
+         */
 
         /*
          * Session could not be stopped.
@@ -245,21 +307,21 @@ var Newscast = function(config) {
         var _onSessionStopError = function(e) {
             _log('Failed to stop cast, error:');
             _log(e, true);
-        }
+        };
 
         /*
          * New message received.
          */
-        var _onReceiveMessage = function(e) {
-            _log('Received message: ' + e.data);
+        var _onReceiveMessage = function(namespace, data) {
+            _log('Received message: ' + data);
 
-            var match = e.data.match(_messageRegex);
+            var match = data.match(MESSAGE_REGEX);
 
             var messageType = match[1];
             var message = match[2];
 
             _fire(messageType, message);
-        }
+        };
 
         /*
          * Fire handler callbacks for a given message.
@@ -272,8 +334,13 @@ var Newscast = function(config) {
             }
         };
 
-        /*
+        /**
          * Register a new message handler callback.
+         *
+         * @memberof Newscast.Sender 
+         * @method #onMessage
+         * @param {String} messageType Name of message type to listen for.
+         * @param {Sender~onMessageCallback} callback The callback to invoke when the given message type is received.
          */
         var onMessage = function(messageType, callback) {
             if (!(messageType in _messageHandlers)) {
@@ -281,11 +348,20 @@ var Newscast = function(config) {
             }
 
             _messageHandlers[messageType].push(callback);
-        }
+        };
 
+        /**
+         * @callback Sender~onMessageCallback
+         * @param {String} message The message data.
+         */
 
-        /*
-         * Send a message to the receiver.
+        /**
+         * Send a message to the Receiver.
+         *
+         * @memberof Newscast.Sender
+         * @method #sendMessage
+         * @param {String} messageType Name of the message type to send.
+         * @param {String} message Message data to send.
          */
         var sendMessage = function(messageType, message) {
             message = messageType + MESSAGE_DELIMITER + message;
@@ -293,31 +369,31 @@ var Newscast = function(config) {
             _log('Sending message: ' + message);
 
             _session.sendMessage(
-                _namespace,
+                config['namespace'],
                 message,
                 _onSendSuccess,
                 _onSendError
             );
-        }
+        };
 
         /*
          * Successfully sent message to receiver.
          */
         var _onSendSuccess = function() {
-            _log('Message sent')
-        }
+            _log('Message sent');
+        };
 
         /*
          * Error sending message to receiver.
          */
         var _onSendError = function(e) {
-            _log('Failed to send message, error:')
+            _log('Failed to send message, error:');
             _log(e, true);
-        }
+        };
 
-        _log('Initializing sender')
+        _log('Initializing sender');
 
-        var sessionRequest = new chrome.cast.SessionRequest(_appId);
+        var sessionRequest = new chrome.cast.SessionRequest(config['appId']);
 
         var apiConfig = new chrome.cast.ApiConfig(
             sessionRequest,
@@ -331,44 +407,97 @@ var Newscast = function(config) {
         return {
             'startCasting': startCasting,
             'stopCasting': stopCasting,
-            'sendMessage': sendMessage
+            'sendMessage': sendMessage,
+            'onMessage': onMessage
         };
-    }
+    };
 
-    if (_isReceiver) {
-        // Load Receiver library
+    /**
+     * Creates a simple Chromecast app all on one page with full bi-directional communication.
+     *
+     * @memberof Newscast
+     * @class Newscast
+     * @param {Object} config Configuration object
+     * @param {String} config.namespace Chromecast namespace for this application.
+     * @param {String} config.appId Chromecast application identifier.
+     * @param {Newscast.Newscast~onSenderCreatedCallback} config.onSenderCreated Callback to be fired when a Sender instance is created.
+     * @param {Newscast.Newscast~onReceiverCreatedCallback} config.onReceiverCreated Callback to be fired when a Receiver instance is created.
+     * @param {Sender~onSenderReadyCallback} config.onSenderReady Callback to be fired when a device is available to be cast to.
+     * @param {Sender~onSenderStartedCallback} config.onSenderStarted Callback to be fired when casting has begun.
+     * @param {Sender~onSenderStoppedCallback} config.onSenderStopped Callback to be fired when casting has ceased.
+     * @param {Boolean} config.debug If true, debug information will be logged to the console.
+
+     */
+    var Newscast = function(config) {
+        var _config = config;
+
+        if (!config.hasOwnProperty('isReceiver')) {
+            config['isReceiver'] = (window.location.search.indexOf('newscast-receiver=true') >= 0);
+        }
+
+        /*
+         * Log a debugging message.
+         */
+        var _log = function(message, raw) {
+            if (config['debug']) {
+                if (!raw) {
+                    message = 'Newscast.Newcast: ' + message;
+                }
+
+                console.log(message);
+            }
+        };
+
+        /**
+         * @callback Newscast.Newscast~onSenderCreatedCallback
+         * @param {Sender} sender A Sender instance.
+         */
+
+        /**
+         * @callback Newscast.Newscast~onReceiverCreatedCallback
+         * @param {Receiver} receiver A Receiver instance.
+         */
+
         var script =  document.createElement('script');
         script.async = false;
         script.type = 'text/javascript';
-        script.src = '//www.gstatic.com/cast/sdk/libs/receiver/2.0.0/cast_receiver.js';
 
-        script.onload = function() {
-            // Create receiver
-            var receiver = Receiver();
+        if (config['isReceiver']) {
+            // Load Receiver library
+            script.src = '//www.gstatic.com/cast/sdk/libs/receiver/2.0.0/cast_receiver.js';
 
-            _onReceiverCreated(receiver);
+            script.onload = function() {
+                // Create receiver
+                var receiver = new Receiver(_config);
 
+                config['onReceiverCreated'](receiver);
+
+            };
+
+            document.body.appendChild(script);
+        } else {
+            // Setup Cast Sender API global callback
+            window['__onGCastApiAvailable'] = function(loaded, errorInfo) {
+                if (loaded) {
+                    // Create sender
+                    var sender = new Sender(_config);
+
+                    config['onSenderCreated'](sender);
+                } else {
+                   _log('Failed to load Chromecast library, error:');
+                   _log(errorInfo, true);
+                }
+            };
+            
+            // Load Sender API
+            script.src = '//www.gstatic.com/cv/js/sender/v1/cast_sender.js';
+            document.body.appendChild(script);
         }
+    };
 
-        document.body.appendChild(script);
-    } else {
-        // Setup Cast Sender API global callback
-        window['__onGCastApiAvailable'] = function(loaded, errorInfo) {
-
-            if (loaded) {
-                // Create sender
-                var sender = Sender();
-
-                console.log(sender);
-
-                _onSenderCreated(sender);
-            }
-        }
-        
-        // Load Sender API
-        var script =  document.createElement('script');
-        script.type = 'text/javascript';
-        script.src = '//www.gstatic.com/cv/js/sender/v1/cast_sender.js';
-        document.body.appendChild(script);
-    }
-};
+    return {
+        'Receiver': Receiver,
+        'Sender': Sender,
+        'Newscast': Newscast
+    };
+});
