@@ -431,6 +431,11 @@ var playNextSong = function(nextSongID) {
     $previousSong = $currentSong;    
     $currentSong = $nextSong;
 
+    if (nextSongID == songOrder[0]){
+        $back.addClass('disabled');
+    } else {
+        $back.removeClass('disabled');
+    }
     markSongPlayed(nextSong);
     updateTotalSongsPlayed();
     writeSkipsRemaining();
