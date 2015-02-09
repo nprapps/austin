@@ -652,12 +652,11 @@ h1,h2,h3,h4,h5,h6 {
 	background-color: #142129;
 	background: repeating-radial-gradient(circle at 0 0, #121b21, #19232b 7rem);
 	padding-top: 4rem;
-	padding-bottom: 9rem;
+	padding-bottom: 5rem;
 }
 
 .song {
-	background: darken(@music-hp-dark, 5%);
-	border-top: 2px solid @music-hp-dark;
+	border-top: 2px solid transparent;
 	.transition(0.3s all ease-in-out);
 	-webkit-backface-visibility: hidden; // prevent flickering in Safari
 
@@ -679,13 +678,10 @@ h1,h2,h3,h4,h5,h6 {
 		border-color: transparent;
 	}
 
-	&:last-child {
-		background: transparent;
-		border-color: transparent;
-	}
-
-	&:not(:last-child) {
+	&.small {
 		cursor: pointer;
+		background: darken(@music-hp-dark, 5%);
+		border-color: @music-hp-dark;
 	}
 
 	.song-info {

@@ -484,6 +484,7 @@ var getNextSongID = function() {
  * Animate transition forward or backward to the next song to play.
  */
 var transitionToNextSong = function($fromSong, $toSong) {
+    // toSong is in the history
     if ($toSong.offset().top < $fromSong.offset().top) {
         $toSong.velocity("scroll", {
             duration: 350,
@@ -503,6 +504,26 @@ var transitionToNextSong = function($fromSong, $toSong) {
                 }
             }
         });
+    // toSong is in history, but further down the list than fromSong
+    } else if ($toSong.hasClass('small') && $toSong.attr('id') !== $fromSong.next().attr('id')) {
+        $toSong.velocity("scroll", {
+            duration: 500,
+            offset: -(fixedHeaderHeight + ($fromSong.outerHeight() - $toSong.outerHeight())),
+            delay: 0,
+            begin: function() {
+                $(document).off('scroll');
+            },
+            complete: function() {
+                $(document).on('scroll', onDocumentScroll);
+                shrinkSong($fromSong);
+                setSongHeight($toSong);
+                if (playedSongs.length > 1) {
+                    $historyButton.show();
+                    $historyButton.removeClass('offscreen');
+                }
+            }
+        });
+    // toSong is newly added to the list
     } else {
         setSongHeight($toSong);
         $fromSong.velocity("scroll", {
@@ -951,7 +972,8 @@ var onContinueButtonClick = function(e) {
  */
 var onSongCardClick = function(e) {
     if (getSongIDFromHTML($(this)) !== getSongIDFromHTML($currentSong)) {
-        $(this).toggleClass('small');
+        var song = getSongIDFromHTML($(this));
+        playNextSong(song);
     }
 }
 
