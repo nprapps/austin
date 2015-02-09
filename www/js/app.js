@@ -141,7 +141,7 @@ var onDocumentLoad = function(e) {
 
     setInterval(checkSkips, 60000);
 
-    Newscast({
+    new Newscast.Newscast({
         'namespace': APP_CONFIG.CHROMECAST_NAMESPACE,
         'appId': APP_CONFIG.CHROMECAST_APP_ID,
         'onReceiverCreated': onCastReceiverCreated,
@@ -159,15 +159,11 @@ var onDocumentLoad = function(e) {
 var onCastReceiverCreated = function(receiver) {
     castReceiver = receiver;
 
-    castReceiver.onMessage('toggle-audio', onCastReceiverToggleAudio);
-    castReceiver.onMessage('skip-song', onCastReceiverSkipSong);
-    castReceiver.onMessage('toggle-genre', onCastReceiverToggleGenre);
-    castReceiver.onMessage('toggle-curator', onCastReceiverToggleCurator);
-    castReceiver.onMessage('send-playlist', onCastReceiverPlaylist);
-    castReceiver.onMessage('send-tags', onCastReceiverTags);
-    castReceiver.onMessage('send-history', onCastReceiverHistory);
-    castReceiver.onMessage('send-played', onCastReceiverPlayed);
-    castReceiver.onMessage('init', onCastReceiverInit);
+    // castReceiver.onMessage('toggle-audio', onCastReceiverToggleAudio);
+    // castReceiver.onMessage('skip-song', onCastReceiverSkipSong);
+    // castReceiver.onMessage('send-history', onCastReceiverHistory);
+    // castReceiver.onMessage('send-played', onCastReceiverPlayed);
+    // castReceiver.onMessage('init', onCastReceiverInit);
 
 }
 
@@ -192,7 +188,8 @@ var onCastSenderReady = function() {
 var onCastSenderStarted = function() {
     // TODO: stop audio
 
-    $stack.hide();
+
+    // $stack.hide();
     $fullscreenStart.hide();
     $castStop.show();
     $castStart.hide();
@@ -200,17 +197,12 @@ var onCastSenderStarted = function() {
 
     isCasting = true;
 
-    if (!IS_FAKE_CASTER) {
-        $chromecastScreen.show();
-    }
+    // if (!IS_FAKE_CASTER) {
+    //     $chromecastScreen.show();
+    // }
 
-    castSender.sendMessage('send-tags', JSON.stringify(selectedTags));
-    castSender.sendMessage('send-playlist', JSON.stringify(playlist));
-    castSender.sendMessage('send-history', JSON.stringify(songHistory));
-    castSender.sendMessage('send-played', JSON.stringify(playedSongs));
-    castSender.sendMessage('init');
+    castSender.sendMessage('ping', 'hi there!')
 
-    castSender.onMessage('genre-ended', onCastGenreEnded);
 }
 
 /*
@@ -221,8 +213,8 @@ var onCastSenderStopped = function() {
     $castStop.hide();
     isCasting = false;
 
-    $chromecastScreen.hide();
-    $stack.show();
+    // $chromecastScreen.hide();
+    // $stack.show();
 }
 
 /*
@@ -230,6 +222,8 @@ var onCastSenderStopped = function() {
  */
 var onCastStartClick = function(e) {
     e.preventDefault();
+
+    castReceiver.sendMessage('pong', 'yeah i see you')
 
     _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'chromecast-start']);
 
@@ -250,11 +244,6 @@ var onCastStopClick = function(e) {
     $castStart.show();
 }
 
-var onCastGenreEnded = function() {
-    console.log('fired');
-    resetGenreFilters();
-}
-
 var onCastReceiverToggleAudio = function(message) {
     if (message === 'play') {
         $audioPlayer.jPlayer('play');
@@ -265,24 +254,6 @@ var onCastReceiverToggleAudio = function(message) {
 
 var onCastReceiverSkipSong = function() {
     skipSong();
-}
-
-var onCastReceiverToggleGenre = function(message) {
-    toggleGenre(message);
-}
-
-var onCastReceiverToggleCurator = function(message) {
-    toggleCurator(message);
-}
-
-var onCastReceiverPlaylist = function(message) {
-    playlist = JSON.parse(message);
-    console.log(playlist);
-}
-
-var onCastReceiverTags = function(message) {
-    selectedTags = JSON.parse(message);
-    console.log(selectedTags);
 }
 
 var onCastReceiverHistory = function(message) {
@@ -301,7 +272,7 @@ var onCastReceiverPlayed = function(message) {
 
 var onCastReceiverInit = function() {
     $landing.hide();
-    $('.songs, .player-container, .playlist-filters').show();
+    $('.songs, .player-container').show();
     _.delay(playNextSong, 1000);
 }
 
