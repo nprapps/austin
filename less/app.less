@@ -503,6 +503,12 @@ h1,h2,h3,h4,h5,h6 {
 		margin: 0 1rem 0 0;
 	}
 
+	.fullscreen {
+		.touch & {
+			.hide;
+		}
+	}
+
     .chromecast {
         display: none;
     }
@@ -1082,12 +1088,26 @@ h1,h2,h3,h4,h5,h6 {
 			background-color: #444;
 		}
 	}
+
 	.playback-info {
 		right: 0.5rem;
 		text-align: right;
 		line-height: 1;
 		.vertical-center;
 		position: absolute;
+	}
+
+	.playlist-progress {
+		margin-top: 5px;
+		margin-bottom: 5px;
+		line-height: 1;
+		text-transform: uppercase;
+		color: #999;
+		font-size: @font-size-small;
+
+		@media screen and (max-width: @screen-xs-max){
+			font-size: @font-size-base * 0.715;
+		}
 	}
 }
 
@@ -1142,7 +1162,8 @@ h1,h2,h3,h4,h5,h6 {
 	color: #999;
 	text-transform: uppercase;
 	font-size: @font-size-small;
-	padding: 5px 0 0;
+	padding: 0;
+	line-height: 1;
 
 	@media screen and (max-width: @screen-xs-max){
 		font-size: @font-size-base * 0.715;
@@ -1371,11 +1392,6 @@ h1,h2,h3,h4,h5,h6 {
 		float: left;
 		margin-right: 2rem;
 	}
-}
-
-.played-songs {
-	font-size: @font-size-small;
-	color: #999;
 }
 
 .tags {

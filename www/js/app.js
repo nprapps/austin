@@ -1078,7 +1078,7 @@ var toggleHistoryButton = function(e) {
         return;
     }
 
-    var currentSongOffset = $songs.find('.song').last().offset().top - 50;
+    var currentSongOffset = $currentSong.offset().top - 50;
     var windowScrollTop = $(window).scrollTop();
     if (currentSongOffset < windowScrollTop + fixedHeaderHeight){
         $historyButton.removeClass('offscreen');
