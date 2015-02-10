@@ -176,10 +176,11 @@
          * Listen for existing sessions with the receiver.
          */
         var _sessionListener = function(session) {
-            _log('Session created');
+            _log('Session reconnected');
 
             _session = session;
             _session.addUpdateListener(_sessionUpdateListener);
+            _session.addMessageListener(_config['namespace'], _onReceiveMessage); 
 
             if (config['onSenderStarted']) {
                 config['onSenderStarted']();

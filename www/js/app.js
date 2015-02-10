@@ -594,8 +594,9 @@ var onPlayClick = function(e) {
 
     if (isSenderCasting) {
         castSender.sendMessage('play');
-    }
-    $audioPlayer.jPlayer('play');    
+    } else {
+        $audioPlayer.jPlayer('play'); 
+    }   
 }
 
 /*
@@ -606,8 +607,9 @@ var onPauseClick = function(e) {
 
     if (isSenderCasting) {
         castSender.sendMessage('pause');
+    } else {
+        $audioPlayer.jPlayer('pause');
     }
-    $audioPlayer.jPlayer('pause');
 }
 
 /*
@@ -618,10 +620,9 @@ var onSkipClick = function(e) {
 
     if (isSenderCasting) {
         castSender.sendMessage('skip');
-    } 
-    // else {
+    } else {
         skipSong();
-    // }
+    }
 }
 
 var onBackClick = function(e) {
@@ -629,10 +630,9 @@ var onBackClick = function(e) {
 
     if (isSenderCasting) {
         castSender.sendMessage('back');
-    } 
-    // else {
+    } else {
         backSong();      
-    // }
+    }
 }
 
 /*
