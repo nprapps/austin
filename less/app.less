@@ -1077,20 +1077,18 @@ h1,h2,h3,h4,h5,h6 {
 	.song-info {
 		.vertical-center;
 		position: absolute;
+		z-index: 500;
 	}
 
 	.artist {
 		font-size: @font-size-base * 1.6;
 		letter-spacing: 0.1rem;
-		// margin-top: 10px;
-		// margin-bottom: 5px;
 	}
 
 	.song-title {
 		font-size: @font-size-base * 1.2;
 		color: @music-medium;
 		text-indent: 0;
-		// margin-bottom: 0;
 	}
 
 	.player-progress {
@@ -1099,6 +1097,7 @@ h1,h2,h3,h4,h5,h6 {
 		top: 0;
 		bottom: 0;
 		right: 0;
+		border-left: 1px solid #444;
 
 		.bar {
 			position: absolute;
