@@ -190,8 +190,11 @@ var onCastSenderStarted = function() {
     $fullscreenStart.hide();
     $castStop.show();
     $castStart.hide();
+    $currentTime.hide();
 
     isSenderCasting = true;
+
+    $audioPlayer.jPlayer('stop');
 
     castSender.sendMessage('init');
 }
@@ -202,6 +205,7 @@ var onCastSenderStarted = function() {
 var onCastSenderStopped = function() {
     $castStart.show();
     $castStop.hide();
+    $currentTime.show();
     isSenderCasting = false;
 }
 
@@ -246,11 +250,13 @@ var onCastReceiverBack = function() {
 }
 
 var onCastSenderPlay = function() {
-    $audioPlayer.jPlayer('play');    
+    $play.hide();
+    $pause.show(); 
 }
 
 var onCastSenderPause = function() {
-    $audioPlayer.jPlayer('pause');
+    $play.show();
+    $pause.hide();
 }
 
 var onCastReceiverInit = function() {
@@ -271,7 +277,7 @@ var setupAudio = function() {
         volume: (NO_AUDIO ? 0 : 1),
         supplied: 'mp3',
         loop: false,
-        timeupdate: onTimeUpdate,
+        timeupdate: onAudioTimeUpdate,
         swfPath: APP_CONFIG.S3_BASE_URL + '/js/lib/jquery.jplayer.swf'
     });
 }
@@ -295,8 +301,6 @@ var onAudioPaused = function() {
 }
 
 var onAudioEnded = function(e) {
-    var time = e.jPlayer.status.currentTime;
-
     onAudioPaused();
     playNextSong();
 }
@@ -304,8 +308,10 @@ var onAudioEnded = function(e) {
 /*
  * Update playback timer display.
  */
-var onTimeUpdate = function(e) {
-    var time_text = $.jPlayer.convertTime(e.jPlayer.status.currentTime);
+var onAudioTimeUpdate = function(e) {
+    var time = e.jPlayer.status.currentTime;
+    var time_text = $.jPlayer.convertTime(time);    
+
     $currentTime.text(time_text);
 };
 
