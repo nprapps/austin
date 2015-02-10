@@ -453,21 +453,31 @@ var transitionToNextSong = function($fromSong, $toSong) {
         });
     // toSong is in history, but further down the list than fromSong
     } else if ($toSong.hasClass('small') && $toSong.attr('id') !== $fromSong.next().attr('id')) {
-        $toSong.velocity("scroll", {
-            duration: 500,
-            offset: -(fixedHeaderHeight + ($fromSong.outerHeight() - $toSong.outerHeight())),
-            delay: 0,
+        var shrinkOffset = $fromSong.outerHeight() - $toSong.outerHeight();
+        $("html").velocity('scroll', {
+            duration: 300,
+            offset: $(document).scrollTop() + shrinkOffset,
             begin: function() {
-                $(document).off('scroll');
+                shrinkSong($fromSong);
             },
             complete: function() {
-                $(document).on('scroll', onDocumentScroll);
-                shrinkSong($fromSong);
                 setSongHeight($toSong);
-                if (playedSongs.length > 1) {
-                    $historyButton.show();
-                    $historyButton.removeClass('offscreen');
-                }
+
+                $toSong.velocity("scroll", {
+                    duration: 500,
+                    offset: -(fixedHeaderHeight),
+                    delay: 300,
+                    begin: function() {
+                        $(document).off('scroll');
+                    },
+                    complete: function() {
+                        $(document).on('scroll', onDocumentScroll);
+                        if (playedSongs.length > 1) {
+                            $historyButton.show();
+                            $historyButton.removeClass('offscreen');
+                        }
+                    }
+                });
             }
         });
     // toSong is newly added to the list
