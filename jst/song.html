@@ -6,6 +6,7 @@
                 <h2 class="artist"><%= artist %></h2>
                 <h1 class="song-title">&lsquo;<%= title %>&rsquo;</h1>
 
+                <% if (castReceiver === null) { %>
                 <ul class="song-tools list-unstyled">
                     <% if (ASIN) { %>
                     <li><a target="_blank" href="http://amazon.com/dp/<%= ASIN %>?tag=npr-5-20" class="amazon"><span class="icon-amazon"></span></a></li>
@@ -24,6 +25,7 @@
                     <% } %>
                     <li><a class="star icon-heart-empty"></span></a></li>
                 </ul>
+                <% } %>
             </div>
         </div>
     </div>

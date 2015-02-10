@@ -158,6 +158,10 @@ var onDocumentLoad = function(e) {
  */
 var onCastReceiverCreated = function(receiver) {
     castReceiver = receiver;
+
+    $player.find('.controls').hide();
+    $fixedHeader.find('.fixed-header-controls').hide();
+
     castReceiver.onMessage('init', onCastReceiverInit);
     castReceiver.onMessage('play', onCastReceiverPlay);
     castReceiver.onMessage('pause', onCastReceiverPause);
@@ -349,7 +353,11 @@ var playNextSong = function(nextSongID) {
 
     // Render song if not already on page
     if ($nextSong.length == 0) {
-        var context = $.extend(APP_CONFIG, nextSong);
+        var context = $.extend(
+            APP_CONFIG,
+            nextSong,
+            { 'castReceiver' : castReceiver }
+        );
         $nextSong = $(JST.song(context));
 
         $songs.append($nextSong);
