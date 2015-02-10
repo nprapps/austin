@@ -162,8 +162,7 @@ var onCastReceiverCreated = function(receiver) {
     castReceiver.onMessage('play', onCastReceiverPlay);
     castReceiver.onMessage('pause', onCastReceiverPause);
     castReceiver.onMessage('skip', onCastReceiverSkipSong);
-    castReceiver.onMessage('back', onCastReceiverBack);
-    castReceiver.onMessage('send-played', onCastReceiverPlayed);    
+    castReceiver.onMessage('back', onCastReceiverBack);    
 }
 
 /*
@@ -173,6 +172,7 @@ var onCastSenderCreated = function(sender) {
     castSender = sender;
 
     castSender.onMessage('play', onCastSenderPlay);
+    castSender.onMessage('pause', onCastSenderPause);
 }
 
 /*
@@ -246,25 +246,18 @@ var onCastReceiverBack = function() {
 }
 
 var onCastSenderPlay = function() {
-    console.log('you getting this msg?')
     $audioPlayer.jPlayer('play');    
 }
 
-var onCastReceiverPlayed = function(message) {
-    playedSongs = JSON.parse(message);
-
-    for (i = 0; i < playedSongs.length; i++) {
-        playedSongs[i] = parseInt(playedSongs[i]);
-    }
-    console.log(playedSongs);
+var onCastSenderPause = function() {
+    $audioPlayer.jPlayer('pause');
 }
 
 var onCastReceiverInit = function() {
     $landing.hide();
     $fixedHeader.show();
     $songsWrapper.show();
-    _.delay(playNextSong, 1000);
-    castReceiver.sendMessage('play');    
+    _.delay(playNextSong, 1000); 
 }
 
 /*
@@ -286,11 +279,19 @@ var setupAudio = function() {
 var onAudioPlayed = function() {
     $pause.show();
     $play.hide();
+
+    if (castReceiver) {
+        castReceiver.sendMessage('play');
+    }
 }
 
 var onAudioPaused = function() {
     $play.show();
     $pause.hide();
+
+    if (castReceiver) {
+        castReceiver.sendMessage('pause');
+    }
 }
 
 var onAudioEnded = function(e) {
