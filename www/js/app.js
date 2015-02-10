@@ -38,7 +38,6 @@ var ALL_HISTORY = (window.location.search.indexOf('allhistory') >= 0);
 
 // Global state
 var firstShareLoad = true;
-var playedSongs = [];
 var isPlayingWelcome = true;
 var playedsongCount = null;
 var usedSkips = [];
@@ -166,7 +165,8 @@ var onCastReceiverCreated = function(receiver) {
     castReceiver.onMessage('play', onCastReceiverPlay);
     castReceiver.onMessage('pause', onCastReceiverPause);
     castReceiver.onMessage('skip', onCastReceiverSkipSong);
-    castReceiver.onMessage('back', onCastReceiverBack);    
+    castReceiver.onMessage('back', onCastReceiverBack);   
+    castReceiver.onMessage('start-song', onCastReceiverStartSong); 
 }
 
 /*
@@ -175,6 +175,7 @@ var onCastReceiverCreated = function(receiver) {
 var onCastSenderCreated = function(sender) {
     castSender = sender;
 
+    castSender.onMessage('ready-to-play', onCastSenderReadyToPlay);
     castSender.onMessage('play', onCastSenderPlay);
     castSender.onMessage('pause', onCastSenderPause);
 }
@@ -200,7 +201,9 @@ var onCastSenderStarted = function() {
 
     $audioPlayer.jPlayer('stop');
 
-    castSender.sendMessage('init');
+    senderSongOrder = songOrder.join(',');
+
+    castSender.sendMessage('init', senderSongOrder);
 }
 
 /*
@@ -237,7 +240,7 @@ var onCastStopClick = function(e) {
     $castStart.show();
 }
 
-var onCastReceiverPlay = function() {
+var onCastReceiverPlay = function(songId) {
     $audioPlayer.jPlayer('play');
 }
 
@@ -253,6 +256,22 @@ var onCastReceiverBack = function() {
     backSong();
 }
 
+var onCastReceiverStartSong = function(songId) {
+    songId = parseInt(songId);
+
+    $landing.hide();
+    $fixedHeader.show();
+    $songsWrapper.show();
+
+    playNextSong(songId);
+}
+
+var onCastSenderReadyToPlay = function() {
+    var songId = getSongIDFromHTML($currentSong) || undefined;
+
+    castSender.sendMessage('start-song', songId);
+}
+
 var onCastSenderPlay = function() {
     $play.hide();
     $pause.show(); 
@@ -263,11 +282,18 @@ var onCastSenderPause = function() {
     $pause.hide();
 }
 
-var onCastReceiverInit = function() {
-    $landing.hide();
-    $fixedHeader.show();
-    $songsWrapper.show();
-    _.delay(playNextSong, 1000); 
+var onCastReceiverInit = function(senderSongOrder) {
+    senderSongOrder = senderSongOrder.split(',');
+    songOrder = senderSongOrder;
+    simpleStorage.set('songOrder', songOrder);
+
+    // TODO
+    // Need last song played
+    // buildListeningHistory()
+    // OR
+    // Just render every song on the chromecast receiver
+
+    castReceiver.sendMessage('ready-to-play');
 }
 
 /*
@@ -393,7 +419,10 @@ var playNextSong = function(nextSongID) {
     } else {
         $back.removeClass('disabled');
     }
-    markSongPlayed(nextSong);
+
+    currentSongID = nextSong['id'];
+    simpleStorage.set('currentSongID', currentSongID);
+
     updateTotalSongsPlayed();
     writeSkipsRemaining();
     preloadSongImages();
@@ -406,27 +435,17 @@ var getNextSongID = function() {
     var nextSongID = null;
 
     // If the user has played songs before    
-    if (playedSongs.length > 0) {
+    if (currentSongID) {
         // If this is the first play of the session, play the last song that was ever played
         if (isFirstPlay) {
-            nextSongID = playedSongs[playedSongs.length-1]; 
+            nextSongID = currentSongID; 
         
         // If this ISN'T the first play of the session                            
         } else {
-            var currentSongID = getSongIDFromHTML($currentSong);
-            var indexOfCurrentSong = _.indexOf(playedSongs, currentSongID);
-
-            // If this song has been played before
-            if (indexOfCurrentSong < playedSongs.length - 1) {
-
-                nextSongID = playedSongs[indexOfCurrentSong + 1];
-
-            // If this song has never been played before, draw up an unheard one for the next song                          
-            } else {
-                nextSongID = _.find(songOrder, function(songID) {
-                    return !(_.contains(playedSongs, songID));
-                })
-            }                
+            var indexOfCurrentSong = _.indexOf(songOrder, currentSongID);
+              
+            // TODO: end of list - could be out of range
+            nextSongID = songOrder[indexOfCurrentSong + 1];
         }
 
     // If this is the first time the user is playing any song            
@@ -455,7 +474,7 @@ var transitionToNextSong = function($fromSong, $toSong) {
 
                 $(document).on('scroll', onDocumentScroll);
 
-                if (playedSongs.length > 1) {
+                if (_.indexOf(songOrder, currentSongID) > 1) {
                     $historyButton.show();
                     $historyButton.removeClass('offscreen');
                 }
@@ -482,7 +501,7 @@ var transitionToNextSong = function($fromSong, $toSong) {
                     },
                     complete: function() {
                         $(document).on('scroll', onDocumentScroll);
-                        if (playedSongs.length > 1) {
+                        if (_.indexOf(songOrder, currentSongID) > 1) {
                             $historyButton.show();
                             $historyButton.removeClass('offscreen');
                         }
@@ -511,7 +530,7 @@ var transitionToNextSong = function($fromSong, $toSong) {
                             complete: function() {
                                 $(document).on('scroll', onDocumentScroll);
 
-                                if (playedSongs.length > 1) {
+                                if (_.indexOf(songOrder, currentSongID) > 1) {
                                     $historyButton.show();
                                     $historyButton.removeClass('offscreen');
                                 }
@@ -557,9 +576,8 @@ var onStarClick = function(e) {
  * Preload song art to make things smoother.
  */
 var preloadSongImages = function() {
-    var nextSongID = _.find(songOrder, function(songID) {
-        return !(_.contains(playedSongs, songID));
-    })
+    // TODO: what about last song, could be out of range
+    var nextSongID = songOrder[_.indexOf(songOrder, currentSongID) + 1];
 
     var nextSong = SONG_DATA[nextSongID];    
 
@@ -592,8 +610,8 @@ var setSongHeight = function($song){
  * Update the total songs played
  */
 var updateTotalSongsPlayed = function() {
-
-    $playedSongs.text(playedSongs.length);
+    var songsPlayed = _.indexOf(songOrder, currentSongID) + 1;
+    $playedSongs.text(songsPlayed);
 
     // if (totalSongsPlayed % 5 === 0) {
     //     _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'songs-played', '', totalSongsPlayed]);
@@ -671,8 +689,8 @@ var skipSong = function() {
 
 var backSong = function() {
     var songID = getSongIDFromHTML($currentSong);
-    var playedIndex = _.indexOf(playedSongs, songID);
-    var previousSongID = playedSongs[playedIndex - 1];
+    var playedIndex = _.indexOf(songOrder, songID);
+    var previousSongID = songOrder[playedIndex - 1];
 
     playNextSong(previousSongID);         
 }
@@ -729,7 +747,7 @@ var writeSkipsRemaining = function() {
  */
 var loadState = function() {
     favoritedSongs = simpleStorage.get('favoritedSongs') || [];
-    playedSongs = simpleStorage.get('playedSongs') || [];
+    currentSongID = simpleStorage.get('currentSongID') || null;
     usedSkips = simpleStorage.get('usedSkips') || [];
     totalSongsPlayed = simpleStorage.get('totalSongsPlayed') || 0;
     songOrder = simpleStorage.get('songOrder') || null;
@@ -740,7 +758,7 @@ var loadState = function() {
         }
     }
 
-    if (playedSongs.length > 0) {
+    if (currentSongID !== null) {
         buildListeningHistory();
         $landingReturnDeck.show();        
     } else {
@@ -769,10 +787,10 @@ var loadState = function() {
  * Reset everything we can legally reset
  */
 var resetState = function() {
-    playedSongs = [];
+    currentSongID = null;
     favoritedSongs = [];
 
-    simpleStorage.set('playedSongs', playedSongs);
+    simpleStorage.set('currentSongID', currentSongID);
     simpleStorage.set('favoritedSongs', favoritedSongs);
 }
 
@@ -785,23 +803,12 @@ var resetLegalLimits = function() {
 }
 
 /*
- * Mark the current song as played and save state.
- */
-var markSongPlayed = function(song) {
-    if (!_.contains(playedSongs, song['id'])) {
-        playedSongs.push(song['id']);  
-        simpleStorage.set('playedSongs', playedSongs);      
-    }
-}
-
-/*
  * Reconstruct listening history from stashed id's.
  */
 var buildListeningHistory = function() {
     // Remove last played song so we can continue playing the song where we left off.   
-    for (var i = 0; i < playedSongs.length - 1; i++) {
-        var songID = playedSongs[i];
-
+    for (var i = 0; i < _.indexOf(songOrder, currentSongID); i++) {
+        var songID = songOrder[i];
         var song = SONG_DATA[songID];
 
         var context = $.extend(APP_CONFIG, song);
@@ -890,8 +897,6 @@ var onGoButtonClick = function(e) {
     e.preventDefault();
     swapTapeDeck();
     $songs.find('.song').remove();
-    playedSongs = [];
-    simpleStorage.set('playedSongs', playedSongs);
     playWelcomeAudio();
 
     _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'shuffle']);
@@ -1009,7 +1014,7 @@ var showHistory = function() {
  * Check if play history is visible
  */
 var toggleHistoryButton = function(e) {
-    if (playedSongs.length < 2) {
+    if (_.indexOf(songOrder, currentSong) < 2) {
         return;
     }
 
