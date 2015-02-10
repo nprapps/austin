@@ -171,6 +171,8 @@ var onCastReceiverCreated = function(receiver) {
  */
 var onCastSenderCreated = function(sender) {
     castSender = sender;
+
+    castSender.onMessage('play', onCastSenderPlay);
 }
 
 /*
@@ -185,13 +187,9 @@ var onCastSenderReady = function() {
  * A cast session started.
  */
 var onCastSenderStarted = function() {
-    // TODO: stop audio
-
     $fullscreenStart.hide();
     $castStop.show();
     $castStart.hide();
-  
-    $audioPlayer.jPlayer('stop');
 
     isSenderCasting = true;
 
@@ -233,14 +231,10 @@ var onCastStopClick = function(e) {
 
 var onCastReceiverPlay = function() {
     $audioPlayer.jPlayer('play');
-    $play.hide();
-    $pause.show();
 }
 
 var onCastReceiverPause = function() {
     $audioPlayer.jPlayer('pause');
-    $pause.hide();
-    $play.show();
 }
 
 var onCastReceiverSkipSong = function() {
@@ -249,6 +243,11 @@ var onCastReceiverSkipSong = function() {
 
 var onCastReceiverBack = function() {
     backSong();
+}
+
+var onCastSenderPlay = function() {
+    console.log('you getting this msg?')
+    $audioPlayer.jPlayer('play');    
 }
 
 var onCastReceiverPlayed = function(message) {
@@ -265,6 +264,7 @@ var onCastReceiverInit = function() {
     $fixedHeader.show();
     $songsWrapper.show();
     _.delay(playNextSong, 1000);
+    castReceiver.sendMessage('play');    
 }
 
 /*
@@ -272,7 +272,10 @@ var onCastReceiverInit = function() {
  */
 var setupAudio = function() {
     $audioPlayer.jPlayer({
+        pause: onAudioPaused,
+        play: onAudioPlayed,
         ended: onAudioEnded,
+        volume: (NO_AUDIO ? 0 : 1),
         supplied: 'mp3',
         loop: false,
         timeupdate: onTimeUpdate,
@@ -280,20 +283,20 @@ var setupAudio = function() {
     });
 }
 
+var onAudioPlayed = function() {
+    $pause.show();
+    $play.hide();
+}
+
+var onAudioPaused = function() {
+    $play.show();
+    $pause.hide();
+}
+
 var onAudioEnded = function(e) {
     var time = e.jPlayer.status.currentTime;
 
-    if (time != 0 && time != e.jPlayer.status.duration) {
-        // End fired prematurely
-        console.log(e.jPlayer.status.currentTime);
-        console.log(e.jPlayer.status.currentPercentAbsolute);
-        console.log(e.jPlayer.status.currentPercentRelative);
-        console.log(e.jPlayer.status.duration);
-
-        // Try to restart
-        $audioPlayer.jPlayer('play');
-    }
-
+    onAudioPaused();
     playNextSong();
 }
 
@@ -316,10 +319,10 @@ var playWelcomeAudio = function() {
     $playerArtist.text('');
     $playerTitle.text('');
 
-    if (!NO_AUDIO){
-        $audioPlayer.jPlayer('play');
-    } else {
+    if (NO_AUDIO){
         playNextSong();
+    } else {
+        $audioPlayer.jPlayer('play');
     }
 }
 
@@ -352,16 +355,11 @@ var playNextSong = function(nextSongID) {
     $skipsRemaining.show();
 
     // Start audio playback
-    if (!NO_AUDIO) {
-        var nextsongURL = 'http://podcastdownload.npr.org/anon.npr-mp3' + nextSong['media_url'] + '.mp3';
+    var nextsongURL = 'http://podcastdownload.npr.org/anon.npr-mp3' + nextSong['media_url'] + '.mp3';
 
-        $audioPlayer.jPlayer('setMedia', {
-            mp3: nextsongURL
-        }).jPlayer('play');
-    }
-
-    $play.hide();
-    $pause.show();
+    $audioPlayer.jPlayer('setMedia', {
+        mp3: nextsongURL
+    }).jPlayer('play');
 
     // Animate transitions
     if (isPlayingWelcome) {
@@ -595,12 +593,8 @@ var onPlayClick = function(e) {
 
     if (isSenderCasting) {
         castSender.sendMessage('play');
-    } else {
-        $audioPlayer.jPlayer('play');
     }
-
-    $play.hide();
-    $pause.show();
+    $audioPlayer.jPlayer('play');    
 }
 
 /*
@@ -611,12 +605,8 @@ var onPauseClick = function(e) {
 
     if (isSenderCasting) {
         castSender.sendMessage('pause');
-    } else {
-        $audioPlayer.jPlayer('pause');
     }
-
-    $pause.hide();
-    $play.show();
+    $audioPlayer.jPlayer('pause');
 }
 
 /*
@@ -627,19 +617,21 @@ var onSkipClick = function(e) {
 
     if (isSenderCasting) {
         castSender.sendMessage('skip');
-    } else {
+    } 
+    // else {
         skipSong();
-    }
+    // }
 }
 
 var onBackClick = function(e) {
     e.preventDefault();
 
     if (isSenderCasting) {
-        castSender.sendMessage('back')
-    } else {
+        castSender.sendMessage('back');
+    } 
+    // else {
         backSong();      
-    }
+    // }
 }
 
 /*
@@ -925,12 +917,8 @@ var onDocumentKeyDown = function(e) {
             e.preventDefault();
             if ($audioPlayer.data('jPlayer').status.paused) {
                 $audioPlayer.jPlayer('play');
-                $pause.show();
-                $play.hide();
             } else {
                 $audioPlayer.jPlayer('pause');
-                $pause.hide();
-                $play.show();
             }
             break;
     }
