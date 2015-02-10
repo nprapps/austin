@@ -7,10 +7,6 @@
                 <h1 class="song-title">&lsquo;<%= title %>&rsquo;</h1>
 
                 <ul class="song-tools list-unstyled">
-                    <li><a class="star fa fa-star-o"></span></a></li>
-                    <% if (DOWNLOADS_ALLOWED) { %>
-                    <li><a target="_blank" href="http://podcastdownload.npr.org/anon.npr-mp3<%= media_url %>.mp3"><span class="icon-download-cloud"></span></a></li>
-                    <% } %>
                     <% if (ASIN) { %>
                     <li><a target="_blank" href="http://amazon.com/dp/<%= ASIN %>?tag=npr-5-20" class="amazon"><span class="icon-amazon"></span></a></li>
                     <% } %>
@@ -23,6 +19,10 @@
                     <% if (spotify) { %>
                     <li><a target="_blank" href="<%= spotify %>" class="spotify"><span class="icon-spotify-circled"></span></a></li>
                     <% } %>
+                    <% if (DOWNLOADS_ALLOWED) { %>
+                    <li><a target="_blank" href="http://podcastdownload.npr.org/anon.npr-mp3<%= media_url %>.mp3"><span class="icon-download-cloud"></span></a></li>
+                    <% } %>
+                    <li><a class="star icon-heart-empty"></span></a></li>
                 </ul>
             </div>
         </div>
