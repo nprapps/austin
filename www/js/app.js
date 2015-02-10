@@ -529,7 +529,7 @@ var getSongIDFromHTML = function($song) {
 var onStarClick = function(e) {
     e.stopPropagation();
 
-    $(this).toggleClass('fa-star-o fa-star');
+    $(this).toggleClass('icon-heart-empty icon-heart');
 
     var songID = getSongIDFromHTML($(this).parents('.song'));
 

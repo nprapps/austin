@@ -615,6 +615,8 @@ h1,h2,h3,h4,h5,h6 {
 	.scale(1);
 	.translate(0,0);
 	opacity: 1;
+	width: 10rem;
+	text-align: center;
 
 	.no-touch & {
 		&:hover {
@@ -630,6 +632,7 @@ h1,h2,h3,h4,h5,h6 {
 	}
 
 	@media screen and (max-width: @screen-xs-max){
+		width: auto;
 		top: 0;
 		left: 0;
 		right: 0;
@@ -717,6 +720,7 @@ h1,h2,h3,h4,h5,h6 {
 			.transition(width 0.3s ease-in-out);
 			.make-xs-column(3);
 			.make-sm-column(3);
+			.make-md-column(4);
 
 			.small& {
 				.transition(width 0.3s ease-in-out  0.3s);
@@ -741,6 +745,7 @@ h1,h2,h3,h4,h5,h6 {
 		.song-info-wrapper {
 			.transition(all 0.3s ease-in-out);
 			.make-sm-column(9);
+			.make-md-column(8);
 			padding-bottom: @font-size-base * 3;
 
 			@media screen and (max-width: @screen-xs-max){
@@ -775,12 +780,17 @@ h1,h2,h3,h4,h5,h6 {
 }
 
 .song-title {
-	font-size: @font-size-base * 2;
-	text-indent: -0.6rem;
+	font-size: @font-size-base * 1.5;
+	text-indent: -0.1rem;
 	margin-bottom: 0.5rem;
+	.transition(font-size 0.3s ease-in-out);
 
 	@media screen and (max-width: @screen-xs-max){
 		font-size: @font-size-base * 1.5;
+	}
+
+	.small & {
+		font-size: @font-size-base;
 	}
 
 }
@@ -789,9 +799,18 @@ h1,h2,h3,h4,h5,h6 {
 	font-family: 'Knockout 31 4r';
 	text-transform: uppercase;
 	letter-spacing: 0.1rem;
-	font-size: @font-size-base * 1.125;
+	font-size: @font-size-base * 4;
 	color: @music-red-light;
 	margin-bottom: 0.5rem;
+	.transition(font-size 0.3s ease-in-out);
+
+	.small & {
+		font-size: @font-size-base * 2;
+	}
+
+	@media screen and (min-width: 1400px){
+		margin-right: 11rem;
+	}
 }
 
 .review-wrapper {
@@ -1059,17 +1078,23 @@ h1,h2,h3,h4,h5,h6 {
 		.hidden-xs;
 	}
 
+	.song-info {
+		.vertical-center;
+		position: absolute;
+	}
+
 	.artist {
-		font-size: @font-size-base * 1.2;
+		font-size: @font-size-base * 1.6;
 		letter-spacing: 0.1rem;
-		margin-top: 10px;
-		margin-bottom: 5px;
+		// margin-top: 10px;
+		// margin-bottom: 5px;
 	}
 
 	.song-title {
-		font-size: @font-size-base * 1.6;
+		font-size: @font-size-base * 1.2;
 		color: @music-medium;
 		text-indent: 0;
+		// margin-bottom: 0;
 	}
 
 	.player-progress {
