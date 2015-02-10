@@ -171,6 +171,20 @@ def deploy(remote='origin'):
         max_age=app_config.ASSETS_MAX_AGE
     )
 
+@task 
+def deploy_test():
+    require('settings', provided_by=[production, staging])    
+    render.render_all()
+
+    # Clear files that should never be deployed
+    local('rm -rf www/live-data')
+
+    flat.deploy_folder(
+        'www',
+        app_config.PROJECT_SLUG,
+        max_age=app_config.DEFAULT_MAX_AGE,
+        ignore=['www/assets/*']
+    )
 
 """
 Destruction

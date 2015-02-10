@@ -25,11 +25,11 @@ var $skipsRemaining = null;
 var $currentSong = null;
 var $previousSong = null;
 var $fullscreenButton = null;
+var $songsWrapper = null;
 
 var $castButtons = null;
 var $castStart = null;
 var $castStop = null;
-var $castScreen = null;
 
 // URL params
 var NO_AUDIO = (window.location.search.indexOf('noaudio') >= 0);
@@ -50,7 +50,7 @@ var favoritedSongs = [];
 var songOrder = null;
 var isFirstPlay = true;
 
-var isCasting = false;
+var isSenderCasting = false;
 var castSender = null;
 var castReceiver = null;
 
@@ -82,6 +82,7 @@ var onDocumentLoad = function(e) {
     $pause = $('.pause');
     $historyButton = $('.js-show-history');
     $skipsRemaining = $('.skips-remaining');
+    $songsWrapper = $('.songs-wrapper');
 
     $fullscreenButtons = $('.fullscreen');
     $fullscreenStart = $('.fullscreen .start');
@@ -90,7 +91,6 @@ var onDocumentLoad = function(e) {
     $castButtons = $('.chromecast');
     $castStart = $('.chromecast .start');
     $castStop = $('.chromecast .stop');
-    $castScreen = $('.cast-controls');
 
     onWindowResize();
     $landing.show();
@@ -114,6 +114,7 @@ var onDocumentLoad = function(e) {
     $songs.on('click', '.song-tools .rdio', onRdioClick);
     $songs.on('click', '.song-tools .spotify', onSpotifyClick);
     $songs.on('click', '.song-tools .star', onStarClick);
+
 
     $fullscreenStart.on('click',onFullscreenStartClick);
     $fullscreenStop.on('click', onFullscreenStopClick); 
@@ -157,12 +158,12 @@ var onDocumentLoad = function(e) {
  */
 var onCastReceiverCreated = function(receiver) {
     castReceiver = receiver;
-
-    castReceiver.onMessage('toggle-audio', onCastReceiverToggleAudio);
-    castReceiver.onMessage('skip-song', onCastReceiverSkipSong);
-    castReceiver.onMessage('send-played', onCastReceiverPlayed);
     castReceiver.onMessage('init', onCastReceiverInit);
-
+    castReceiver.onMessage('play', onCastReceiverPlay);
+    castReceiver.onMessage('pause', onCastReceiverPause);
+    castReceiver.onMessage('skip', onCastReceiverSkipSong);
+    castReceiver.onMessage('back', onCastReceiverBack);
+    castReceiver.onMessage('send-played', onCastReceiverPlayed);    
 }
 
 /*
@@ -186,19 +187,15 @@ var onCastSenderReady = function() {
 var onCastSenderStarted = function() {
     // TODO: stop audio
 
-
-    // $stack.hide();
     $fullscreenStart.hide();
     $castStop.show();
     $castStart.hide();
+  
     $audioPlayer.jPlayer('stop');
 
-    isCasting = true;
+    isSenderCasting = true;
 
-    // if (!IS_FAKE_CASTER) {
-    //     $chromecastScreen.show();
-    // }
-
+    castSender.sendMessage('init');
 }
 
 /*
@@ -207,10 +204,7 @@ var onCastSenderStarted = function() {
 var onCastSenderStopped = function() {
     $castStart.show();
     $castStop.hide();
-    isCasting = false;
-
-    // $chromecastScreen.hide();
-    // $stack.show();
+    isSenderCasting = false;
 }
 
 /*
@@ -233,21 +227,28 @@ var onCastStopClick = function(e) {
     _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'chromecast-stop']);
 
     castSender.stopCasting();
-
     $castStop.hide();
     $castStart.show();
 }
 
-var onCastReceiverToggleAudio = function(message) {
-    if (message === 'play') {
-        $audioPlayer.jPlayer('play');
-    } else {
-        $audioPlayer.jPlayer('pause');
-    }
+var onCastReceiverPlay = function() {
+    $audioPlayer.jPlayer('play');
+    $play.hide();
+    $pause.show();
+}
+
+var onCastReceiverPause = function() {
+    $audioPlayer.jPlayer('pause');
+    $pause.hide();
+    $play.show();
 }
 
 var onCastReceiverSkipSong = function() {
     skipSong();
+}
+
+var onCastReceiverBack = function() {
+    backSong();
 }
 
 var onCastReceiverPlayed = function(message) {
@@ -261,7 +262,8 @@ var onCastReceiverPlayed = function(message) {
 
 var onCastReceiverInit = function() {
     $landing.hide();
-    $('.songs, .player-container').show();
+    $fixedHeader.show();
+    $songsWrapper.show();
     _.delay(playNextSong, 1000);
 }
 
@@ -325,7 +327,7 @@ var playWelcomeAudio = function() {
  * Play the next song in the playlist.
  */
 var playNextSong = function(nextSongID) {
-    // nextSongID would've only been defined in onBackClick()   
+    // nextSongID would've only been defined in onBackClick()  
     if (_.isUndefined(nextSongID)) {  
         nextSongID = getNextSongID();
     }
@@ -333,7 +335,6 @@ var playNextSong = function(nextSongID) {
     isFirstPlay = false;
 
     var nextSong = SONG_DATA[nextSongID];
-
     $nextSong = $('#song-' + nextSongID);
 
     // Render song if not already on page
@@ -341,11 +342,7 @@ var playNextSong = function(nextSongID) {
         var context = $.extend(APP_CONFIG, nextSong);
         $nextSong = $(JST.song(context));
 
-        if (isCasting) {
-            $songs.prepend($nextSong);
-        } else {
-            $songs.append($nextSong);
-        }
+        $songs.append($nextSong);
     }
 
     // Update player display
@@ -586,8 +583,8 @@ var updateTotalSongsPlayed = function() {
 var onPlayClick = function(e) {
     e.preventDefault();
 
-    if (isCasting) {
-        castSender.sendMessage('toggle-audio', 'play');
+    if (isSenderCasting) {
+        castSender.sendMessage('play');
     } else {
         $audioPlayer.jPlayer('play');
     }
@@ -602,8 +599,8 @@ var onPlayClick = function(e) {
 var onPauseClick = function(e) {
     e.preventDefault();
 
-    if (isCasting) {
-        castSender.sendMessage('toggle-audio', 'pause');
+    if (isSenderCasting) {
+        castSender.sendMessage('pause');
     } else {
         $audioPlayer.jPlayer('pause');
     }
@@ -618,8 +615,8 @@ var onPauseClick = function(e) {
 var onSkipClick = function(e) {
     e.preventDefault();
 
-    if (isCasting) {
-        castSender.sendMessage('skip-song');
+    if (isSenderCasting) {
+        castSender.sendMessage('skip');
     } else {
         skipSong();
     }
@@ -628,11 +625,11 @@ var onSkipClick = function(e) {
 var onBackClick = function(e) {
     e.preventDefault();
 
-    var songID = getSongIDFromHTML($currentSong);
-    var playedIndex = _.indexOf(playedSongs, songID);
-    var previousSongID = playedSongs[playedIndex - 1];
-
-    playNextSong(previousSongID);
+    if (isSenderCasting) {
+        castSender.sendMessage('back')
+    } else {
+        backSong();      
+    }
 }
 
 /*
@@ -653,6 +650,14 @@ var skipSong = function() {
     } else {
         playNextSong();
     }
+}
+
+var backSong = function() {
+    var songID = getSongIDFromHTML($currentSong);
+    var playedIndex = _.indexOf(playedSongs, songID);
+    var previousSongID = playedSongs[playedIndex - 1];
+
+    playNextSong(previousSongID);         
 }
 
 /*
@@ -811,8 +816,8 @@ var onShuffleSongsClick = function(e) {
  * Hide the welcome screen and show the playing song
  */
 var hideWelcome  = function($song) {
-    if (isCasting) {
-        $chromecastScreen.show();
+    if (isSenderCasting) {
+        $songsWrapper.hide();
     }
 
     $('.songs, .player-container').show();
