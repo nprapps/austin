@@ -87,7 +87,7 @@ var onDocumentLoad = function(e) {
 
     $fullscreenButtons = $('.fullscreen');
     $fullscreenStart = $('.fullscreen .start');
-    $fullscreenStop = $('.fullscreen .stop');    
+    $fullscreenStop = $('.fullscreen .stop');
 
     $castButtons = $('.chromecast');
     $castStart = $('.chromecast .start');
@@ -166,6 +166,7 @@ var onDocumentLoad = function(e) {
 var onCastReceiverCreated = function(receiver) {
     castReceiver = receiver;
 
+    $html.addClass('is-cast-receiver');
     $player.find('.controls').hide();
     $fixedHeader.find('.fixed-header-controls').hide();
 

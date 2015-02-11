@@ -1078,6 +1078,10 @@ h1,h2,h3,h4,h5,h6 {
 		.vertical-center;
 		position: absolute;
 		z-index: 500;
+
+		.is-cast-receiver & {
+			display: none;
+		}
 	}
 
 	.artist {
@@ -1098,6 +1102,11 @@ h1,h2,h3,h4,h5,h6 {
 		bottom: 0;
 		right: 0;
 		border-left: 1px solid #444;
+
+		.is-cast-receiver & {
+			left: 0;
+			border-left: none;
+		}
 
 		.bar {
 			position: absolute;
