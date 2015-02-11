@@ -196,9 +196,7 @@ var onCastSenderStarted = function() {
     $fullscreenStart.hide();
     $castStop.show();
     $castStart.hide();
-    $currentTime.hide();
-    $historyButton.addClass('offscreen');   
-     
+    $currentTime.hide();     
 
     isSenderCasting = true;
 
@@ -955,9 +953,14 @@ var onContinueButtonClick = function(e) {
  * Toggle played song card size
  */
 var onSongCardClick = function(e) {
-    if (getSongIDFromHTML($(this)) !== getSongIDFromHTML($currentSong)) {
-        var song = getSongIDFromHTML($(this));
-        playNextSong(song);
+    var thisSongID = getSongIDFromHTML($(this));
+
+    if (thisSongID !== getSongIDFromHTML($currentSong)) {
+        if (isSenderCasting) {
+            castSender.sendMessage('start-song', thisSongID);
+        } else {
+            playNextSong(thisSongID);            
+        }
     }
 }
 
