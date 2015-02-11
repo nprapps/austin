@@ -461,7 +461,7 @@ var getNextSongID = function() {
         
         // If this ISN'T the first play of the session                            
         } else {
-            var indexOfCurrentSong = _.indexOf(songOrder, currentSongID);
+            var indexOfCurrentSong = getIndexOfCurrentSong();
               
             // TODO: end of list - could be out of range
             nextSongID = songOrder[indexOfCurrentSong + 1];
@@ -493,7 +493,7 @@ var transitionToNextSong = function($fromSong, $toSong) {
 
                 $(document).on('scroll', onDocumentScroll);
 
-                if (_.indexOf(songOrder, currentSongID) > 1) {
+                if (getIndexOfCurrentSong() > 1) {
                     $historyButton.show();
                     $historyButton.removeClass('offscreen');
                 }
@@ -520,7 +520,7 @@ var transitionToNextSong = function($fromSong, $toSong) {
                     },
                     complete: function() {
                         $(document).on('scroll', onDocumentScroll);
-                        if (_.indexOf(songOrder, currentSongID) > 1) {
+                        if (getIndexOfCurrentSong() > 1) {
                             $historyButton.show();
                             $historyButton.removeClass('offscreen');
                         }
@@ -549,7 +549,7 @@ var transitionToNextSong = function($fromSong, $toSong) {
                             complete: function() {
                                 $(document).on('scroll', onDocumentScroll);
 
-                                if (_.indexOf(songOrder, currentSongID) > 1) {
+                                if (getIndexOfCurrentSong() > 1) {
                                     $historyButton.show();
                                     $historyButton.removeClass('offscreen');
                                 }
@@ -580,6 +580,10 @@ var getSongIDFromHTML = function($song) {
     return $song.attr('id').split('-')[1];
 }
 
+var getIndexOfCurrentSong = function() {
+    return _.indexOf(songOrder, currentSongID);
+}
+
 var onStarClick = function(e) {
     e.stopPropagation();
 
@@ -602,7 +606,7 @@ var onStarClick = function(e) {
  */
 var preloadSongImages = function() {
     // TODO: what about last song, could be out of range
-    var nextSongID = songOrder[_.indexOf(songOrder, currentSongID) + 1];
+    var nextSongID = songOrder[getIndexOfCurrentSong() + 1];
 
     var nextSong = SONG_DATA[nextSongID];    
 
@@ -636,7 +640,7 @@ var setSongHeight = function($song){
  * Update the total songs played
  */
 var updateTotalSongsPlayed = function() {
-    var songsPlayed = _.indexOf(songOrder, currentSongID) + 1;
+    var songsPlayed = getIndexOfCurrentSong() + 1;
     $playedSongs.text(songsPlayed);
 
     // if (totalSongsPlayed % 5 === 0) {
@@ -833,7 +837,7 @@ var resetLegalLimits = function() {
  */
 var buildListeningHistory = function() {
     // Remove last played song so we can continue playing the song where we left off. 
-    var lastSongIndex = _.indexOf(songOrder, currentSongID); 
+    var lastSongIndex = getIndexOfCurrentSong(); 
 
     if (castReceiver) {
         lastSongIndex = songOrder.length - 1;
