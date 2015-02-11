@@ -34,7 +34,7 @@ var $castStop = null;
 // URL params
 var NO_AUDIO = (window.location.search.indexOf('noaudio') >= 0);
 var RESET_STATE = (window.location.search.indexOf('resetstate') >= 0);
-var ALL_HISTORY = (window.location.search.indexOf('allhistory') >= 0);
+var PLAY_LAST = (window.location.search.indexOf('playlast') >= 0);
 
 // Global state
 var firstShareLoad = true;
@@ -432,10 +432,18 @@ var playNextSong = function(nextSongID) {
     $previousSong = $currentSong;    
     $currentSong = $nextSong;
 
+    // Are there songs before this one?
     if (nextSongID == songOrder[0] || APP_CONFIG.ENFORCE_PLAYBACK_LIMITS){
         $back.addClass('disabled');
     } else {
         $back.removeClass('disabled');
+    }
+
+    // Are there songs after this one?
+    if (nextSongID == songOrder[songOrder.length - 1]) {
+        $skip.addClass('disabled');
+    } else {
+        $skip.removeClass('disabled');
     }
 
     currentSongID = nextSong['id'];
@@ -460,14 +468,17 @@ var getNextSongID = function() {
     if (currentSongID) {
         // If this is the first play of the session, play the last song that was ever played
         if (isFirstPlay) {
-            nextSongID = currentSongID; 
+            nextSongID = currentSongID;
         
         // If this ISN'T the first play of the session                            
         } else {
             var indexOfCurrentSong = getIndexOfCurrentSong();
-              
-            // TODO: end of list - could be out of range
-            nextSongID = songOrder[indexOfCurrentSong + 1];
+
+            if (indexOfCurrentSong == songOrder.length - 1) {
+                nextSongID = songOrder[0];
+            } else {
+                nextSongID = songOrder[indexOfCurrentSong + 1];
+            }
         }
 
     // If this is the first time the user is playing any song            
@@ -608,7 +619,10 @@ var onStarClick = function(e) {
  * Preload song art to make things smoother.
  */
 var preloadSongImages = function() {
-    // TODO: what about last song, could be out of range
+    if (currentSongID == songOrder[songOrder.length - 1]) {
+        return;
+    }
+
     var nextSongID = songOrder[getIndexOfCurrentSong() + 1];
 
     var nextSong = SONG_DATA[nextSongID];    
@@ -785,10 +799,12 @@ var loadState = function() {
     totalSongsPlayed = simpleStorage.get('totalSongsPlayed') || 0;
     songOrder = simpleStorage.get('songOrder') || null;
 
-    if (ALL_HISTORY) {
-        for (var i=1; i < SONG_DATA.length; i++) {
-            markSongPlayed(SONG_DATA[i]);
-        }
+    if (songOrder === null) {
+        shuffleSongs();
+    } 
+
+    if (PLAY_LAST) {
+        currentSongID = songOrder[songOrder.length - 1];
     }
 
     if (currentSongID !== null) {
@@ -797,10 +813,6 @@ var loadState = function() {
     } else {
         $landingFirstDeck.show();       
     }
-
-    if (songOrder === null) {
-        shuffleSongs();
-    } 
 
     if (favoritedSongs.length > 0) {
         for (var i = 0; i < favoritedSongs.length; i++) {
@@ -972,14 +984,23 @@ var onDocumentKeyDown = function(e) {
     switch (e.which) {
         //left
         case 37:
+            if ($back.hasClass('disabled')) {
+                break;
+            }
+
             if (isSenderCasting) {
                 castSender.sendMessage('back');
             }
-            backSong();            
+            backSong();  
+
             break;
 
         //right
         case 39:
+            if ($skip.hasClass('disabled')) {
+                break;
+            }
+
             if (isSenderCasting) {
                 castSender.sendMessage('skip');
             }        
