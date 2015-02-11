@@ -138,6 +138,8 @@ var onDocumentLoad = function(e) {
     setupAudio();
     loadState();
 
+    $(document).keydown(onDocumentKeyDown);
+
     setInterval(checkSkips, 60000);
 
     new Newscast.Newscast({
@@ -897,8 +899,6 @@ var hideWelcome  = function($song) {
     });
 
     isPlayingWelcome = false;
-
-    $(document).keydown(onDocumentKeyDown);
 }
 
 /*
@@ -972,23 +972,40 @@ var onDocumentKeyDown = function(e) {
     switch (e.which) {
         //left
         case 37:
-            backSong();
+            if (isSenderCasting) {
+                castSender.sendMessage('back');
+            }
+            backSong();            
             break;
 
         //right
         case 39:
-            if (!(e.altKey)) {
+            if (isSenderCasting) {
+                castSender.sendMessage('skip');
+            }        
+            if (!(e.altKey)) {                
                 skipSong();
             }
             break;
+
         // space
         case 32:
             e.preventDefault();
-            if ($audioPlayer.data('jPlayer').status.paused) {
-                $audioPlayer.jPlayer('play');
+
+            if (isSenderCasting) {
+                if ($play.is(':visible')) {
+                    castSender.sendMessage('play');
+                } else {
+                    castSender.sendMessage('pause');
+                }
             } else {
-                $audioPlayer.jPlayer('pause');
+                if ($audioPlayer.data('jPlayer').status.paused) {
+                    $audioPlayer.jPlayer('play');
+                } else {
+                    $audioPlayer.jPlayer('pause');       
+                }           
             }
+
             break;
     }
     return true;
