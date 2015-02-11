@@ -155,7 +155,7 @@ The app template is outfitted with a few ``fab`` utility functions that make pul
 To update the latest document, simply run:
 
 ```
-fab text.update 
+fab text.update
 ```
 
 Note: ``text.update`` runs automatically whenever ``fab render`` is called.
@@ -313,7 +313,7 @@ Install cron jobs
 Cron jobs are defined in the file `crontab`. Each task should use the `cron.sh` shim to ensure the project's virtualenv is properly activated prior to execution. For example:
 
 ```
-* * * * * ubuntu bash /home/ubuntu/apps/austin/repository/cron.sh fab $DEPLOYMENT_TARGET cron_jobs.test 
+* * * * * ubuntu bash /home/ubuntu/apps/austin/repository/cron.sh fab $DEPLOYMENT_TARGET cron_jobs.test
 ```
 
 To install your crontab set `INSTALL_CRONTAB` to `True` in `app_config.py`. Cron jobs will be automatically installed each time you deploy to EC2.
@@ -366,4 +366,3 @@ The Google Analytics events tracked in this application are:
 |austin|summary-copied||||
 |austin|featured-tweet-action|`action`||``tweet_url``|
 |austin|featured-facebook-action|`action`||``post_url``|
-

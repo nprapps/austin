@@ -73,9 +73,6 @@ def clean_songs(verify):
             if row['artist']:
                 row['artist'] = smartypants(row['artist'])
 
-            if row['review']:
-                row['review'] = smartypants(row['review'])
-                
             # Verify links
             if verify:
                 try:
