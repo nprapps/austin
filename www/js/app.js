@@ -970,6 +970,11 @@ var onSongCardClick = function(e) {
  */
 var onDocumentKeyDown = function(e) {
     switch (e.which) {
+        //left
+        case 37:
+            backSong();
+            break;
+
         //right
         case 39:
             if (!(e.altKey)) {
