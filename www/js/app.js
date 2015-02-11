@@ -214,6 +214,8 @@ var onCastSenderStopped = function() {
     $castStart.show();
     $castStop.hide();
     $currentTime.show();
+    $play.show();
+    $pause.hide();
     isSenderCasting = false;
 }
 
