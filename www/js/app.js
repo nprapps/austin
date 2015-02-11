@@ -287,11 +287,8 @@ var onCastReceiverInit = function(senderSongOrder) {
     songOrder = senderSongOrder;
     simpleStorage.set('songOrder', songOrder);
 
-    // TODO
-    // Need last song played
-    // buildListeningHistory()
-    // OR
-    // Just render every song on the chromecast receiver
+    $songs.find('.song').remove();
+    buildListeningHistory();
 
     castReceiver.sendMessage('ready-to-play');
 }
@@ -407,7 +404,11 @@ var playNextSong = function(nextSongID) {
         setSongHeight($nextSong);
         hideWelcome($nextSong);
     } else {
-        transitionToNextSong($currentSong, $nextSong);
+        if (castReceiver) {
+            castReceiverTransitionToNextSong($currentSong, $nextSong);
+        } else {
+            transitionToNextSong($currentSong, $nextSong);
+        }
     }
 
     // Rotate to new song
@@ -541,6 +542,12 @@ var transitionToNextSong = function($fromSong, $toSong) {
             }
         });
     }
+}
+
+var castReceiverTransitionToNextSong = function($fromSong, $toSong) {
+    $songs.find('.song').hide();
+    setSongHeight($toSong);
+    $toSong.show();
 }
 
 /*
@@ -806,15 +813,23 @@ var resetLegalLimits = function() {
  * Reconstruct listening history from stashed id's.
  */
 var buildListeningHistory = function() {
-    // Remove last played song so we can continue playing the song where we left off.   
-    for (var i = 0; i < _.indexOf(songOrder, currentSongID); i++) {
+    // Remove last played song so we can continue playing the song where we left off. 
+    var lastSongIndex = _.indexOf(songOrder, currentSongID); 
+
+    if (castReceiver) {
+        lastSongIndex = songOrder.length - 1;
+    } 
+
+    for (var i = 0; i <= lastSongIndex; i++) {
         var songID = songOrder[i];
         var song = SONG_DATA[songID];
 
         var context = $.extend(APP_CONFIG, song);
         var html = JST.song(context);
+
         $songs.append(html);
     };
+
     $songs.find('.song').addClass('small');
 }
 
