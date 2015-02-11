@@ -197,6 +197,8 @@ var onCastSenderStarted = function() {
     $castStop.show();
     $castStart.hide();
     $currentTime.hide();
+    $historyButton.addClass('offscreen');   
+     
 
     isSenderCasting = true;
 
@@ -1052,7 +1054,7 @@ var showHistory = function() {
  * Check if play history is visible
  */
 var toggleHistoryButton = function(e) {
-    if (_.indexOf(songOrder, currentSong) < 2) {
+    if (getIndexOfCurrentSong() < 2) {
         return;
     }
 
@@ -1116,7 +1118,7 @@ var onWindowResize = function(e) {
  * Document scrolled
  */
 var onDocumentScroll = _.throttle(function(e) {
-    toggleHistoryButton();
+    toggleHistoryButton();       
 }, 200);
 
 /*
