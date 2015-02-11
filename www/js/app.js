@@ -178,6 +178,7 @@ var onCastSenderCreated = function(sender) {
     castSender.onMessage('ready-to-play', onCastSenderReadyToPlay);
     castSender.onMessage('play', onCastSenderPlay);
     castSender.onMessage('pause', onCastSenderPause);
+    castSender.onMessage('now-playing', onCastSenderNowPlaying);
 }
 
 /*
@@ -272,6 +273,10 @@ var onCastSenderReadyToPlay = function() {
     castSender.sendMessage('start-song', songId);
 }
 
+var onCastSenderNowPlaying = function(songId) {
+    playNextSong(songId);
+}
+
 var onCastSenderPlay = function() {
     $play.hide();
     $pause.show(); 
@@ -364,7 +369,14 @@ var playWelcomeAudio = function() {
  * Play the next song in the playlist.
  */
 var playNextSong = function(nextSongID) {
-    // nextSongID would've only been defined in onBackClick()  
+    // Don't transition to new song if already playing
+    // This can happen when sender first communicates with receiver
+    
+    if (castReceiver === null && currentSongID == nextSongID) {
+        return;
+    }
+
+    // nextSongID would've only been defined in onBackClick() 
     if (_.isUndefined(nextSongID)) {  
         nextSongID = getNextSongID();
     }
@@ -392,12 +404,14 @@ var playNextSong = function(nextSongID) {
     document.title = nextSong['artist'] + ' \u2014 \u2018' + nextSong['title'] + '\u2019 | ' + COPY.content['project_name'];
     $skipsRemaining.show();
 
-    // Start audio playback
-    var nextsongURL = 'http://podcastdownload.npr.org/anon.npr-mp3' + nextSong['media_url'] + '.mp3';
+    if (!isSenderCasting) {
+        // Start audio playback
+        var nextsongURL = 'http://podcastdownload.npr.org/anon.npr-mp3' + nextSong['media_url'] + '.mp3';
 
-    $audioPlayer.jPlayer('setMedia', {
-        mp3: nextsongURL
-    }).jPlayer('play');
+        $audioPlayer.jPlayer('setMedia', {
+            mp3: nextsongURL
+        }).jPlayer('play');
+    }
 
     // Animate transitions
     if (isPlayingWelcome) {
@@ -423,6 +437,10 @@ var playNextSong = function(nextSongID) {
 
     currentSongID = nextSong['id'];
     simpleStorage.set('currentSongID', currentSongID);
+
+    if (castReceiver) {
+        castReceiver.sendMessage('now-playing', currentSongID);
+    }
 
     updateTotalSongsPlayed();
     writeSkipsRemaining();
@@ -603,6 +621,7 @@ var setSongHeight = function($song){
     if (_.isUndefined($song) && $currentSong !== null) {
         $song = $currentSong;
     }
+
     if ($song !== null) {
         windowHeight = Modernizr.touch ? window.innerHeight || $(window).height() : $(window).height();
         songHeight = windowHeight - $player.height() - $fixedHeader.height();
