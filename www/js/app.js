@@ -373,8 +373,7 @@ var playWelcomeAudio = function() {
 var playNextSong = function(nextSongID) {
     // Don't transition to new song if already playing
     // This can happen when sender first communicates with receiver
-    
-    if (castReceiver === null && currentSongID == nextSongID) {
+    if (castReceiver === null && currentSongID === nextSongID) {
         return;
     }
 
