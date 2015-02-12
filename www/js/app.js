@@ -622,12 +622,12 @@ var onFavoriteClick = function(e) {
     var songID = getSongIDFromHTML($(this).parents('.song'));
 
     if (_.indexOf(favoritedSongs, songID) < 0) {
-        ANALYTICS.trackEvent('favorite', getSongEventName($(this)));
+        ANALYTICS.trackEvent('song-favorite', getSongEventName($(this)));
 
         favoritedSongs.push(songID);
         simpleStorage.set('favoritedSongs', favoritedSongs);
     } else {
-        ANALYTICS.trackEvent('unfavorite', getSongEventName($(this)));
+        ANALYTICS.trackEvent('song-unfavorite', getSongEventName($(this)));
 
         var indexOfSongToUnfavorite = _.indexOf(favoritedSongs, songID);
         favoritedSongs.splice(indexOfSongToUnfavorite, 1);
