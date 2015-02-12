@@ -1,7 +1,6 @@
 // Global jQuery references
 var $html = null;
 var $body = null;
-var $shareModal = null;
 var $goButton = null;
 var $continueButton = null;
 var $audioPlayer = null;
@@ -62,7 +61,6 @@ var onDocumentLoad = function(e) {
     // Cache jQuery references
     $html = $('html');
     $body = $('body');
-    $shareModal = $('#share-modal');
     $goButton = $('.go');
     $continueButton = $('.continue');
     $audioPlayer = $('#audio-player');
@@ -97,8 +95,6 @@ var onDocumentLoad = function(e) {
     $landing.show();
 
     // Bind events
-    $shareModal.on('shown.bs.modal', onShareModalShown);
-    $shareModal.on('hidden.bs.modal', onShareModalHidden);
     $goButton.on('click', onGoButtonClick);
     $continueButton.on('click', onContinueButtonClick);
     $skip.on('click', onSkipClick);
@@ -124,13 +120,7 @@ var onDocumentLoad = function(e) {
     $castStart.on('click', onCastStartClick);
     $castStop.on('click', onCastStopClick);
 
-    // configure ZeroClipboard on share panel
-    ZeroClipboard.config({ swfPath: 'js/lib/ZeroClipboard.swf' });
-    var clippy = new ZeroClipboard($(".clippy"));
-
-    clippy.on('ready', function(readyEvent) {
-        clippy.on('aftercopy', onClippyCopy);
-    });
+    SHARE.setup();
 
     if (RESET_STATE) {
         resetState();
@@ -957,8 +947,6 @@ var onGoButtonClick = function(e) {
     swapTapeDeck();
     $songs.find('.song').remove();
     playWelcomeAudio();
-
-    _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'shuffle']);
 }
 
 /*
@@ -1175,28 +1163,5 @@ var onWindowResize = function(e) {
 var onDocumentScroll = _.throttle(function(e) {
     toggleHistoryButton();       
 }, 200);
-
-/*
- * Share modal opened.
- */
-var onShareModalShown = function(e) {
-    _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'open-share-discuss']);
-}
-
-/*
- * Share modal closed.
- */
-var onShareModalHidden = function(e) {
-    _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'close-share-discuss']);
-}
-
-/*
- * Text copied to clipboard.
- */
-var onClippyCopy = function(e) {
-    alert('Copied to your clipboard!');
-
-    _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'summary-copied']);
-}
 
 $(onDocumentLoad);

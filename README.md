@@ -360,9 +360,26 @@ The Google Analytics events tracked in this application are:
 |austin|tweet|`location`||||
 |austin|facebook|`location`||||
 |austin|email|`location`||||
-|austin|new-comment||||
 |austin|open-share-discuss||||
 |austin|close-share-discuss||||
 |austin|summary-copied||||
-|austin|featured-tweet-action|`action`||``tweet_url``|
-|austin|featured-facebook-action|`action`||``post_url``|
+|austin|fullscreen-start||||
+|austin|fullscreen-stop||||
+|austin|chromecast-start||||
+|austin|chromecast-stop||||
+|austin|chromecast-ready||||
+|austin|begin||||
+|austin|song-skip|`currentSong['artist']` + ' - ' + `currentSong['title']`|||
+|austin|song-back|`previousSong['artist']` + ' - ' + `previousSong['title']`|||
+|austin|song-favorite|`favSong['artist']` + ' - ' + `favSong['title']`|||
+|austin|song-unfavorite|`favSong['artist']` + ' - ' + `favSong['title']`|||
+|austin|song-show-details|`previousSong['artist']` + ' - ' + `previousSong['title']`|||
+|austin|song-max-index|`maxSongIndex`||||
+|austin|amazon-click|`artist` + ' - ' + `title`||||
+|austin|itunes-click|`artist` + `title`||||
+|austin|rdio-click|`artist` + `title`||||
+|austin|spotify-click|`artist` + `title`||||
+|austin|full-list||||
+
+**Note:** `song-back` is fired both when clicking the back button and when playing a song in the history list by clicking on it.
+
