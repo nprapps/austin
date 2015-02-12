@@ -488,12 +488,18 @@ h1,h2,h3,h4,h5,h6 {
 
 	.logo,
 	.slug,
-	.title,
+	.title {
+		display: inline-block;
+		line-height: 4rem;
+		vertical-align: middle;
+		margin: 0 1rem 0 0;
+	}
+
 	.full-list,
 	.share,
     .chromecast,
     .fullscreen {
-		display: inline-block;
+		float: left;
 		line-height: 4rem;
 		vertical-align: middle;
 		margin: 0 1rem 0 0;
