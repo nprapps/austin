@@ -110,7 +110,7 @@ var onDocumentLoad = function(e) {
     $songs.on('click', '.song-tools .itunes', oniTunesClick);
     $songs.on('click', '.song-tools .rdio', onRdioClick);
     $songs.on('click', '.song-tools .spotify', onSpotifyClick);
-    $songs.on('click', '.song-tools .star', onStarClick);
+    $songs.on('click', '.song-tools .favorite', onFavoriteClick);
 
 
     $fullscreenStart.on('click',onFullscreenStartClick);
@@ -607,17 +607,21 @@ var getIndexOfCurrentSong = function() {
     return _.indexOf(songOrder, currentSongID);
 }
 
-var onStarClick = function(e) {
+var onFavoriteClick = function(e) {
     e.stopPropagation();
 
     $(this).toggleClass('icon-heart-empty icon-heart');
 
     var songID = getSongIDFromHTML($(this).parents('.song'));
 
-    if ($(this).hasClass('fa-star')) {
+    if (_.indexOf(favoritedSongs, songID) < 0) {
+        ANALYTICS.trackEvent('favorite', getSongEventName($(this)));
+
         favoritedSongs.push(songID);
         simpleStorage.set('favoritedSongs', favoritedSongs);
     } else {
+        ANALYTICS.trackEvent('unfavorite', getSongEventName($(this)));
+
         var indexOfSongToUnfavorite = _.indexOf(favoritedSongs, songID);
         favoritedSongs.splice(indexOfSongToUnfavorite, 1);
         simpleStorage.set('favoritedSongs', favoritedSongs);
@@ -819,13 +823,14 @@ var loadState = function() {
     }
 
     if (favoritedSongs.length > 0) {
+        console.log(favoritedSongs)
         for (var i = 0; i < favoritedSongs.length; i++) {
-            var $favoritedSongs = $('#' + favoritedSongs[i]);
+            var $favoritedSong = $('#song-' + favoritedSongs[i]);
 
-            var $songsFavoriteStars = $favoritedSongs.find('.star');
+            var $songsFavoriteStar = $favoritedSong.find('.favorite');
             
-            $songsFavoriteStars.removeClass('fa-star-o');
-            $songsFavoriteStars.addClass('fa-star');
+            $songsFavoriteStar.removeClass('icon-heart-empty');
+            $songsFavoriteStar.addClass('icon-heart');
         }
     }
 
