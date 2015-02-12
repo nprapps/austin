@@ -201,8 +201,14 @@ var onCastSenderStarted = function() {
     $fullscreenStart.hide();
     $castStop.show();
     $castStart.hide();
-    $currentTime.hide();     
+    $currentTime.hide();
 
+    // In case reconnecting to existing session
+    $fixedHeader.show();
+    $songsWrapper.show();
+    $songs.show();
+    $landing.hide();        
+ 
     isSenderCasting = true;
 
     $audioPlayer.jPlayer('stop');
@@ -263,9 +269,9 @@ var onCastReceiverBack = function() {
 var onCastReceiverStartSong = function(songId) {
     songId = parseInt(songId);
 
-    $landing.hide();
     $fixedHeader.show();
     $songsWrapper.show();
+    $landing.hide();    
 
     playNextSong(songId);
 }
