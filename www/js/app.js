@@ -455,7 +455,7 @@ var playNextSong = function(nextSongID) {
 
     var currentSongIndex = getIndexOfCurrentSong();
 
-    if (currentSongIndex > maxSongIndex) {
+    if (currentSongIndex > maxSongIndex || maxSongIndex === null) {
         maxSongIndex = currentSongIndex;
 
         if ((maxSongIndex + 1) % 5 === 0) {
@@ -481,7 +481,7 @@ var getNextSongID = function() {
     var nextSongID = null;
 
     // If the user has played songs before    
-    if (maxSongIndex) {
+    if (maxSongIndex !== null) {
         // If this is the first play of the session, play the last song that was ever played
         if (isFirstPlay) {
             nextSongID = songOrder[maxSongIndex];
