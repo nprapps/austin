@@ -48,6 +48,8 @@ var is_small_screen = false;
 var favoritedSongs = [];
 var songOrder = null;
 var isFirstPlay = true;
+var currentSongID = null;
+var maxSongIndex = null;
 
 var isSenderCasting = false;
 var castSender = null;
@@ -133,6 +135,10 @@ var onDocumentLoad = function(e) {
     if (RESET_STATE) {
         resetState();
         resetLegalLimits();
+    }
+
+    if (PLAY_LAST) {
+        currentSongID = songOrder[songOrder.length - 1];
     }
 
     setupAudio();
@@ -448,7 +454,13 @@ var playNextSong = function(nextSongID) {
     }
 
     currentSongID = nextSong['id'];
-    simpleStorage.set('currentSongID', currentSongID);
+
+    var currentSongIndex = getIndexOfCurrentSong();
+
+    if (currentSongIndex > maxSongIndex) {
+        maxSongIndex = currentSongIndex;
+        simpleStorage.set('maxSongIndex', maxSongIndex);
+    }      
 
     if (castReceiver) {
         castReceiver.sendMessage('now-playing', currentSongID);
@@ -466,10 +478,10 @@ var getNextSongID = function() {
     var nextSongID = null;
 
     // If the user has played songs before    
-    if (currentSongID) {
+    if (maxSongIndex) {
         // If this is the first play of the session, play the last song that was ever played
         if (isFirstPlay) {
-            nextSongID = currentSongID;
+            nextSongID = songOrder[maxSongIndex];
         
         // If this ISN'T the first play of the session                            
         } else {
@@ -658,8 +670,7 @@ var setSongHeight = function($song){
  * Update the total songs played
  */
 var updateTotalSongsPlayed = function() {
-    var songsPlayed = getIndexOfCurrentSong() + 1;
-    $playedSongs.text(songsPlayed);
+    $playedSongs.text(maxSongIndex + 1);
 
     // if (totalSongsPlayed % 5 === 0) {
     //     _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'songs-played', '', totalSongsPlayed]);
@@ -795,7 +806,7 @@ var writeSkipsRemaining = function() {
  */
 var loadState = function() {
     favoritedSongs = simpleStorage.get('favoritedSongs') || [];
-    currentSongID = simpleStorage.get('currentSongID') || null;
+    maxSongIndex = simpleStorage.get('maxSongIndex') || null;
     usedSkips = simpleStorage.get('usedSkips') || [];
     totalSongsPlayed = simpleStorage.get('totalSongsPlayed') || 0;
     songOrder = simpleStorage.get('songOrder') || null;
@@ -804,11 +815,7 @@ var loadState = function() {
         shuffleSongs();
     } 
 
-    if (PLAY_LAST) {
-        currentSongID = songOrder[songOrder.length - 1];
-    }
-
-    if (currentSongID !== null) {
+    if (maxSongIndex !== null) {
         buildListeningHistory();
         $landingReturnDeck.show();        
     } else {
@@ -833,11 +840,11 @@ var loadState = function() {
  * Reset everything we can legally reset
  */
 var resetState = function() {
-    currentSongID = null;
     favoritedSongs = [];
+    maxSongIndex = null;
 
-    simpleStorage.set('currentSongID', currentSongID);
     simpleStorage.set('favoritedSongs', favoritedSongs);
+    simpleStorage.set('maxSongIndex', maxSongIndex);
 }
 
 /*
@@ -853,7 +860,7 @@ var resetLegalLimits = function() {
  */
 var buildListeningHistory = function() {
     // Remove last played song so we can continue playing the song where we left off. 
-    var lastSongIndex = getIndexOfCurrentSong(); 
+    var lastSongIndex = maxSongIndex; 
 
     if (castReceiver) {
         lastSongIndex = songOrder.length - 1;
