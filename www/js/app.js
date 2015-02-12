@@ -709,6 +709,9 @@ var onPauseClick = function(e) {
 var onSkipClick = function(e) {
     e.preventDefault();
 
+    var songEventName = getSongEventName(currentSongID);
+    ANALYTICS.trackEvent('song-skip', songEventName);
+
     if (isSenderCasting) {
         castSender.sendMessage('skip');
     } else {
@@ -718,6 +721,9 @@ var onSkipClick = function(e) {
 
 var onBackClick = function(e) {
     e.preventDefault();
+
+    var songEventName = getSongEventName(songOrder[getIndexOfCurrentSong() - 1]);
+    ANALYTICS.trackEvent('song-back', songEventName);
 
     if (isSenderCasting) {
         castSender.sendMessage('back');
@@ -823,7 +829,6 @@ var loadState = function() {
     }
 
     if (favoritedSongs.length > 0) {
-        console.log(favoritedSongs)
         for (var i = 0; i < favoritedSongs.length; i++) {
             var $favoritedSong = $('#song-' + favoritedSongs[i]);
 
@@ -995,6 +1000,9 @@ var onDocumentKeyDown = function(e) {
                 break;
             }
 
+            var songEventName = getSongEventName(songOrder[getIndexOfCurrentSong() - 1]);
+            ANALYTICS.trackEvent('song-back', songEventName);            
+
             if (isSenderCasting) {
                 castSender.sendMessage('back');
             }
@@ -1007,6 +1015,9 @@ var onDocumentKeyDown = function(e) {
             if ($skip.hasClass('disabled')) {
                 break;
             }
+
+            var songEventName = getSongEventName(currentSongID);
+            ANALYTICS.trackEvent('song-skip', songEventName);            
 
             if (isSenderCasting) {
                 castSender.sendMessage('skip');
@@ -1043,7 +1054,8 @@ var onDocumentKeyDown = function(e) {
  * Track Amazon clicks on songs.
  */
 var onAmazonClick = function(e) {
-    var songName = getSongEventName($(this));
+    var songId = getSongIDFromHTML($el.parents('.song'));
+    var songName = getSongEventName(songId);
 
     ANALYTICS.trackEvent('amazon-click', songName);
 
@@ -1054,7 +1066,8 @@ var onAmazonClick = function(e) {
  * Track iTunes clicks on songs.
  */
 var oniTunesClick = function(e) {
-    var songName = getSongEventName($(this));
+    var songId = getSongIDFromHTML($el.parents('.song'));
+    var songName = getSongEventName(songId);
 
     ANALYTICS.trackEvent('itunes-click', songName);
 
@@ -1065,7 +1078,8 @@ var oniTunesClick = function(e) {
  * Track Rdio clicks on songs.
  */
 var onRdioClick = function(e) {
-    var songName = getSongEventName($(this));
+    var songId = getSongIDFromHTML($el.parents('.song'));
+    var songName = getSongEventName(songId);
 
     ANALYTICS.trackEvent('rdio-click', songName);
 
@@ -1076,7 +1090,8 @@ var onRdioClick = function(e) {
  * Track Spotify clicks on songs.
  */
 var onSpotifyClick = function(e) {
-    var songName = getSongEventName($(this));
+    var songId = getSongIDFromHTML($el.parents('.song'));
+    var songName = getSongEventName(songId);
 
     ANALYTICS.trackEvent('spotify-click', songName);
 
@@ -1087,9 +1102,7 @@ var onSpotifyClick = function(e) {
  * Helper function for getting the song artist and title.
  * For analytics tracking.
  */
-var getSongEventName = function($el) {
-    var songId = getSongIDFromHTML($el.parents('.song'));
-
+var getSongEventName = function(songId) {
     return SONG_DATA[songId]['artist'] + ' - ' + SONG_DATA[songId]['title'];
 }
 
