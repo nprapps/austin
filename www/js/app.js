@@ -184,6 +184,8 @@ var onCastSenderCreated = function(sender) {
  * A cast device is available.
  */
 var onCastSenderReady = function() {
+    ANALYTICS.readyChromecast();
+
     $castButtons.show();
     $castStop.hide();
 }
@@ -192,6 +194,8 @@ var onCastSenderReady = function() {
  * A cast session started.
  */
 var onCastSenderStarted = function() {
+    ANALYTICS.startChromecast();
+
     $fullscreenStart.hide();
     $castStop.show();
     $castStart.hide();
@@ -210,6 +214,8 @@ var onCastSenderStarted = function() {
  * A cast session stopped.
  */
 var onCastSenderStopped = function() {
+    ANALYTICS.stopChromecast();  
+      
     $castStart.show();
     $castStop.hide();
     $currentTime.show();
@@ -1032,9 +1038,9 @@ var onDocumentKeyDown = function(e) {
  * Track Amazon clicks on songs.
  */
 var onAmazonClick = function(e) {
-    var thisSong = getSong($(this));
+    var songName = getSongEventName($(this));
 
-    _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'amazon-click', thisSong]);
+    ANALYTICS.trackEvent('amazon-click', songName);
 
     e.stopPropagation();
 }
@@ -1043,9 +1049,9 @@ var onAmazonClick = function(e) {
  * Track iTunes clicks on songs.
  */
 var oniTunesClick = function(e) {
-    var thisSong = getSong($(this));
+    var songName = getSongEventName($(this));
 
-    _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'itunes-click', thisSong]);
+    ANALYTICS.trackEvent('itunes-click', songName);
 
     e.stopPropagation();
 }
@@ -1054,9 +1060,9 @@ var oniTunesClick = function(e) {
  * Track Rdio clicks on songs.
  */
 var onRdioClick = function(e) {
-    var thisSong = getSong($(this));
+    var songName = getSongEventName($(this));
 
-    _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'rdio-click', thisSong]);
+    ANALYTICS.trackEvent('rdio-click', songName);
 
     e.stopPropagation();
 }
@@ -1065,9 +1071,9 @@ var onRdioClick = function(e) {
  * Track Spotify clicks on songs.
  */
 var onSpotifyClick = function(e) {
-    var thisSong = getSong($(this));
+    var songName = getSongEventName($(this));
 
-    _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'spotify-click', thisSong]);
+    ANALYTICS.trackEvent('spotify-click', songName);
 
     e.stopPropagation();
 }
@@ -1076,14 +1082,10 @@ var onSpotifyClick = function(e) {
  * Helper function for getting the song artist and title.
  * For analytics tracking.
  */
-var getSong = function($el) {
-    var thisArtist = $el.parents('.song').find('.song-info .artist').text();
-    var thisTitle = $el.parents('.song').find('.song-info .song-title').text();
+var getSongEventName = function($el) {
+    var songId = getSongIDFromHTML($el.parents('.song'));
 
-    // cut out the smart quotes
-    thisTitle = thisTitle.substring(1, thisTitle.length - 1);
-
-    return thisArtist + ' - ' + thisTitle;
+    return SONG_DATA[songId]['artist'] + ' - ' + SONG_DATA[songId]['title'];
 }
 
 /*
@@ -1134,11 +1136,13 @@ var onFullscreenStopClick = function(e) {
 
 var onFullscreenChange = function() {
     if (screenfull.isFullscreen) {
-        _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'fullscreen-start']);        
+        ANALYTICS.startFullscreen(); 
+
         $fullscreenStop.show();
         $fullscreenStart.hide();         
     } else {
-        _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'fullscreen-stop']);        
+        ANALYTICS.stopFullscreen();  
+
         $fullscreenStop.hide();
         $fullscreenStart.show();          
     }

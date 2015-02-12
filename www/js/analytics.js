@@ -226,6 +226,26 @@ var ANALYTICS = (function () {
         trackEvent('completion', '1');
     }
 
+    var startFullscreen = function() {
+        trackEvent('fullscreen-start');
+    }
+
+    var stopFullscreen = function() {
+        trackEvent('fullscreen-stop');
+    }    
+
+    var readyChromecast = function() {
+        trackEvent('chromecast-ready');
+    }
+
+    var startChromecast = function() {
+        trackEvent('chromecast-start');
+    }
+
+    var stopChromecast = function() {
+        trackEvent('chromecast-stop');
+    }        
+
     // SLIDES
 
     var exitSlide = function(slide_index, last_slide_exit_event) {
@@ -252,7 +272,12 @@ var ANALYTICS = (function () {
         'completeFiftyPercent': completeFiftyPercent,
         'completeSeventyFivePercent': completeSeventyFivePercent,
         'completeOneHundredPercent': completeOneHundredPercent,
-        'exitSlide': exitSlide
+        'exitSlide': exitSlide,
+        'startFullscreen': startFullscreen,
+        'stopFullscreen': stopFullscreen,
+        'readyChromecast': readyChromecast,
+        'startChromecast': startChromecast,
+        'stopChromecast': stopChromecast
     };
 }());
 
