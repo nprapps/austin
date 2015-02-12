@@ -25,6 +25,7 @@ var $currentSong = null;
 var $previousSong = null;
 var $fullscreenButton = null;
 var $songsWrapper = null;
+var $fullList = null;
 
 var $castButtons = null;
 var $castStart = null;
@@ -82,6 +83,7 @@ var onDocumentLoad = function(e) {
     $historyButton = $('.js-show-history');
     $skipsRemaining = $('.skips-remaining');
     $songsWrapper = $('.songs-wrapper');
+    $fullList = $('.full-list a');
 
     $fullscreenButtons = $('.fullscreen');
     $fullscreenStart = $('.fullscreen .start');
@@ -112,10 +114,10 @@ var onDocumentLoad = function(e) {
     $songs.on('click', '.song-tools .spotify', onSpotifyClick);
     $songs.on('click', '.song-tools .favorite', onFavoriteClick);
 
-
     $fullscreenStart.on('click',onFullscreenStartClick);
     $fullscreenStop.on('click', onFullscreenStopClick); 
     $(document).on(screenfull.raw.fullscreenchange, onFullscreenChange);
+    $fullList.on('click', onFullListClick);
 
     $castStart.on('click', onCastStartClick);
     $castStop.on('click', onCastStopClick);
@@ -455,8 +457,13 @@ var playNextSong = function(nextSongID) {
 
     if (currentSongIndex > maxSongIndex) {
         maxSongIndex = currentSongIndex;
+
+        if ((maxSongIndex + 1) % 5 === 0) {
+            ANALYTICS.trackEvent('max-song-index', (maxSongIndex + 1).toString());
+        }        
+
         simpleStorage.set('maxSongIndex', maxSongIndex);
-    }      
+    }
 
     if (castReceiver) {
         castReceiver.sendMessage('now-playing', currentSongID);
@@ -671,10 +678,6 @@ var setSongHeight = function($song){
  */
 var updateTotalSongsPlayed = function() {
     $playedSongs.text(maxSongIndex + 1);
-
-    // if (totalSongsPlayed % 5 === 0) {
-    //     _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'songs-played', '', totalSongsPlayed]);
-    // }
 }
 
 /*
@@ -960,6 +963,9 @@ var swapTapeDeck = function() {
  */
 var onGoButtonClick = function(e) {
     e.preventDefault();
+
+    ANALYTICS.begin('go');
+
     swapTapeDeck();
     $songs.find('.song').remove();
     playWelcomeAudio();
@@ -970,6 +976,9 @@ var onGoButtonClick = function(e) {
  */
 var onContinueButtonClick = function(e) {
     e.preventDefault();
+
+    ANALYTICS.begin('welcome-back');
+
     $landing.velocity('fadeOut');
     playNextSong();
 }
@@ -1164,6 +1173,10 @@ var onFullscreenChange = function() {
         $fullscreenStop.hide();
         $fullscreenStart.show();          
     }
+}
+
+var onFullListClick = function() {
+    ANALYTICS.trackEvent('full-list');
 }
 
 /*

@@ -232,7 +232,11 @@ var ANALYTICS = (function () {
 
     var stopFullscreen = function() {
         trackEvent('fullscreen-stop');
-    }    
+    }   
+
+    var begin = function(location) {
+        trackEvent('begin', location);
+    }
 
     var readyChromecast = function() {
         trackEvent('chromecast-ready');
@@ -275,6 +279,7 @@ var ANALYTICS = (function () {
         'exitSlide': exitSlide,
         'startFullscreen': startFullscreen,
         'stopFullscreen': stopFullscreen,
+        'begin': begin,
         'readyChromecast': readyChromecast,
         'startChromecast': startChromecast,
         'stopChromecast': stopChromecast
