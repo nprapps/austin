@@ -144,6 +144,7 @@ var onDocumentLoad = function(e) {
         'namespace': APP_CONFIG.CHROMECAST_NAMESPACE,
         'appId': APP_CONFIG.CHROMECAST_APP_ID,
         'onReceiverCreated': onCastReceiverCreated,
+        'onReceiverAddSender': onCastReceiverAddSender,
         'onSenderCreated': onCastSenderCreated,
         'onSenderReady': onCastSenderReady,
         'onSenderStarted': onCastSenderStarted,
@@ -168,6 +169,18 @@ var onCastReceiverCreated = function(receiver) {
     castReceiver.onMessage('skip', onCastReceiverSkipSong);
     castReceiver.onMessage('back', onCastReceiverBack);   
     castReceiver.onMessage('start-song', onCastReceiverStartSong); 
+}
+
+var onCastReceiverAddSender = function() {
+    if (currentSongID !== null) {
+        castReceiver.sendMessage('now-playing', currentSongID);        
+    }
+
+    if ($audioPlayer.data('jPlayer').status.paused) {
+        castReceiver.sendMessage('pause');
+    } else {
+        castReceiver.sendMessage('play');
+    }
 }
 
 /*
@@ -283,6 +296,7 @@ var onCastSenderReadyToPlay = function() {
 }
 
 var onCastSenderNowPlaying = function(songId) {
+    console.log(songId)
     playNextSong(songId);
 }
 
@@ -909,9 +923,9 @@ var onShuffleSongsClick = function(e) {
  * Hide the welcome screen and show the playing song
  */
 var hideWelcome  = function($song) {
-    if (isSenderCasting) {
-        $songsWrapper.hide();
-    }
+    // if (isSenderCasting) {
+    //     $songsWrapper.hide();
+    // }
 
     $('.songs, .player-container').show();
     $fixedHeader.show();
