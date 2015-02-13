@@ -550,7 +550,7 @@ var transitionToNextSong = function($fromSong, $toSong) {
 
                 $(document).on('scroll', onDocumentScroll);
 
-                if (getIndexOfCurrentSong() > 1) {
+                if (getIndexOfCurrentSong() > 0) {
                     $historyButton.show();
                     $historyButton.removeClass('offscreen');
                 }
