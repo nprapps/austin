@@ -14,18 +14,28 @@
                             <a class="skip player-button" href="#"><span class="icon-forward"></span></a>
                         </div>
                         <div class="jp-progress-container">
+                            <div class="current-time"></div>
+                            <div class="duration"></div>
                             <div class="player-progress jp-progress">
-                                <div class="song-info">
-                                    <h2 class="artist"></h2>
-                                    <h1 class="song-title"></h1>
-                                </div>
+
                                 <div class="jp-play-bar bar"></div>
                             </div>
                         </div>
+                        <div class="song-info">
+                            <h2 class="artist"></h2>
+                            <h1 class="song-title"></h1>
+                        </div>
                         <div class="playback-info">
-                            <div class="current-time"></div>
                             <p class="playlist-progress"><span class="played-songs"></span> of {{ total_songs }} songs played</p>
                             <p class="skips"><span class="skips-remaining"></span></p>
+                        </div>
+
+                        <div class="full-list visible-xs">
+                            <a href="http://www.npr.org/2014/12/10/369652480/npr-musics-favorite-songs-of-2014 " target="_blank"><span class="icon-list"></span></a>
+                        </div>
+
+                        <div class="share visible-xs">
+                            <a class="" data-toggle="modal" data-backdrop="static" data-target="#share-modal"><span class="icon-share"></span></a>
                         </div>
                     </div>
                 </div>

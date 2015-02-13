@@ -638,8 +638,8 @@ h1,h2,h3,h4,h5,h6 {
 		top: 0;
 		left: 0;
 		right: 0;
-		height: 4rem;
-		line-height: 3rem;
+		height: 5rem;
+		line-height: 4rem;
 		border-width: 0 0 1px 0;
 		border-color: #253645;
 		border-radius: 0;
@@ -663,7 +663,7 @@ h1,h2,h3,h4,h5,h6 {
 	background-color: #142129;
 	background: repeating-radial-gradient(circle at 0 0, #121b21, #19232b 7rem);
 	padding-top: 4rem;
-	padding-bottom: 5rem;
+	padding-bottom: 6rem;
 }
 
 .song {
@@ -1049,17 +1049,28 @@ h1,h2,h3,h4,h5,h6 {
 
 .player {
 	position: relative;
-	height: 5rem;
+	height: 6rem;
+	line-height: 6rem;
 	background: #333;
-	line-height: 5rem;
 
 	.controls {
-		vertical-align: middle;
 		margin-right: @grid-gutter-width / 2;
 		position: absolute;
 		left: 0;
-		top: 0;
+		right: 0;
+		top: 2rem;
+		height: 4rem;
+		line-height: 4rem;
+		vertical-align: middle;
 		z-index: @z-player-controls;
+
+		@media screen and (max-width: @screen-xs-max){
+			text-align: center;
+			margin-right: 0;
+			top: 1.5rem;
+			height: 3rem;
+			line-height: 2rem;
+		}
 	}
 
 	.skip,
@@ -1081,7 +1092,8 @@ h1,h2,h3,h4,h5,h6 {
 	}
 
 	.song-info {
-		.vertical-center;
+		left: 10.5rem;
+		top: 2rem;
 		position: absolute;
 		z-index: 500;
 
@@ -1093,6 +1105,7 @@ h1,h2,h3,h4,h5,h6 {
 	.artist {
 		font-size: @font-size-base * 1.6;
 		letter-spacing: 0.1rem;
+		margin-bottom: 0.25rem;
 	}
 
 	.song-title {
@@ -1101,48 +1114,128 @@ h1,h2,h3,h4,h5,h6 {
 		text-indent: 0;
 	}
 
-	.player-progress {
+	.jp-progress-container {
 		position: absolute;
-		left: 10rem;
 		top: 0;
-		bottom: 0;
+		left: 0;
 		right: 0;
-		border-left: 1px solid #444;
+		z-index: 500;
+		height: 2rem;
+
+		.current-time,
+		.duration {
+			position: absolute;
+			top: 0;
+			line-height: 2rem;
+			vertical-align: middle;
+			font-size: @font-size-base * 0.785;
+			color: #999;
+		}
+
+		.current-time {
+			left: 0.5rem;
+		}
+
+		.duration {
+			right: 0.5rem;
+		}
+	}
+
+	.player-progress {
+		height: 0.25rem;
+		left: 3.7rem;
+		top: @line-height-computed / 2;
+		right: 3.7rem;
+		background: #444;
+		z-index: 500;
+		.vertical-center;
+		position: absolute;
 
 		.is-cast-receiver & {
 			left: 0;
+			height: 5rem;
+			top: 0;
 			border-left: none;
 		}
 
 		.bar {
 			position: absolute;
-			height: 5rem;
-			top: 0;
 			bottom: 0;
+			top: 0;
 			left: 0;
-			background-color: #444;
+			right: 0;
+			background-color: #666;
+			z-index: 500;
 		}
 	}
 
 	.playback-info {
 		right: 0.5rem;
+		top: 2rem;
 		text-align: right;
-		line-height: 1;
-		.vertical-center;
+		line-height: 1.4;
 		position: absolute;
+
+		p {
+			line-height: 1.5;
+			margin-bottom: 0.2rem;
+		}
+
+		@media screen and (max-width: @screen-xs-max){
+			left: 0.5rem;
+			right: 0.5rem;
+			top: auto;
+			bottom: 0;
+			text-align: left;
+			z-index: 500;
+
+			p {
+				position: absolute;
+				bottom: 0;
+			}
+
+			.skips {
+				right: 0;
+			}
+
+			.playlist-progress {
+				left: 0;
+			}
+		}
+
+		@media screen and (min-width: @screen-sm){
+			position: absolute;
+		}
 	}
 
+	.skips,
 	.playlist-progress {
-		margin-top: 5px;
-		margin-bottom: 5px;
-		line-height: 1;
-		text-transform: uppercase;
 		color: #999;
-		font-size: @font-size-small;
+		text-transform: uppercase;
+		font-size: @font-size-base * 0.785;
+		padding: 0;
+		line-height: 1.2;
 
 		@media screen and (max-width: @screen-xs-max){
 			font-size: @font-size-base * 0.715;
+			margin-bottom: 0;
+			line-height: 1;
 		}
+	}
+
+	.full-list,
+	.share {
+		.vertical-center;
+		position: absolute;
+		z-index: 600;
+	}
+
+	.full-list {
+		left: 0.5rem;
+	}
+
+	.share {
+		right: 0.5rem;
 	}
 }
 
@@ -1150,15 +1243,15 @@ h1,h2,h3,h4,h5,h6 {
 .player-button:focus,
 .player-button:visited,
 .player-button:hover {
-	display: block;
-	float: left;
-	height: 5rem;
+	display: inline-block;
+	height: 4rem;
 	width: 4rem;
 	background: @gray-dark;
 	color: @music-red-light;
-	line-height: 5rem;
+	line-height: 3rem;
 	text-align: center;
 	font-size: @font-size-base * 3;
+	vertical-align: middle;
 
 	&.back,
 	&.skip {
@@ -1190,18 +1283,10 @@ h1,h2,h3,h4,h5,h6 {
 			text-decoration: none;
 		}
 	}
-}
-
-.skips {
-	text-align: right;
-	color: #999;
-	text-transform: uppercase;
-	font-size: @font-size-small;
-	padding: 0;
-	line-height: 1;
 
 	@media screen and (max-width: @screen-xs-max){
-		font-size: @font-size-base * 0.715;
+		height: 3rem;
+		line-height: 3rem;
 	}
 }
 

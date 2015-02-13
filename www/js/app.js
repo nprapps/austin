@@ -7,6 +7,7 @@ var $audioPlayer = null;
 var $playerArtist = null;
 var $playerTitle = null;
 var $currentTime = null;
+var $duration = null;
 var $playedSongs = null;
 var $skip = null;
 var $songs = null;
@@ -55,6 +56,9 @@ var isSenderCasting = false;
 var castSender = null;
 var castReceiver = null;
 
+// jPlayer config
+$.jPlayer.timeFormat.padMin = false;
+
 /*
  * Run on page load.
  */
@@ -70,6 +74,7 @@ var onDocumentLoad = function(e) {
     $playerArtist = $('.player .artist');
     $playerTitle = $('.player .song-title');
     $currentTime = $('.current-time');
+    $duration = $('.duration');
     $playedSongs = $('.played-songs');
     $landing = $('.landing');
     $fixedHeader = $('.fixed-header');
@@ -115,9 +120,12 @@ var onDocumentLoad = function(e) {
     $songs.on('click', '.song-tools .favorite', onFavoriteClick);
 
     $fullscreenStart.on('click',onFullscreenStartClick);
-    $fullscreenStop.on('click', onFullscreenStopClick); 
-    $(document).on(screenfull.raw.fullscreenchange, onFullscreenChange);
+    $fullscreenStop.on('click', onFullscreenStopClick);
     $fullList.on('click', onFullListClick);
+
+    if (screenfull.raw) {
+        $(document).on(screenfull.raw.fullscreenchange, onFullscreenChange);
+    }
 
     $castStart.on('click', onCastStartClick);
     $castStop.on('click', onCastStopClick);
@@ -201,7 +209,8 @@ var onCastSenderStarted = function() {
     $fullscreenStart.hide();
     $castStop.show();
     $castStart.hide();
-    $currentTime.hide();     
+    $currentTime.hide();
+    $duration.hide();
 
     isSenderCasting = true;
 
@@ -221,6 +230,7 @@ var onCastSenderStopped = function() {
     $castStart.show();
     $castStop.hide();
     $currentTime.show();
+    $duration.show();
     $play.show();
     $pause.hide();
     isSenderCasting = false;
@@ -350,10 +360,13 @@ var onAudioEnded = function(e) {
  * Update playback timer display.
  */
 var onAudioTimeUpdate = function(e) {
-    var time = e.jPlayer.status.currentTime;
-    var time_text = $.jPlayer.convertTime(time);    
+    var currentTime = e.jPlayer.status.currentTime;
+    var currentTimeText = $.jPlayer.convertTime(currentTime);
+    var duration = e.jPlayer.status.duration;
+    var durationText = $.jPlayer.convertTime(duration);
 
-    $currentTime.text(time_text);
+    $currentTime.text(currentTimeText);
+    $duration.text(durationText);
 };
 
 /*
