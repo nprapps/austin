@@ -72,7 +72,7 @@ var SHARE = (function () {
 	 * Twitter share clicked.
 	 */
 	var onTwitterClick = function() {
-		ANALYTICS.clickTwitter('share-discuss');
+		ANALYTICS.clickTweet('share-discuss');
 	}
 
     return {

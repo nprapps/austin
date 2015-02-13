@@ -152,6 +152,7 @@ var onDocumentLoad = function(e) {
         'namespace': APP_CONFIG.CHROMECAST_NAMESPACE,
         'appId': APP_CONFIG.CHROMECAST_APP_ID,
         'onReceiverCreated': onCastReceiverCreated,
+        'onReceiverAddSender': onCastReceiverAddSender,
         'onSenderCreated': onCastSenderCreated,
         'onSenderReady': onCastSenderReady,
         'onSenderStarted': onCastSenderStarted,
@@ -176,6 +177,18 @@ var onCastReceiverCreated = function(receiver) {
     castReceiver.onMessage('skip', onCastReceiverSkipSong);
     castReceiver.onMessage('back', onCastReceiverBack);   
     castReceiver.onMessage('start-song', onCastReceiverStartSong); 
+}
+
+var onCastReceiverAddSender = function() {
+    if (currentSongID !== null) {
+        castReceiver.sendMessage('now-playing', currentSongID);        
+    }
+
+    if ($audioPlayer.data('jPlayer').status.paused) {
+        castReceiver.sendMessage('pause');
+    } else {
+        castReceiver.sendMessage('play');
+    }
 }
 
 /*
@@ -212,6 +225,12 @@ var onCastSenderStarted = function() {
     $currentTime.hide();
     $duration.hide();
 
+    // In case reconnecting to existing session
+    $fixedHeader.show();
+    $songsWrapper.show();
+    $songs.show();
+    $landing.hide();        
+ 
     isSenderCasting = true;
 
     $audioPlayer.jPlayer('stop');
@@ -241,9 +260,6 @@ var onCastSenderStopped = function() {
  */
 var onCastStartClick = function(e) {
     e.preventDefault();
-
-    _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'chromecast-start']);
-
     castSender.startCasting();
 }
 
@@ -252,9 +268,6 @@ var onCastStartClick = function(e) {
  */
 var onCastStopClick = function(e) {
     e.preventDefault();
-
-    _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'chromecast-stop']);
-
     castSender.stopCasting();
     $castStop.hide();
     $castStart.show();
@@ -279,9 +292,9 @@ var onCastReceiverBack = function() {
 var onCastReceiverStartSong = function(songId) {
     songId = parseInt(songId);
 
-    $landing.hide();
     $fixedHeader.show();
     $songsWrapper.show();
+    $landing.hide();    
 
     playNextSong(songId);
 }
@@ -293,6 +306,7 @@ var onCastSenderReadyToPlay = function() {
 }
 
 var onCastSenderNowPlaying = function(songId) {
+    console.log(songId)
     playNextSong(songId);
 }
 
@@ -635,12 +649,12 @@ var onFavoriteClick = function(e) {
     var songID = getSongIDFromHTML($(this).parents('.song'));
 
     if (_.indexOf(favoritedSongs, songID) < 0) {
-        ANALYTICS.trackEvent('song-favorite', getSongEventName($(this)));
+        ANALYTICS.trackEvent('song-favorite', getSongEventName(songID));
 
         favoritedSongs.push(songID);
         simpleStorage.set('favoritedSongs', favoritedSongs);
     } else {
-        ANALYTICS.trackEvent('song-unfavorite', getSongEventName($(this)));
+        ANALYTICS.trackEvent('song-unfavorite', getSongEventName(songID));
 
         var indexOfSongToUnfavorite = _.indexOf(favoritedSongs, songID);
         favoritedSongs.splice(indexOfSongToUnfavorite, 1);
@@ -755,7 +769,6 @@ var skipSong = function() {
     if (APP_CONFIG.ENFORCE_PLAYBACK_LIMITS) {
         if (usedSkips.length < APP_CONFIG.SKIP_LIMIT) {
             usedSkips.push(moment.utc());
-            _gaq.push(['_trackEvent', APP_CONFIG.PROJECT_SLUG, 'song-skip', $playerArtist.text() + ' - ' + $playerTitle.text(), usedSkips.length]);
 
             playNextSong();
             simpleStorage.set('usedSkips', usedSkips);
@@ -923,9 +936,9 @@ var onShuffleSongsClick = function(e) {
  * Hide the welcome screen and show the playing song
  */
 var hideWelcome  = function($song) {
-    if (isSenderCasting) {
-        $songsWrapper.hide();
-    }
+    // if (isSenderCasting) {
+    //     $songsWrapper.hide();
+    // }
 
     $('.songs, .player-container').show();
     $fixedHeader.show();
@@ -1076,7 +1089,7 @@ var onDocumentKeyDown = function(e) {
  * Track Amazon clicks on songs.
  */
 var onAmazonClick = function(e) {
-    var songId = getSongIDFromHTML($el.parents('.song'));
+    var songId = getSongIDFromHTML($(this).parents('.song'));
     var songName = getSongEventName(songId);
 
     ANALYTICS.trackEvent('amazon-click', songName);
@@ -1088,7 +1101,7 @@ var onAmazonClick = function(e) {
  * Track iTunes clicks on songs.
  */
 var oniTunesClick = function(e) {
-    var songId = getSongIDFromHTML($el.parents('.song'));
+    var songId = getSongIDFromHTML($(this).parents('.song'));
     var songName = getSongEventName(songId);
 
     ANALYTICS.trackEvent('itunes-click', songName);
@@ -1100,7 +1113,7 @@ var oniTunesClick = function(e) {
  * Track Rdio clicks on songs.
  */
 var onRdioClick = function(e) {
-    var songId = getSongIDFromHTML($el.parents('.song'));
+    var songId = getSongIDFromHTML($(this).parents('.song'));
     var songName = getSongEventName(songId);
 
     ANALYTICS.trackEvent('rdio-click', songName);
@@ -1112,7 +1125,7 @@ var onRdioClick = function(e) {
  * Track Spotify clicks on songs.
  */
 var onSpotifyClick = function(e) {
-    var songId = getSongIDFromHTML($el.parents('.song'));
+    var songId = getSongIDFromHTML($(this).parents('.song'));
     var songName = getSongEventName(songId);
 
     ANALYTICS.trackEvent('spotify-click', songName);
