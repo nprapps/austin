@@ -670,16 +670,30 @@ var preloadSongImages = function() {
         return;
     }
 
-    var nextSongID = songOrder[getIndexOfCurrentSong() + 1];
+    // Include previous song. Case: castReceiver loads all songs at once so starting at a random point and clicking back would mean the song art was not pre-loaded.
+    var nextSongIDs = [songOrder[getIndexOfCurrentSong() + 1], songOrder[getIndexOfCurrentSong() - 1]];
 
-    var nextSong = SONG_DATA[nextSongID];    
+    _.each(nextSongIDs, function(nextSongID) {
+        var nextSong = SONG_DATA[nextSongID]
 
-    if (!nextSong) {
-        return;
-    }
+        if (!nextSong) {
+            return;
+        }
 
+        if (checkSongArtCached('http://npr.org' + nextSong['song_art']) == false) {
+            var songArt = new Image();
+            songArt.src = 'http://npr.org' + nextSong['song_art'];
+        } else {
+            return;
+        }
+    });      
+}
+
+var checkSongArtCached = function(src) {
     var songArt = new Image();
-    songArt.src = 'http://npr.org' + nextSong['song_art'];
+    songArt.src = src;
+
+    return songArt.complete;
 }
 
 /*
