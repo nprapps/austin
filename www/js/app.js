@@ -1152,7 +1152,7 @@ var showHistory = function() {
  * Check if play history is visible
  */
 var toggleHistoryButton = function(e) {
-    if (getIndexOfCurrentSong() < 2) {
+    if (getIndexOfCurrentSong() < 1) {
         return;
     }
 

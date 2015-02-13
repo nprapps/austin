@@ -9,21 +9,21 @@
                 <% if (castReceiver === null) { %>
                 <ul class="song-tools list-unstyled">
                     <% if (ASIN) { %>
-                    <li><a target="_blank" href="http://amazon.com/dp/<%= ASIN %>?tag=npr-5-20" class="amazon"><span class="icon-amazon"></span></a></li>
+                    <li><a target="_blank" href="http://amazon.com/dp/<%= ASIN %>?tag=npr-5-20" class="amazon"><span class="icon-amazon"></span> <span class="label">Buy on Amazon</span></a></li>
                     <% } %>
                     <% if (itunes) { %>
-                    <li><a target="_blank" href="<%= itunes %>&at=11l79Y" class="itunes"><span class="icon-apple"></span></a></li>
+                    <li><a target="_blank" href="<%= itunes %>&at=11l79Y" class="itunes"><span class="icon-appstore"></span> <span class="label">Buy on iTunes</span></a></li>
                     <% } %>
                     <% if (rdio) { %>
-                    <li><a target="_blank" href="<%= rdio %>" class="rdio"><span class="icon-rdio"></span></a></li>
+                    <li><a target="_blank" href="<%= rdio %>" class="rdio"><span class="icon-rdio"></span> <span class="label">Listen on Rdio</span></a></li>
                     <% } %>
                     <% if (spotify) { %>
-                    <li><a target="_blank" href="<%= spotify %>" class="spotify"><span class="icon-spotify-circled"></span></a></li>
+                    <li><a target="_blank" href="<%= spotify %>" class="spotify"><span class="icon-spotify-circled"></span> <span class="label">Listen on Spotify</span></a></li>
                     <% } %>
                     <% if (DOWNLOADS_ALLOWED) { %>
-                    <li><a target="_blank" href="http://podcastdownload.npr.org/anon.npr-mp3<%= media_url %>.mp3"><span class="icon-download-cloud"></span></a></li>
+                    <li><a target="_blank" href="http://podcastdownload.npr.org/anon.npr-mp3<%= media_url %>.mp3"><span class="icon-download-cloud"></span> <span class="label">Download Song</span></a></li>
                     <% } %>
-                    <li><a class="favorite icon-heart-empty"></span></a></li>
+                    <li><a class="favorite icon-heart-empty"></span> <span class="label">Favorite Song</span></a></li>
                 </ul>
                 <% } %>
             </div>

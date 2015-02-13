@@ -638,8 +638,8 @@ h1,h2,h3,h4,h5,h6 {
 		top: 0;
 		left: 0;
 		right: 0;
-		height: 5rem;
-		line-height: 4rem;
+		height: 4rem;
+		line-height: 3rem;
 		border-width: 0 0 1px 0;
 		border-color: #253645;
 		border-radius: 0;
@@ -801,17 +801,21 @@ h1,h2,h3,h4,h5,h6 {
 	font-family: 'Knockout 31 4r';
 	text-transform: uppercase;
 	letter-spacing: 0.1rem;
-	font-size: @font-size-base * 4;
+	font-size: @font-size-base * 3;
 	color: @music-red-light;
 	margin-bottom: 0.5rem;
 	.transition(font-size 0.3s ease-in-out);
 
 	.small & {
-		font-size: @font-size-base * 2;
+		font-size: @font-size-base * 1.4;
 	}
 
 	@media screen and (min-width: 1400px){
 		margin-right: 11rem;
+	}
+
+	@media screen and (max-width: @screen-xs-max){
+		font-size: @font-size-base * 2;
 	}
 }
 
@@ -932,18 +936,26 @@ h1,h2,h3,h4,h5,h6 {
 	padding-top: 10px;
 	margin-bottom: 0;
 	overflow: hidden;
-	position: absolute;
-	bottom: 0;
-	left: @grid-gutter-width / 2;
+	// bottom: 0;
+	// left: @grid-gutter-width / 2;
 	.animation(fadeInOutBig 0.5s ease-in-out);
 
 
 	.song.small & {
+		position: absolute;
 		bottom: 50%;
 		right: @grid-gutter-width / 2;
 		left: auto;
 		margin-bottom: -@font-size-base * 3 / 2;
 		.animation(fadeInOutSmall 0.5s ease-in-out);
+
+		li {
+			display: inline-block;
+		}
+
+		.label {
+			display: none;
+		}
 
 		@media screen and (max-width: @screen-sm-max){
 			display: none;
@@ -951,19 +963,35 @@ h1,h2,h3,h4,h5,h6 {
 	}
 
 	li {
-		display: inline-block;
-		font-size: @font-size-base * 2;
+		display: block;
+		font-size: @font-size-base * 1.5;
 		line-height: @font-size-base * 2;
+		margin-bottom: 0;
+	}
 
-		.icon-amazon {
-			font-size: @font-size-base * 1.5;
-		}
+	.label {
+		font-family: 'Knockout 31 4r','Helvetica Neue',sans-serif;
+		font-size: @font-size-base * 0.785;
+		font-weight: normal;
+		text-transform: uppercase;
+		line-height: @font-size-base * 2;
+		vertical-align: top;
+		color: inherit;
 	}
 
 	a {
-		color: @music-red-light;
+		color: desaturate(@tag-1, 10%);
 		text-decoration: none;
 		outline: 0;
+		cursor: pointer;
+
+		&.favorite {
+			color: @music-red-light;
+
+			.small & {
+				margin-left: 1rem;
+			}
+		}
 	}
 }
 
@@ -1093,7 +1121,7 @@ h1,h2,h3,h4,h5,h6 {
 
 	.song-info {
 		left: 10.5rem;
-		top: 2rem;
+		top: 2.4rem;
 		position: absolute;
 		z-index: 500;
 
@@ -1103,13 +1131,13 @@ h1,h2,h3,h4,h5,h6 {
 	}
 
 	.artist {
-		font-size: @font-size-base * 1.6;
+		font-size: @font-size-base;
 		letter-spacing: 0.1rem;
 		margin-bottom: 0.25rem;
 	}
 
 	.song-title {
-		font-size: @font-size-base * 1.2;
+		font-size: @font-size-small;
 		color: @music-medium;
 		text-indent: 0;
 	}
@@ -1171,7 +1199,7 @@ h1,h2,h3,h4,h5,h6 {
 
 	.playback-info {
 		right: 0.5rem;
-		top: 2rem;
+		top: 2.4rem;
 		text-align: right;
 		line-height: 1.4;
 		position: absolute;
@@ -1227,7 +1255,12 @@ h1,h2,h3,h4,h5,h6 {
 	.share {
 		.vertical-center;
 		position: absolute;
-		z-index: 600;
+		z-index: 700;
+
+		a {
+			color: @music-red-light;
+			font-size: @font-size-base * 1.5;
+		}
 	}
 
 	.full-list {
@@ -1236,6 +1269,10 @@ h1,h2,h3,h4,h5,h6 {
 
 	.share {
 		right: 0.5rem;
+
+		a {
+			cursor: pointer;
+		}
 	}
 }
 
