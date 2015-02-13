@@ -27,6 +27,7 @@ var $previousSong = null;
 var $fullscreenButton = null;
 var $songsWrapper = null;
 var $fullList = null;
+var $skipIntroButton = null;
 
 var $castButtons = null;
 var $castStart = null;
@@ -89,6 +90,7 @@ var onDocumentLoad = function(e) {
     $skipsRemaining = $('.skips-remaining');
     $songsWrapper = $('.songs-wrapper');
     $fullList = $('.full-list a');
+    $skipIntroButton = $('.skip-intro');
 
     $fullscreenButtons = $('.fullscreen');
     $fullscreenStart = $('.fullscreen .start');
@@ -118,6 +120,7 @@ var onDocumentLoad = function(e) {
     $songs.on('click', '.song-tools .rdio', onRdioClick);
     $songs.on('click', '.song-tools .spotify', onSpotifyClick);
     $songs.on('click', '.song-tools .favorite', onFavoriteClick);
+    $skipIntroButton.on('click', onSkipIntroClick);
 
     $fullscreenStart.on('click',onFullscreenStartClick);
     $fullscreenStop.on('click', onFullscreenStopClick);
@@ -399,6 +402,13 @@ var playWelcomeAudio = function() {
     } else {
         $audioPlayer.jPlayer('play');
     }
+}
+
+/*
+ * Skip the welcome audio.
+ */
+var onSkipIntroClick = function() {
+    playNextSong();
 }
 
 /*
@@ -960,7 +970,6 @@ var hideWelcome  = function($song) {
     $song.velocity("scroll", { duration: 750, offset: -fixedHeaderHeight });
     $('.landing-wrapper').hide().css('height', '');
     $landing.velocity('fadeOut', {
-        delay: 4000,
         duration: 1000,
         complete: function() {
             $('.poster').removeClass('shrink').attr('style','');

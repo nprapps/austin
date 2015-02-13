@@ -159,6 +159,21 @@ h1,h2,h3,h4,h5,h6 {
 		}
 	}
 
+	.skip-intro {
+		display: block;
+		position: absolute;
+		z-index: 600;
+		opacity: 0;
+		bottom: 2rem;
+		background: transparent;
+		color: @white;
+		text-transform: uppercase;
+		font-size: @font-size-small;
+		left: 50%;
+		width: 7rem;
+		margin-left: -3.5rem;
+	}
+
 	.poster {
 		.transition(width 0.5s ease-in-out);
 		.start& {
@@ -166,6 +181,10 @@ h1,h2,h3,h4,h5,h6 {
 
 			&:after {
 				.animation(cycle-colors 8s infinite linear);
+			}
+
+			.skip-intro {
+				opacity: 1;
 			}
 		}
 	}
@@ -967,6 +986,11 @@ h1,h2,h3,h4,h5,h6 {
 		font-size: @font-size-base * 1.5;
 		line-height: @font-size-base * 2;
 		margin-bottom: 0;
+
+		.touch & {
+			min-height: 33px;
+			font-size: 2rem;
+		}
 	}
 
 	.label {
@@ -977,6 +1001,10 @@ h1,h2,h3,h4,h5,h6 {
 		line-height: @font-size-base * 2;
 		vertical-align: top;
 		color: inherit;
+
+		.touch & {
+			font-size: 1.2rem;
+		}
 	}
 
 	a {
@@ -992,6 +1020,10 @@ h1,h2,h3,h4,h5,h6 {
 				margin-left: 1rem;
 			}
 		}
+	}
+
+	@media screen and (max-width: @screen-sm-max){
+		clear: left;
 	}
 }
 
