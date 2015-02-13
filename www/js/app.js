@@ -665,8 +665,19 @@ var preloadSongImages = function() {
         return;
     }
 
+    if (checkSongArtCached('http://npr.org' + nextSong['song_art']) == false) {
+        var songArt = new Image();
+        songArt.src = 'http://npr.org' + nextSong['song_art']
+    } else {
+        return;
+    }
+}
+
+var checkSongArtCached = function(src) {
     var songArt = new Image();
-    songArt.src = 'http://npr.org' + nextSong['song_art'];
+    songArt.src = src;
+
+    return songArt.complete;
 }
 
 /*
