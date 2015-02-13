@@ -383,7 +383,10 @@ var onAudioTimeUpdate = function(e) {
     var durationText = $.jPlayer.convertTime(duration);
 
     $currentTime.text(currentTimeText);
-    $duration.text(durationText);
+
+    if (durationText !== "0:00") {
+        $duration.text(durationText);
+    }
 };
 
 /*
