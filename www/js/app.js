@@ -29,9 +29,20 @@ var $songsWrapper = null;
 var $fullList = null;
 var $skipIntroButton = null;
 
+// In-app cast buttons
 var $castButtons = null;
 var $castStart = null;
 var $castStop = null;
+
+// Welcome screen cast buttons
+var $chromecastDeck = null;
+var $isDesktopChrome = null;
+var $getCastExtension = null;
+var $welcomeCastStartNote = null;
+var $welcomeCastStartButton = null;
+var $isNotDesktopChrome = null;
+var $isTouch = null;
+var $isNotChrome = null;
 
 // URL params
 var NO_AUDIO = (window.location.search.indexOf('noaudio') >= 0);
@@ -60,6 +71,9 @@ var castReceiver = null;
 // jPlayer config
 $.jPlayer.timeFormat.padMin = false;
 
+// Type of browser
+var is_chrome = navigator.userAgent.indexOf('Chrome') > -1;
+var is_touch = Modernizr.touch;
 /*
  * Run on page load.
  */
@@ -100,6 +114,15 @@ var onDocumentLoad = function(e) {
     $castStart = $('.chromecast .start');
     $castStop = $('.chromecast .stop');
 
+    $chromecastDeck = $('.chromecast-deck');
+    $isDesktopChrome = $('.chromecast-deck .is-desktop-chrome');
+    $getCastExtension = $('.chromecast-deck .is-desktop-chrome .get-extension');
+    $welcomeCastStartNote = $('.chromecast-deck .is-desktop-chrome .start-chromecast');
+    $welcomeCastStartButton = $('.chromecast-deck .is-desktop-chrome .start');
+    $isNotDesktopChrome = $('.chromecast-deck .is-not-desktop-chrome');
+    $isTouch = $('.chromecast-deck .is-not-desktop-chrome .is-touch');
+    $isNotChrome = $('.chromecast-deck .is-not-desktop-chrome .is-not-chrome');    
+
     onWindowResize();
     $landing.show();
 
@@ -131,6 +154,7 @@ var onDocumentLoad = function(e) {
     }
 
     $castStart.on('click', onCastStartClick);
+    $welcomeCastStartButton.on('click', onCastStartClick);
     $castStop.on('click', onCastStopClick);
 
     SHARE.setup();
@@ -142,6 +166,28 @@ var onDocumentLoad = function(e) {
 
     if (PLAY_LAST) {
         currentSongID = songOrder[songOrder.length - 1];
+    }
+
+    /*
+     * Change chromecast text on welcome screen if mobile OR not Chrome. Default behavior. If on desktop Chrome logic attached to onSenderCreated().
+     */
+
+    // Desktop Chrome
+    if (is_chrome && !is_touch) {
+        $welcomeCastStartNote.hide();
+        $welcomeCastStartButton.hide();        
+        $isNotDesktopChrome.hide();
+        $getCastExtension.show();  
+    // Any mobile  
+    } else if (is_touch) {
+        $isDesktopChrome.hide();
+        $isNotChrome.hide();        
+        $isTouch.show();
+    // Desktop not Chrome
+    } else {
+        $isDesktopChrome.hide();  
+        $isTouch.hide();      
+        $isNotChrome.show();
     }
 
     setupAudio();
@@ -198,6 +244,11 @@ var onCastReceiverAddSender = function() {
  * Chromecast sender mode activated.
  */
 var onCastSenderCreated = function(sender) {
+    $isNotDesktopChrome.hide();
+    $getCastExtension.hide();
+    $welcomeCastStartNote.show();
+    $welcomeCastStartButton.show();
+
     castSender = sender;
 
     castSender.onMessage('ready-to-play', onCastSenderReadyToPlay);

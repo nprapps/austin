@@ -21,6 +21,18 @@
                         <p class="language-advisory"><span class="fa fa-warning"></span> ADVISORY: Some of these songs contain explicit language.</p>
                     </div>
                 </div>
+                <div class="chromecast-deck">
+                    <div class="is-desktop-chrome">
+                        <p class="get-extension">{{ COPY.content.get_extension }}<p>
+                        
+                        <p class="start-chromecast">{{ COPY.content.chromecast_note }}</p>
+                        <a href="#" class="start"><span class="icon-cast"></span>{{ COPY.content.chromecast_button }}</a>
+                    </div>
+                    <div class="is-not-desktop-chrome">
+                        <p class="is-touch">{{ COPY.content.is_touch }}</p>
+                        <p class="is-not-chrome">{{ COPY.content.is_nonchrome_desktop }}</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
