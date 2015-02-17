@@ -355,32 +355,32 @@ Analytics
 
 The Google Analytics events tracked in this application are:
 
-|Category|Action|Label|Value|Custom 1|Custom 2|
-|--------|------|-----|-----|--------|--------|
-|austin|tweet|`location`||||
-|austin|facebook|`location`||||
-|austin|email|`location`||||
-|austin|open-share-discuss||||
-|austin|close-share-discuss||||
-|austin|summary-copied||||
-|austin|fullscreen-start||||
-|austin|fullscreen-stop||||
-|austin|chromecast-start||||
-|austin|chromecast-stop||||
-|austin|chromecast-ready||||
-|austin|begin||||
-|austin|song-skip|`currentSong['artist']` + ' - ' + `currentSong['title']`|||
-|austin|song-back|`previousSong['artist']` + ' - ' + `previousSong['title']`|||
-|austin|song-favorite|`favSong['artist']` + ' - ' + `favSong['title']`|||
-|austin|song-unfavorite|`favSong['artist']` + ' - ' + `favSong['title']`|||
-|austin|song-show-details|`song['artist']` + ' - ' + `song['title']`|||
-|austin|song-max-index|`maxSongIndex`||||
-|austin|song-download|`song['artist']` + ' - ' + `song['title']`||||
-|austin|amazon-click|`song['artist']` + ' - ' + `song['title']`||||
-|austin|itunes-click|`song['artist']` + ' - ' + `song['title']`||||
-|austin|rdio-click|`song['artist']` + ' - ' + `song['title']`||||
-|austin|spotify-click|`song['artist']` + ' - ' + `song['title']`||||
-|austin|full-list||||
+|Category|Action|Label|Value|
+|--------|------|-----|-----|
+|austin|tweet|`location`||
+|austin|facebook|`location`||
+|austin|email|`location`||
+|austin|open-share-discuss||
+|austin|close-share-discuss||
+|austin|summary-copied||
+|austin|fullscreen-start||
+|austin|fullscreen-stop||
+|austin|chromecast-start||
+|austin|chromecast-stop||
+|austin|chromecast-ready||
+|austin|begin||
+|austin|song-skip|`currentSong['artist']` + ' - ' + `currentSong['title']`|
+|austin|song-back|`previousSong['artist']` + ' - ' + `previousSong['title']`|
+|austin|song-favorite|`favSong['artist']` + ' - ' + `favSong['title']`|
+|austin|song-unfavorite|`favSong['artist']` + ' - ' + `favSong['title']`|
+|austin|song-show-details|`song['artist']` + ' - ' + `song['title']`|
+|austin|song-max-index|`maxSongIndex`||
+|austin|song-download|`song['artist']` + ' - ' + `song['title']`||
+|austin|amazon-click|`song['artist']` + ' - ' + `song['title']`||
+|austin|itunes-click|`song['artist']` + ' - ' + `song['title']`||
+|austin|rdio-click|`song['artist']` + ' - ' + `song['title']`||
+|austin|spotify-click|`song['artist']` + ' - ' + `song['title']`||
+|austin|full-list||
 
 **Note:** `song-back` is fired both when clicking the back button and when playing a song in the history list by clicking on it.
 
