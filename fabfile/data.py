@@ -76,7 +76,7 @@ def clean_songs(verify):
             # Verify links
             if verify:
                 try:
-                    audio_link = 'http://pd.npr.org/anon.npr-mp3%s.mp3' % row['media_url']
+                    audio_link = 'http://pd.npr.org/anon.npr-mp3%s.mp3' % row['download_url']
                     audio_request = requests.head(audio_link)
 
                     if audio_request.status_code != 200:
@@ -92,10 +92,10 @@ def clean_songs(verify):
 
             # Verify tags
             if verify:
-                if row['media_url'] in unique_audio:
-                    print '--> Duplicate audio url: %s' % row['media_url']
+                if row['download_url'] in unique_audio:
+                    print '--> Duplicate audio url: %s' % row['download_url']
                 else:
-                    unique_audio.append(row['media_url'])
+                    unique_audio.append(row['download_url'])
 
                 if row['song_art'] in unique_song_art:
                     print '--> Duplicate song_art url: %s' % row['song_art']
@@ -160,7 +160,7 @@ def update_featured_social():
 
             if media['type'] == 'photo' and not photo:
                 photo = {
-                    'url': media['media_url']
+                    'url': media['download_url']
                 }
 
         for url in tweet['entities'].get('urls', []):
