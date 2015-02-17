@@ -304,9 +304,9 @@ var onCastSenderStopped = function() {
     $castStop.hide();
     $currentTime.show();
     $duration.show();
-    $play.show();
-    $pause.hide();
     isSenderCasting = false;
+
+    playNextSong();
 }
 
 /*
@@ -354,13 +354,12 @@ var onCastReceiverStartSong = function(songId) {
 }
 
 var onCastSenderReadyToPlay = function() {
-    var songId = getSongIDFromHTML($currentSong) || undefined;
+    var songId = getNextSongID();
 
     castSender.sendMessage('start-song', songId);
 }
 
 var onCastSenderNowPlaying = function(songId) {
-    console.log(songId)
     playNextSong(songId);
 }
 
