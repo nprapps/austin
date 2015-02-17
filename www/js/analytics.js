@@ -3,6 +3,7 @@
  */
 
 var _gaq = _gaq || [];
+var _sf_async_config={};
 
 var ANALYTICS = (function () {
 
@@ -98,7 +99,6 @@ var ANALYTICS = (function () {
      * Chartbeat
      */
     var setupChartbeat = function() {
-        var _sf_async_config={};
         /** CONFIGURATION START **/
         _sf_async_config.uid = 18888;
         _sf_async_config.domain = "npr.org";
