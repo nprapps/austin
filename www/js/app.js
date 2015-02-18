@@ -593,8 +593,11 @@ var playNextSong = function(nextSongID) {
     }
 
     // Rotate to new song
-    $previousSong = $currentSong;    
+    $previousSong = $currentSong;
     $currentSong = $nextSong;
+
+    // Collapse any open song cards that are not the current song
+    $songs.find('.song').not($currentSong).addClass('small');
 
     currentSongID = nextSong['id'];
 
@@ -674,7 +677,7 @@ var getNextSongID = function() {
  * Animate transition forward or backward to the next song to play.
  */
 var transitionToNextSong = function($fromSong, $toSong) {
-    // toSong is in the history
+    // toSong is in the history  
     if ($toSong.offset().top < $fromSong.offset().top) {
         $toSong.velocity("scroll", {
             duration: 350,
@@ -686,10 +689,7 @@ var transitionToNextSong = function($fromSong, $toSong) {
                 setSongHeight($toSong);
                 shrinkSong($fromSong);
 
-                $(document).on('scroll', onDocumentScroll);
-
                 if (getIndexOfCurrentSong() > 0) {
-                    $historyButton.show();
                     $historyButton.removeClass('offscreen');
                 }
             }
@@ -716,7 +716,6 @@ var transitionToNextSong = function($fromSong, $toSong) {
                     complete: function() {
                         $(document).on('scroll', onDocumentScroll);
                         if (getIndexOfCurrentSong() > 1) {
-                            $historyButton.show();
                             $historyButton.removeClass('offscreen');
                         }
                     }
@@ -744,8 +743,7 @@ var transitionToNextSong = function($fromSong, $toSong) {
                             complete: function() {
                                 $(document).on('scroll', onDocumentScroll);
 
-                                if (getIndexOfCurrentSong() > 1) {
-                                    $historyButton.show();
+                                if (getIndexOfCurrentSong() > 0) {
                                     $historyButton.removeClass('offscreen');
                                 }
                             }
@@ -1204,15 +1202,20 @@ var onContinueButtonClick = function(e) {
  * Toggle played song card size
  */
 var onSongCardClick = function(e) {
-    var thisSongID = getSongIDFromHTML($(this));
-
-    if (thisSongID !== getSongIDFromHTML($currentSong)) {
-        if (isSenderCasting) {
-            castSender.sendMessage('start-song', thisSongID);
-        } else {
-            playNextSong(thisSongID);            
-        }
+    if ($(this).attr('id') !== $currentSong.attr('id')) {
+        $songs.find('.song').not($currentSong).addClass('small');
+        $(this).toggleClass('small');
     }
+
+    // var thisSongID = getSongIDFromHTML($(this));
+
+    // if (thisSongID !== getSongIDFromHTML($currentSong)) {
+    //     if (isSenderCasting) {
+    //         castSender.sendMessage('start-song', thisSongID);
+    //     } else {
+    //         playNextSong(thisSongID);            
+    //     }
+    // }
 }
 
 /*
@@ -1349,6 +1352,7 @@ var toggleHistoryButton = function(e) {
 
     var currentSongOffset = $currentSong.offset().top - 50;
     var windowScrollTop = $(window).scrollTop();
+
     if (currentSongOffset < windowScrollTop + fixedHeaderHeight){
         $historyButton.removeClass('offscreen');
     } else {
