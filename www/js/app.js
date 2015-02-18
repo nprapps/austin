@@ -724,9 +724,7 @@ var transitionToNextSong = function($fromSong, $toSong) {
                 setSongHeight($toSong);
                 shrinkSong($fromSong);
                 $(document).on('scroll', onDocumentScroll);
-                if (getIndexOfCurrentSong() > 1) {
-                    $historyButton.removeClass('offscreen');
-                }                
+                toggleHistoryButton();
             }
         });
     // toSong is in history, but further down the list than fromSong
@@ -750,9 +748,7 @@ var transitionToNextSong = function($fromSong, $toSong) {
                     },
                     complete: function() {
                         $(document).on('scroll', onDocumentScroll);
-                        if (getIndexOfCurrentSong() > 1) {
-                            $historyButton.removeClass('offscreen');
-                        }
+                        toggleHistoryButton();
                     }
                 });
             }
@@ -778,9 +774,7 @@ var transitionToNextSong = function($fromSong, $toSong) {
                             complete: function() {
                                 $(document).on('scroll', onDocumentScroll);
 
-                                if (getIndexOfCurrentSong() > 0) {
-                                    $historyButton.removeClass('offscreen');
-                                }
+                                toggleHistoryButton();
                             }
                         });
                     }
