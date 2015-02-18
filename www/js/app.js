@@ -485,7 +485,6 @@ var onPlayFavoritesClick = function(e) {
     $playAll.show();
     
     playFavorites = true;
-    simpleStorage.set('playFavorites', playFavorites);
     
     showFavoriteSongs();
     updateBackNextButtons();
@@ -508,7 +507,6 @@ var onPlayAllClick = function(e) {
     $playFavorites.show();
 
     playFavorites = false;
-    simpleStorage.set('playFavorites', playFavorites);
 
     showAllSongs();
     updateBackNextButtons();
@@ -670,7 +668,7 @@ var getNextSongID = function() {
         } else {
             var indexOfCurrentSong = getIndexOfCurrentSong();
 
-            if (indexOfCurrentSong == songOrder.length - 1) {
+            if (indexOfCurrentSong == songs.length - 1) {
                 return nextSongID;
             } else {
                 nextSongID = songs[indexOfCurrentSong + 1];
@@ -1046,7 +1044,6 @@ var loadState = function() {
     usedSkips = simpleStorage.get('usedSkips') || [];
     totalSongsPlayed = simpleStorage.get('totalSongsPlayed') || 0;
     songOrder = simpleStorage.get('songOrder') || null;
-    playFavorites = simpleStorage.get('playFavorites') || false;
 
     if (songOrder === null) {
         shuffleSongs();
@@ -1072,13 +1069,6 @@ var loadState = function() {
         $playToggle.show();
     }
 
-    if (playFavorites) {
-        $playFavorites.hide();
-        $playAll.show();
-        
-        showFavoriteSongs();
-    }
-
     checkSkips();
 }
 
@@ -1089,7 +1079,6 @@ var resetState = function() {
     simpleStorage.deleteKey('favoritedSongs');
     simpleStorage.set('maxSongIndex');
     simpleStorage.set('songOrder');
-    simpleStorage.set('playFavorites');
 }
 
 /*
