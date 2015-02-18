@@ -1275,6 +1275,12 @@ var onContinueButtonClick = function(e) {
  * Toggle played song card size
  */
 var onSongCardClick = function(e) {
+    var songEventName = getSongEventName(getSongIDFromHTML($(this)));
+
+    if ($(this).attr('class') == 'song small') {
+        ANALYTICS.trackEvent('show-show-details', songEventName);
+    }
+
     if ($(this).attr('id') !== $currentSong.attr('id')) {
         $songs.find('.song').not($currentSong).not($(this)).addClass('small');
         $(this).toggleClass('small');
