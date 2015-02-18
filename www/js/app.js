@@ -236,6 +236,8 @@ var onCastReceiverCreated = function(receiver) {
     castReceiver.onMessage('skip', onCastReceiverSkipSong);
     castReceiver.onMessage('back', onCastReceiverBack);   
     castReceiver.onMessage('start-song', onCastReceiverStartSong); 
+    castReceiver.onMessage('play-favorites', onCastReceiverPlayFavorites);
+    castReceiver.onMessage('play-all', onCastReceiverPlayAll);
 }
 
 var onCastReceiverAddSender = function() {
@@ -361,6 +363,20 @@ var onCastReceiverStartSong = function(songId) {
     $landing.hide();    
 
     playNextSong(songId);
+}
+
+var onCastReceiverPlayFavorites = function(favorites) {
+    favoritedSongs = favorites.split(',');
+    playFavorites = true;
+    
+    // Advance to next track if current track is not in favorites list
+    if (_.indexOf(favoritedSongs, currentSongID) < 0) {
+        playNextSong();
+    }
+}
+
+var onCastReceiverPlayAll = function() {
+    playFavorites = false;
 }
 
 var onCastSenderReadyToPlay = function() {
@@ -490,11 +506,15 @@ var onPlayFavoritesClick = function(e) {
     showFavoriteSongs();
     updateBackNextButtons();
 
-    // Advance to next track if current track is not in favorites list
-    if (_.indexOf(favoritedSongs, currentSongID) < 0) {
-        playNextSong();
+    if (isSenderCasting) {
+        castSender.sendMessage('play-favorites', favoritedSongs.join(','));
     } else {
-        $currentSong.velocity("scroll", { duration: 750, offset: -fixedHeaderHeight });
+        // Advance to next track if current track is not in favorites list
+        if (_.indexOf(favoritedSongs, currentSongID) < 0) {
+            playNextSong();
+        } else {
+            $currentSong.velocity('scroll', { duration: 750, offset: -fixedHeaderHeight });
+        }
     }
 }
 
@@ -513,6 +533,10 @@ var onPlayAllClick = function(e) {
     updateBackNextButtons();
 
     $currentSong.velocity('scroll', { duration: 750, offset: -fixedHeaderHeight });
+
+    if (isSenderCasting) {
+        castSender.sendMessage('play-all');
+    }
 }
 
 /*
@@ -853,6 +877,10 @@ var onFavoriteClick = function(e) {
 
     if (favoritedSongs.length > 0) {
         $playToggle.show();
+
+        if (playFavorites) {
+            castSender.sendMessage('play-favorites', favoritedSongs.join(','));
+        }
     } else {
         $playToggle.hide();
 
@@ -860,6 +888,8 @@ var onFavoriteClick = function(e) {
             // TODO: flip back to play all if last is unfavorited
         }
     }
+    
+    updateBackNextButtons();
 }
 
 var onJumpToSongClick = function(e) {
