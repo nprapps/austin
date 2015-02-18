@@ -875,15 +875,22 @@ h1,h2,h3,h4,h5,h6 {
 		max-height: 0;
 	}
 
+	.description {
+		color: fade(@gray-lighter, 90%);
+	}
+
 	.hometown {
 		font-family: @font-family-condensed;
 		text-transform: uppercase;
 		color: #666;
+		font-size: @font-size-base * 0.785;
+		padding-top: @line-height-computed;
 	}
 
 	.website {
 		text-transform: uppercase;
-		font-size: @font-size-small;
+		font-family: @font-family-condensed;
+		font-size: @font-size-base * 0.785;
 
 		a {
 			color: @music-red-light;
