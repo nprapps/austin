@@ -524,8 +524,11 @@ var playNextSong = function(nextSongID) {
     }
 
     // Rotate to new song
-    $previousSong = $currentSong;    
+    $previousSong = $currentSong;
     $currentSong = $nextSong;
+
+    // Collapse any open song cards that are not the current song
+    $songs.find('.song').not($currentSong).addClass('small');
 
     // Are there songs before this one?
     if (nextSongID == songOrder[0] || APP_CONFIG.ENFORCE_PLAYBACK_LIMITS){
@@ -1089,15 +1092,20 @@ var onContinueButtonClick = function(e) {
  * Toggle played song card size
  */
 var onSongCardClick = function(e) {
-    var thisSongID = getSongIDFromHTML($(this));
-
-    if (thisSongID !== getSongIDFromHTML($currentSong)) {
-        if (isSenderCasting) {
-            castSender.sendMessage('start-song', thisSongID);
-        } else {
-            playNextSong(thisSongID);            
-        }
+    if ($(this).attr('id') !== $currentSong.attr('id')) {
+        $songs.find('.song').not($currentSong).addClass('small');
+        $(this).toggleClass('small');
     }
+
+    // var thisSongID = getSongIDFromHTML($(this));
+
+    // if (thisSongID !== getSongIDFromHTML($currentSong)) {
+    //     if (isSenderCasting) {
+    //         castSender.sendMessage('start-song', thisSongID);
+    //     } else {
+    //         playNextSong(thisSongID);            
+    //     }
+    // }
 }
 
 /*
