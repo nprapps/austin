@@ -150,6 +150,7 @@ var onDocumentLoad = function(e) {
     $songs.on('click', '.song-tools .rdio', onRdioClick);
     $songs.on('click', '.song-tools .spotify', onSpotifyClick);
     $songs.on('click', '.song-tools .favorite', onFavoriteClick);
+    $songs.on('click', '.play-song-button', onJumpToSongClick);
     $skipIntroButton.on('click', onSkipIntroClick);
     $playFavorites.on('click', onPlayFavoritesClick);
     $playAll.on('click', onPlayAllClick);
@@ -600,11 +601,15 @@ var playNextSong = function(nextSongID) {
     }
 
     // Rotate to new song
-    $previousSong = $currentSong;
+    $previousSong = $currentSong||$();
     $currentSong = $nextSong;
 
+    // Add playing class to current song and remove from previous
+    $currentSong.addClass('playing');
+    $previousSong.removeClass('playing');
+
     // Collapse any open song cards that are not the current song
-    $songs.find('.song').not($currentSong).addClass('small');
+    $songs.find('.song').not($currentSong).not($previousSong).addClass('small');
 
     currentSongID = nextSong['id'];
 
@@ -772,8 +777,27 @@ var castReceiverTransitionToNextSong = function($fromSong, $toSong) {
  *  Display a song in the condensed layout
  */
 var shrinkSong = function($el) {
-    $el.css('min-height', '0').addClass('small');
     $el.find('.container-fluid').css('height', 0);
+    $el.css('min-height', '0');
+    $el.addClass('small');
+}
+
+/*
+ *  Set the height of the currently playing song to fill the viewport.
+ */
+var setSongHeight = function($song){
+    if (_.isUndefined($song) && $currentSong !== null) {
+        $song = $currentSong;
+    }
+
+    if ($song !== null) {
+        windowHeight = Modernizr.touch ? window.innerHeight || $(window).height() : $(window).height();
+        songHeight = windowHeight - $player.height() - $fixedHeader.height();
+
+        $song.find('.container-fluid').css('height', songHeight);
+        $song.css('min-height', songHeight);
+        $song.removeClass('small');
+    }
 }
 
 /*
@@ -835,6 +859,13 @@ var onFavoriteClick = function(e) {
     }
 }
 
+var onJumpToSongClick = function(e) {
+    e.stopPropagation();
+
+    var songID = getSongIDFromHTML($(this).parents('.song'));
+    playNextSong(songID);
+}
+
 /*
  * Preload song art to make things smoother.
  */
@@ -867,24 +898,6 @@ var checkSongArtCached = function(src) {
     songArt.src = src;
 
     return songArt.complete;
-}
-
-/*
- *  Set the height of the currently playing song to fill the viewport.
- */
-var setSongHeight = function($song){
-    if (_.isUndefined($song) && $currentSong !== null) {
-        $song = $currentSong;
-    }
-
-    if ($song !== null) {
-        windowHeight = Modernizr.touch ? window.innerHeight || $(window).height() : $(window).height();
-        songHeight = windowHeight - $player.height() - $fixedHeader.height();
-
-        $song.find('.container-fluid').css('height', songHeight);
-        $song.css('min-height', songHeight);
-        $song.removeClass('small');
-    }
 }
 
 /*
@@ -1220,7 +1233,7 @@ var onContinueButtonClick = function(e) {
  */
 var onSongCardClick = function(e) {
     if ($(this).attr('id') !== $currentSong.attr('id')) {
-        $songs.find('.song').not($currentSong).addClass('small');
+        $songs.find('.song').not($currentSong).not($(this)).addClass('small');
         $(this).toggleClass('small');
     }
 
