@@ -1239,6 +1239,10 @@ h1,h2,h3,h4,h5,h6 {
 			vertical-align: middle;
 			font-size: @font-size-base * 0.785;
 			color: #999;
+
+			.is-cast-receiver & {
+				z-index: 600;
+			}
 		}
 
 		.current-time {
@@ -1262,9 +1266,13 @@ h1,h2,h3,h4,h5,h6 {
 
 		.is-cast-receiver & {
 			left: 0;
-			height: 5rem;
+			right: 0;
 			top: 0;
-			border-left: none;
+			bottom: 0;
+			height: 6rem;
+			position: relative;
+			transform: translateY(0);
+			-webkit-transform:translateY(0);
 		}
 
 		.bar {
@@ -1288,6 +1296,10 @@ h1,h2,h3,h4,h5,h6 {
 		p {
 			line-height: 1.5;
 			margin-bottom: 0.2rem;
+		}
+
+		.is-cast-receiver & {
+			z-index: 600;
 		}
 
 		@media screen and (max-width: @screen-xs-max){
