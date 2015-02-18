@@ -156,7 +156,6 @@ var onDocumentLoad = function(e) {
     $playAll.on('click', onPlayAllClick);
 
     if (!is_IE) {
-        console.log(is_IE)
         $fullscreenButtons.hide();
     };
 
