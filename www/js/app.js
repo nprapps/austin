@@ -76,6 +76,7 @@ $.jPlayer.timeFormat.padMin = false;
 
 // Type of browser
 var is_chrome = navigator.userAgent.indexOf('Chrome') > -1;
+var is_IE = navigator.userAgent.indexOf('MSIE ') > -1 || navigator.userAgent.match(/Trident.*rv\:11\./) > 0;
 var is_touch = Modernizr.touch;
 /*
  * Run on page load.
@@ -152,6 +153,11 @@ var onDocumentLoad = function(e) {
     $skipIntroButton.on('click', onSkipIntroClick);
     $playFavorites.on('click', onPlayFavoritesClick);
     $playAll.on('click', onPlayAllClick);
+
+    if (!is_IE) {
+        console.log(is_IE)
+        $fullscreenButtons.hide();
+    };
 
     $fullscreenStart.on('click',onFullscreenStartClick);
     $fullscreenStop.on('click', onFullscreenStopClick);
@@ -690,10 +696,10 @@ var transitionToNextSong = function($fromSong, $toSong) {
             complete: function() {
                 setSongHeight($toSong);
                 shrinkSong($fromSong);
-
-                if (getIndexOfCurrentSong() > 0) {
+                $(document).on('scroll', onDocumentScroll);
+                if (getIndexOfCurrentSong() > 1) {
                     $historyButton.removeClass('offscreen');
-                }
+                }                
             }
         });
     // toSong is in history, but further down the list than fromSong
@@ -940,8 +946,8 @@ var onBackClick = function(e) {
     if (isSenderCasting) {
         castSender.sendMessage('back');
     } else {
-        backSong();      
-    }
+        backSong();
+    }   
 }
 
 /*
