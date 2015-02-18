@@ -878,18 +878,35 @@ var onFavoriteClick = function(e) {
     if (favoritedSongs.length > 0) {
         $playToggle.show();
 
+        // Update castReceiver's list of favorites
         if (playFavorites) {
-            castSender.sendMessage('play-favorites', favoritedSongs.join(','));
+            if (isSenderCasting) {
+                castSender.sendMessage('play-favorites', favoritedSongs.join(','));
+            } else {
+                if (_.indexOf(favoritedSongs, songID) < 0) {
+                    playNextSong();
+                }
+            }
         }
     } else {
         $playToggle.hide();
+        $playAll.hide();
+        $playFavorites.show();
 
         if (playFavorites) {
-            // TODO: flip back to play all if last is unfavorited
+            playFavorites = false;
+
+            showAllSongs();
+            updateBackNextButtons();
+
+            if (isSenderCasting) {
+                castSender.sendMessage('play-all');
+                $currentSong.velocity('scroll', { duration: 750, offset: -fixedHeaderHeight });
+            } else {
+                playNextSong();
+            }
         }
     }
-    
-    updateBackNextButtons();
 }
 
 var onJumpToSongClick = function(e) {
