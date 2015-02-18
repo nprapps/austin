@@ -214,6 +214,7 @@ var onDocumentLoad = function(e) {
         'onSenderCreated': onCastSenderCreated,
         'onSenderReady': onCastSenderReady,
         'onSenderStarted': onCastSenderStarted,
+        'onSenderReconnected': onCastSenderReconnected,
         'onSenderStopped': onCastSenderStopped,
         'debug': true
     });
@@ -243,6 +244,10 @@ var onCastReceiverCreated = function(receiver) {
 var onCastReceiverAddSender = function() {
     if (currentSongID !== null) {
         castReceiver.sendMessage('now-playing', currentSongID);        
+
+        if (playFavorites) {
+            castReceiver.sendMessage('playing-favorites'); 
+        }
     }
 
     if ($audioPlayer.data('jPlayer').status.paused) {
@@ -267,6 +272,7 @@ var onCastSenderCreated = function(sender) {
     castSender.onMessage('play', onCastSenderPlay);
     castSender.onMessage('pause', onCastSenderPause);
     castSender.onMessage('now-playing', onCastSenderNowPlaying);
+    castSender.onMessage('playing-favorites', onCastSenderPlayingFavorites);
 }
 
 /*
@@ -291,7 +297,25 @@ var onCastSenderStarted = function() {
     $currentTime.hide();
     $duration.hide();
 
-    // In case reconnecting to existing session
+    isSenderCasting = true;
+
+    $audioPlayer.jPlayer('stop');
+
+    senderSongOrder = songOrder.join(',');
+
+    castSender.sendMessage('init', senderSongOrder);
+}
+
+/*
+ * A cast session reconnected.
+ */
+var onCastSenderReconnected = function() {
+    $fullscreenStart.hide();
+    $castStop.show();
+    $castStart.hide();
+    $currentTime.hide();
+    $duration.hide();
+
     $fixedHeader.show();
     $songsWrapper.show();
     $songs.show();
@@ -302,8 +326,6 @@ var onCastSenderStarted = function() {
     $audioPlayer.jPlayer('stop');
 
     senderSongOrder = songOrder.join(',');
-
-    castSender.sendMessage('init', senderSongOrder);
 }
 
 /*
@@ -397,6 +419,19 @@ var onCastSenderPlay = function() {
 var onCastSenderPause = function() {
     $play.show();
     $pause.hide();
+}
+
+var onCastSenderPlayingFavorites = function() {
+    $playFavorites.hide();
+    $playAll.show();
+    
+    playFavorites = true;
+    
+    showFavoriteSongs();
+    updateBackNextButtons();
+
+    // Refresh favorites list on receiver
+    castSender.sendMessage('play-favorites', favoritedSongs.join(','));
 }
 
 var onCastReceiverInit = function(senderSongOrder) {

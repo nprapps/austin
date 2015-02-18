@@ -207,8 +207,8 @@
             _session.addUpdateListener(_sessionUpdateListener);
             _session.addMessageListener(_config['namespace'], _onReceiveMessage); 
 
-            if (config['onSenderStarted']) {
-                config['onSenderStarted']();
+            if (config['onSenderReconnected']) {
+                config['onSenderReconnected']();
             }
         };
 
