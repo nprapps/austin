@@ -994,6 +994,10 @@ var onPauseClick = function(e) {
 var onSkipClick = function(e) {
     e.preventDefault();
 
+    if ($(this).hasClass('disabled')) {
+        return;
+    }
+
     var songEventName = getSongEventName(currentSongID);
     ANALYTICS.trackEvent('song-skip', songEventName);
 
@@ -1006,6 +1010,10 @@ var onSkipClick = function(e) {
 
 var onBackClick = function(e) {
     e.preventDefault();
+
+    if ($(this).hasClass('disabled')) {
+        return;
+    }
 
     var songEventName = getSongEventName(songOrder[getIndexOfCurrentSong() - 1]);
     ANALYTICS.trackEvent('song-back', songEventName);
