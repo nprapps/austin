@@ -28,6 +28,8 @@ var $fullscreenButton = null;
 var $songsWrapper = null;
 var $fullList = null;
 var $skipIntroButton = null;
+var $playFavorites = null;
+var $playAll = null;
 
 // In-app cast buttons
 var $castButtons = null;
@@ -63,6 +65,7 @@ var songOrder = null;
 var isFirstPlay = true;
 var currentSongID = null;
 var maxSongIndex = null;
+var playFavorites = false;
 
 var isSenderCasting = false;
 var castSender = null;
@@ -105,6 +108,9 @@ var onDocumentLoad = function(e) {
     $songsWrapper = $('.songs-wrapper');
     $fullList = $('.full-list a');
     $skipIntroButton = $('.skip-intro');
+    $playToggle = $('.play-toggle');
+    $playFavorites = $('.play-favorites');
+    $playAll = $('.play-all');
 
     $fullscreenButtons = $('.fullscreen');
     $fullscreenStart = $('.fullscreen .start');
@@ -144,6 +150,8 @@ var onDocumentLoad = function(e) {
     $songs.on('click', '.song-tools .spotify', onSpotifyClick);
     $songs.on('click', '.song-tools .favorite', onFavoriteClick);
     $skipIntroButton.on('click', onSkipIntroClick);
+    $playFavorites.on('click', onPlayFavoritesClick);
+    $playAll.on('click', onPlayAllClick);
 
     $fullscreenStart.on('click',onFullscreenStartClick);
     $fullscreenStop.on('click', onFullscreenStopClick);
@@ -460,8 +468,69 @@ var playWelcomeAudio = function() {
 /*
  * Skip the welcome audio.
  */
-var onSkipIntroClick = function() {
+var onSkipIntroClick = function(e) {
+    e.stopPropagation();
+
     playNextSong();
+}
+
+/*
+ * Play only favorited tracks.
+ */
+var onPlayFavoritesClick = function(e) {
+    e.stopPropagation();
+
+    $playFavorites.hide();
+    $playAll.show();
+    
+    playFavorites = true;
+    
+    showFavoriteSongs();
+    updateBackNextButtons();
+
+    // Advance to next track if current track is not in favorites list
+    if (_.indexOf(favoritedSongs, currentSongID) < 0) {
+        playNextSong();
+    } else {
+        $currentSong.velocity("scroll", { duration: 750, offset: -fixedHeaderHeight });
+    }
+}
+
+/*
+ * Play all tracks.
+ */
+var onPlayAllClick = function(e) {
+    e.stopPropagation();
+
+    $playAll.hide();
+    $playFavorites.show();
+
+    playFavorites = false;
+
+    showAllSongs();
+    updateBackNextButtons();
+
+    $currentSong.velocity('scroll', { duration: 750, offset: -fixedHeaderHeight });
+}
+
+/*
+ * Show only favorite songs in the list.
+ */
+var showFavoriteSongs = function() {
+    $songs.find('.song').hide();
+
+    for (var i = 0; i < favoritedSongs.length; i++) {
+        var songId = favoritedSongs[i];
+
+        $('#song-' + songId).show();
+    }
+}
+
+/*
+ * Show all songs in the list.
+ */
+var showAllSongs = function() {
+    $songs.find('.song').show();
 }
 
 /*
@@ -527,20 +596,6 @@ var playNextSong = function(nextSongID) {
     $previousSong = $currentSong;    
     $currentSong = $nextSong;
 
-    // Are there songs before this one?
-    if (nextSongID == songOrder[0] || APP_CONFIG.ENFORCE_PLAYBACK_LIMITS){
-        $back.addClass('disabled');
-    } else {
-        $back.removeClass('disabled');
-    }
-
-    // Are there songs after this one?
-    if (nextSongID == songOrder[songOrder.length - 1]) {
-        $skip.addClass('disabled');
-    } else {
-        $skip.removeClass('disabled');
-    }
-
     currentSongID = nextSong['id'];
 
     var currentSongIndex = getIndexOfCurrentSong();
@@ -559,9 +614,28 @@ var playNextSong = function(nextSongID) {
         castReceiver.sendMessage('now-playing', currentSongID);
     }
 
+    updateBackNextButtons();
     updateTotalSongsPlayed();
     writeSkipsRemaining();
     preloadSongImages();
+}
+
+var updateBackNextButtons = function() {
+    var songs = playFavorites ? favoritedSongs : songOrder;
+
+    // Are there songs before this one?
+    if (currentSongID == songs[0] || APP_CONFIG.ENFORCE_PLAYBACK_LIMITS){
+        $back.addClass('disabled');
+    } else {
+        $back.removeClass('disabled');
+    }
+
+    // Are there songs after this one?
+    if (currentSongID == songs[songs.length - 1]) {
+        $skip.addClass('disabled');
+    } else {
+        $skip.removeClass('disabled');
+    }
 }
 
 /*
@@ -569,27 +643,28 @@ var playNextSong = function(nextSongID) {
  */
 var getNextSongID = function() {
     var nextSongID = null;
+    var songs = playFavorites ? favoritedSongs : songOrder;
 
     // If the user has played songs before    
     if (maxSongIndex !== null) {
         // If this is the first play of the session, play the last song that was ever played
         if (isFirstPlay) {
-            nextSongID = songOrder[maxSongIndex];
+            nextSongID = songs[maxSongIndex];
         
         // If this ISN'T the first play of the session                            
         } else {
             var indexOfCurrentSong = getIndexOfCurrentSong();
 
-            if (indexOfCurrentSong == songOrder.length - 1) {
-                nextSongID = songOrder[0];
+            if (indexOfCurrentSong == songs.length - 1) {
+                nextSongID = songs[0];
             } else {
-                nextSongID = songOrder[indexOfCurrentSong + 1];
+                nextSongID = songs[indexOfCurrentSong + 1];
             }
         }
 
     // If this is the first time the user is playing any song            
     } else {
-        nextSongID = songOrder[0];
+        nextSongID = songs[0];
     }
 
     return nextSongID;    
@@ -696,12 +771,20 @@ var shrinkSong = function($el) {
     $el.find('.container-fluid').css('height', 0);
 }
 
+/*
+ * Parse the id of a song from the song HTML.
+ */
 var getSongIDFromHTML = function($song) {
     return $song.attr('id').split('-')[1];
 }
 
+/*
+ * Get the index of the current song in the list of songs to play.
+ */
 var getIndexOfCurrentSong = function() {
-    return _.indexOf(songOrder, currentSongID);
+    var songs = playFavorites ? favoritedSongs : songOrder;
+
+    return _.indexOf(songs, currentSongID);
 }
 
 var onFavoriteClick = function(e) {
@@ -715,13 +798,35 @@ var onFavoriteClick = function(e) {
         ANALYTICS.trackEvent('song-favorite', getSongEventName(songID));
 
         favoritedSongs.push(songID);
+        
+        // favoritedSongs must be in the same order as songOrder
+        favoritedSongs = _.sortBy(favoritedSongs, function(songId) { 
+            return _.indexOf(songOrder, songId); 
+        });
+
         simpleStorage.set('favoritedSongs', favoritedSongs);
     } else {
         ANALYTICS.trackEvent('song-unfavorite', getSongEventName(songID));
 
         var indexOfSongToUnfavorite = _.indexOf(favoritedSongs, songID);
         favoritedSongs.splice(indexOfSongToUnfavorite, 1);
+
+        // favoritedSongs must be in the same order as songOrder
+        favoritedSongs = _.sortBy(favoritedSongs, function(songId) { 
+            return _.indexOf(songOrder, songId); 
+        });
+
         simpleStorage.set('favoritedSongs', favoritedSongs);
+    }
+
+    if (favoritedSongs.length > 0) {
+        $playToggle.show();
+    } else {
+        $playToggle.hide();
+
+        if (playFavorites) {
+            // TODO: flip back to play all if last is unfavorited
+        }
     }
 }
 
@@ -922,6 +1027,7 @@ var loadState = function() {
     usedSkips = simpleStorage.get('usedSkips') || [];
     totalSongsPlayed = simpleStorage.get('totalSongsPlayed') || 0;
     songOrder = simpleStorage.get('songOrder') || null;
+    playFavorites = simpleStorage.get('playFavorites') || false;
 
     if (songOrder === null) {
         shuffleSongs();
@@ -943,6 +1049,15 @@ var loadState = function() {
             $songsFavoriteStar.removeClass('icon-heart-empty');
             $songsFavoriteStar.addClass('icon-heart');
         }
+
+        $playToggle.show();
+    }
+
+    if (playFavorites) {
+        $playFavorites.hide();
+        $playAll.show();
+        
+        showFavoriteSongs();
     }
 
     checkSkips();
