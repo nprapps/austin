@@ -159,13 +159,11 @@ var onDocumentLoad = function(e) {
 
     SHARE.setup();
 
+    loadState();
+
     if (RESET_STATE) {
         resetState();
         resetLegalLimits();
-    }
-
-    if (PLAY_LAST) {
-        currentSongID = songOrder[songOrder.length - 1];
     }
 
     /*
@@ -191,7 +189,6 @@ var onDocumentLoad = function(e) {
     }
 
     setupAudio();
-    loadState();
 
     $(document).keydown(onDocumentKeyDown);
 
@@ -469,14 +466,19 @@ var onSkipIntroClick = function() {
  */
 var playNextSong = function(nextSongID) {
     // Don't transition to new song if already playing
-    // This can happen when sender first communicates with receiver
+    // Case 1 can happen when sender first communicates with receiver. Case 2 is if the last song is playing so there is no next song
     if (castReceiver === null && currentSongID === nextSongID) {
         return;
     }
 
     // nextSongID would've only been defined in onBackClick() 
-    if (_.isUndefined(nextSongID)) {  
+    if (_.isUndefined(nextSongID)) { 
         nextSongID = getNextSongID();
+
+        // If on the last song (there's no next song to play)
+        if (nextSongID === null) {
+            return;
+        }
     }
 
     isFirstPlay = false;
@@ -581,7 +583,7 @@ var getNextSongID = function() {
             var indexOfCurrentSong = getIndexOfCurrentSong();
 
             if (indexOfCurrentSong == songOrder.length - 1) {
-                nextSongID = songOrder[0];
+                return nextSongID;
             } else {
                 nextSongID = songOrder[indexOfCurrentSong + 1];
             }
@@ -1066,6 +1068,10 @@ var onGoButtonClick = function(e) {
     swapTapeDeck();
     $songs.find('.song').remove();
     playWelcomeAudio();
+
+    if (PLAY_LAST) {
+        nextSongID = songOrder[songOrder.length - 1];    
+    }
 }
 
 /*
@@ -1077,7 +1083,13 @@ var onContinueButtonClick = function(e) {
     ANALYTICS.begin('welcome-back');
 
     $landing.velocity('fadeOut');
-    playNextSong();
+
+    if (PLAY_LAST) {
+        nextSongID = songOrder[songOrder.length - 1];  
+        playNextSong(nextSongID);  
+    } else {
+        playNextSong();
+    }
 }
 
 /*
