@@ -275,6 +275,7 @@ h1,h2,h3,h4,h5,h6 {
 		font-size: 0.7rem;
 		color: lighten(#666, 20%);
 		padding-left: 1rem;
+		margin-top: @line-height-computed;
 		text-indent: -0.5rem;
 	}
 
@@ -294,6 +295,32 @@ h1,h2,h3,h4,h5,h6 {
 
 		@media screen and (max-width: @screen-xs-max){
 			margin-top: 4rem;
+		}
+	}
+
+	.chromecast-deck {
+		p {
+			font-family: @font-family-base;
+			font-size: @font-size-base * 0.785;
+			text-transform: none;
+			letter-spacing: 0;
+		}
+
+		a {
+			.btn;
+			.btn-default;
+			.btn-sm;
+
+			color: @music-hp-link-color;
+			border-color: @music-hp-link-color;
+			text-transform: uppercase;
+			font-size: @font-size-base * 0.785;
+
+			&:hover {
+				background: @music-hp-link-color;
+				color: @white;
+				border-color: @music-hp-link-color;
+			}
 		}
 	}
 }
@@ -875,15 +902,23 @@ h1,h2,h3,h4,h5,h6 {
 		max-height: 0;
 	}
 
+	.description {
+		font-size: @font-size-base;
+		color: fade(@gray-lighter, 90%);
+	}
+
 	.hometown {
 		font-family: @font-family-condensed;
 		text-transform: uppercase;
 		color: #666;
+		font-size: @font-size-base * 0.785;
+		padding-top: @line-height-computed;
 	}
 
 	.website {
 		text-transform: uppercase;
-		font-size: @font-size-small;
+		font-family: @font-family-condensed;
+		font-size: @font-size-base * 0.785;
 
 		a {
 			color: @music-red-light;

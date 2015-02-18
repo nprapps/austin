@@ -15,7 +15,6 @@ var $landing = null;
 var $fixedHeader = null;
 var $landingReturnDeck = null;
 var $landingFirstDeck = null;
-var $shuffleSongs = null;
 var $player = null;
 var $play = null;
 var $pause = null;
@@ -142,7 +141,6 @@ var onDocumentLoad = function(e) {
     $pause.on('click', onPauseClick);
     $(window).on('resize', onWindowResize);
     $(document).on('scroll', onDocumentScroll);
-    $shuffleSongs.on('click', onShuffleSongsClick);
     $historyButton.on('click', showHistory);
     $songs.on('click', '.song', onSongCardClick);
     $songs.on('click', '.song-tools .amazon', onAmazonClick);
@@ -173,12 +171,12 @@ var onDocumentLoad = function(e) {
 
     SHARE.setup();
 
-    loadState();
-
     if (RESET_STATE) {
         resetState();
         resetLegalLimits();
     }
+    
+    loadState();
 
     /*
      * Change chromecast text on welcome screen if mobile OR not Chrome. Default behavior. If on desktop Chrome logic attached to onSenderCreated().
@@ -670,7 +668,7 @@ var getNextSongID = function() {
         } else {
             var indexOfCurrentSong = getIndexOfCurrentSong();
 
-            if (indexOfCurrentSong == songOrder.length - 1) {
+            if (indexOfCurrentSong == songs.length - 1) {
                 return nextSongID;
             } else {
                 nextSongID = songs[indexOfCurrentSong + 1];
@@ -819,7 +817,7 @@ var getIndexOfCurrentSong = function() {
 var onFavoriteClick = function(e) {
     e.stopPropagation();
 
-    $(this).toggleClass('icon-heart-empty icon-heart');
+    $(this).find('.heart').toggleClass('icon-heart-empty icon-heart');
 
     var songID = getSongIDFromHTML($(this).parents('.song'));
 
@@ -846,6 +844,10 @@ var onFavoriteClick = function(e) {
         });
 
         simpleStorage.set('favoritedSongs', favoritedSongs);
+
+        if (playFavorites) {
+            $(this).parents('.song').hide();
+        }
     }
 
     if (favoritedSongs.length > 0) {
@@ -982,9 +984,10 @@ var skipSong = function() {
 }
 
 var backSong = function() {
+    var songs = playFavorites ? favoritedSongs : songOrder;
     var songID = getSongIDFromHTML($currentSong);
-    var playedIndex = _.indexOf(songOrder, songID);
-    var previousSongID = songOrder[playedIndex - 1];
+    var playedIndex = _.indexOf(songs, songID);
+    var previousSongID = songs[playedIndex - 1];
 
     playNextSong(previousSongID);         
 }
@@ -1045,7 +1048,6 @@ var loadState = function() {
     usedSkips = simpleStorage.get('usedSkips') || [];
     totalSongsPlayed = simpleStorage.get('totalSongsPlayed') || 0;
     songOrder = simpleStorage.get('songOrder') || null;
-    playFavorites = simpleStorage.get('playFavorites') || false;
 
     if (songOrder === null) {
         shuffleSongs();
@@ -1062,20 +1064,13 @@ var loadState = function() {
         for (var i = 0; i < favoritedSongs.length; i++) {
             var $favoritedSong = $('#song-' + favoritedSongs[i]);
 
-            var $songsFavoriteStar = $favoritedSong.find('.favorite');
+            var $songsFavoriteStar = $favoritedSong.find('.favorite .heart').first();
             
             $songsFavoriteStar.removeClass('icon-heart-empty');
             $songsFavoriteStar.addClass('icon-heart');
         }
 
         $playToggle.show();
-    }
-
-    if (playFavorites) {
-        $playFavorites.hide();
-        $playAll.show();
-        
-        showFavoriteSongs();
     }
 
     checkSkips();
@@ -1085,18 +1080,15 @@ var loadState = function() {
  * Reset everything we can legally reset
  */
 var resetState = function() {
-    favoritedSongs = [];
-    maxSongIndex = null;
-
-    simpleStorage.set('favoritedSongs', favoritedSongs);
-    simpleStorage.set('maxSongIndex', maxSongIndex);
+    simpleStorage.deleteKey('favoritedSongs');
+    simpleStorage.set('maxSongIndex');
+    simpleStorage.set('songOrder');
 }
 
 /*
  * Reset the legal limitations. For development only.
  */
 var resetLegalLimits = function() {
-    usedSkips = [];
     simpleStorage.set('usedSkips', usedSkips);
 }
 
@@ -1130,16 +1122,6 @@ var buildListeningHistory = function() {
 var shuffleSongs = function() {
     songOrder = _.shuffle(_.keys(SONG_DATA));
     simpleStorage.set('songOrder', songOrder);
-}
-
-/*
- * Shuffle all the songs.
- */
-var onShuffleSongsClick = function(e) {
-    e.preventDefault();
-
-    shuffleSongs();
-    resetState();
 }
 
 /*
