@@ -982,9 +982,10 @@ var skipSong = function() {
 }
 
 var backSong = function() {
+    var songs = playFavorites ? favoritedSongs : songOrder;
     var songID = getSongIDFromHTML($currentSong);
-    var playedIndex = _.indexOf(songOrder, songID);
-    var previousSongID = songOrder[playedIndex - 1];
+    var playedIndex = _.indexOf(songs, songID);
+    var previousSongID = songs[playedIndex - 1];
 
     playNextSong(previousSongID);         
 }
