@@ -76,6 +76,7 @@ $.jPlayer.timeFormat.padMin = false;
 
 // Type of browser
 var is_chrome = navigator.userAgent.indexOf('Chrome') > -1;
+// var is_IE = 
 var is_touch = Modernizr.touch;
 /*
  * Run on page load.
@@ -690,10 +691,7 @@ var transitionToNextSong = function($fromSong, $toSong) {
             complete: function() {
                 setSongHeight($toSong);
                 shrinkSong($fromSong);
-
-                if (getIndexOfCurrentSong() > 0) {
-                    $historyButton.removeClass('offscreen');
-                }
+                $(document).on('scroll', onDocumentScroll);
             }
         });
     // toSong is in history, but further down the list than fromSong
@@ -717,9 +715,6 @@ var transitionToNextSong = function($fromSong, $toSong) {
                     },
                     complete: function() {
                         $(document).on('scroll', onDocumentScroll);
-                        if (getIndexOfCurrentSong() > 1) {
-                            $historyButton.removeClass('offscreen');
-                        }
                     }
                 });
             }
@@ -744,10 +739,6 @@ var transitionToNextSong = function($fromSong, $toSong) {
                             delay: 300,
                             complete: function() {
                                 $(document).on('scroll', onDocumentScroll);
-
-                                if (getIndexOfCurrentSong() > 0) {
-                                    $historyButton.removeClass('offscreen');
-                                }
                             }
                         });
                     }
@@ -968,6 +959,9 @@ var backSong = function() {
     var playedIndex = _.indexOf(songOrder, songID);
     var previousSongID = songOrder[playedIndex - 1];
 
+    if (songOrder[playedIndex - 2] === undefined) {
+        return;
+    }
     playNextSong(previousSongID);         
 }
 
@@ -1358,7 +1352,7 @@ var showHistory = function() {
  * Check if play history is visible
  */
 var toggleHistoryButton = function(e) {
-    if (getIndexOfCurrentSong() < 1) {
+    if (getIndexOfCurrentSong() < 1) {    
         return;
     }
 
