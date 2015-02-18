@@ -15,6 +15,7 @@ var $landing = null;
 var $fixedHeader = null;
 var $landingReturnDeck = null;
 var $landingFirstDeck = null;
+var $landingCastReceiverDeck = null;
 var $player = null;
 var $play = null;
 var $pause = null;
@@ -67,6 +68,7 @@ var maxSongIndex = null;
 var playFavorites = false;
 
 var isSenderCasting = false;
+var isReceiverCasting = false;
 var castSender = null;
 var castReceiver = null;
 
@@ -98,6 +100,7 @@ var onDocumentLoad = function(e) {
     $fixedHeader = $('.fixed-header');
     $landingReturnDeck = $('.landing-return-deck');
     $landingFirstDeck = $('.landing-firstload-deck');
+    $landingCastReceiverDeck = $('.landing-cast-receiver-deck');    
     $shuffleSongs = $('.shuffle-songs');
     $player = $('.player-container')
     $play = $('.play');
@@ -291,11 +294,15 @@ var onCastSenderReady = function() {
 var onCastSenderStarted = function() {
     ANALYTICS.startChromecast();
 
+    $landingCastReceiverDeck.show();   
+    $landingFirstDeck.hide();
+    $landingReturnDeck.hide();
+
     $fullscreenStart.hide();
     $castStop.show();
     $castStart.hide();
     $currentTime.hide();
-    $duration.hide();
+    $duration.hide();    
 
     isSenderCasting = true;
 
@@ -435,6 +442,12 @@ var onCastSenderPlayingFavorites = function() {
 }
 
 var onCastReceiverInit = function(senderSongOrder) {
+    isReceiverCasting = true;
+
+    $landingCastReceiverDeck.show();      
+    $landingFirstDeck.hide();
+    $landingReturnDeck.hide();
+
     senderSongOrder = senderSongOrder.split(',');
     songOrder = senderSongOrder;
     simpleStorage.set('songOrder', songOrder);
@@ -1147,12 +1160,18 @@ var loadState = function() {
         shuffleSongs();
     } 
 
-    if (maxSongIndex !== null) {
-        buildListeningHistory();
-        $landingReturnDeck.show();        
+    if (isReceiverCasting) {
+        $landingFirstDeck.hide();
+        $landingReturnDeck.hide();
+        $landingCastReceiverDeck.show();       
     } else {
-        $landingFirstDeck.show();       
-    }
+        if (maxSongIndex !== null) {
+            buildListeningHistory();
+            $landingReturnDeck.show();        
+        } else {
+            $landingFirstDeck.show();       
+        }  
+    }      
 
     if (favoritedSongs.length > 0) {
         for (var i = 0; i < favoritedSongs.length; i++) {
