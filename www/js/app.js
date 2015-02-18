@@ -15,7 +15,6 @@ var $landing = null;
 var $fixedHeader = null;
 var $landingReturnDeck = null;
 var $landingFirstDeck = null;
-var $shuffleSongs = null;
 var $player = null;
 var $play = null;
 var $pause = null;
@@ -142,7 +141,6 @@ var onDocumentLoad = function(e) {
     $pause.on('click', onPauseClick);
     $(window).on('resize', onWindowResize);
     $(document).on('scroll', onDocumentScroll);
-    $shuffleSongs.on('click', onShuffleSongsClick);
     $historyButton.on('click', showHistory);
     $songs.on('click', '.song', onSongCardClick);
     $songs.on('click', '.song-tools .amazon', onAmazonClick);
@@ -173,12 +171,12 @@ var onDocumentLoad = function(e) {
 
     SHARE.setup();
 
-    loadState();
-
     if (RESET_STATE) {
         resetState();
         resetLegalLimits();
     }
+    
+    loadState();
 
     /*
      * Change chromecast text on welcome screen if mobile OR not Chrome. Default behavior. If on desktop Chrome logic attached to onSenderCreated().
@@ -487,6 +485,7 @@ var onPlayFavoritesClick = function(e) {
     $playAll.show();
     
     playFavorites = true;
+    simpleStorage.set('playFavorites', playFavorites);
     
     showFavoriteSongs();
     updateBackNextButtons();
@@ -509,6 +508,7 @@ var onPlayAllClick = function(e) {
     $playFavorites.show();
 
     playFavorites = false;
+    simpleStorage.set('playFavorites', playFavorites);
 
     showAllSongs();
     updateBackNextButtons();
@@ -819,7 +819,7 @@ var getIndexOfCurrentSong = function() {
 var onFavoriteClick = function(e) {
     e.stopPropagation();
 
-    $(this).toggleClass('icon-heart-empty icon-heart');
+    $(this).find('.heart').toggleClass('icon-heart-empty icon-heart');
 
     var songID = getSongIDFromHTML($(this).parents('.song'));
 
@@ -1062,7 +1062,7 @@ var loadState = function() {
         for (var i = 0; i < favoritedSongs.length; i++) {
             var $favoritedSong = $('#song-' + favoritedSongs[i]);
 
-            var $songsFavoriteStar = $favoritedSong.find('.favorite');
+            var $songsFavoriteStar = $favoritedSong.find('.favorite .heart').first();
             
             $songsFavoriteStar.removeClass('icon-heart-empty');
             $songsFavoriteStar.addClass('icon-heart');
@@ -1085,18 +1085,16 @@ var loadState = function() {
  * Reset everything we can legally reset
  */
 var resetState = function() {
-    favoritedSongs = [];
-    maxSongIndex = null;
-
-    simpleStorage.set('favoritedSongs', favoritedSongs);
-    simpleStorage.set('maxSongIndex', maxSongIndex);
+    simpleStorage.deleteKey('favoritedSongs');
+    simpleStorage.set('maxSongIndex');
+    simpleStorage.set('songOrder');
+    simpleStorage.set('playFavorites');
 }
 
 /*
  * Reset the legal limitations. For development only.
  */
 var resetLegalLimits = function() {
-    usedSkips = [];
     simpleStorage.set('usedSkips', usedSkips);
 }
 
@@ -1130,16 +1128,6 @@ var buildListeningHistory = function() {
 var shuffleSongs = function() {
     songOrder = _.shuffle(_.keys(SONG_DATA));
     simpleStorage.set('songOrder', songOrder);
-}
-
-/*
- * Shuffle all the songs.
- */
-var onShuffleSongsClick = function(e) {
-    e.preventDefault();
-
-    shuffleSongs();
-    resetState();
 }
 
 /*
