@@ -895,7 +895,12 @@ var onJumpToSongClick = function(e) {
     e.stopPropagation();
 
     var songID = getSongIDFromHTML($(this).parents('.song'));
-    playNextSong(songID);
+
+   if (isSenderCasting) {
+       castSender.sendMessage('start-song', songID);
+   } else {
+       playNextSong(songID);            
+   }
 }
 
 /*
