@@ -906,7 +906,11 @@ var onFavoriteClick = function(e) {
 var onJumpToSongClick = function(e) {
     e.stopPropagation();
 
-    var songID = getSongIDFromHTML($(this).parents('.song'));
+    var songID = getSongIDFromHTML($(this).parents('.song'));    
+
+    var songEventName = getSongEventName(songID);
+
+    ANALYTICS.trackEvent('song-back', songEventName);
 
    if (isSenderCasting) {
        castSender.sendMessage('start-song', songID);
