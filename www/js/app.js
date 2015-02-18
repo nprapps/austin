@@ -602,7 +602,7 @@ var getNextSongID = function() {
  * Animate transition forward or backward to the next song to play.
  */
 var transitionToNextSong = function($fromSong, $toSong) {
-    // toSong is in the history
+    // toSong is in the history  
     if ($toSong.offset().top < $fromSong.offset().top) {
         $toSong.velocity("scroll", {
             duration: 350,
@@ -614,10 +614,7 @@ var transitionToNextSong = function($fromSong, $toSong) {
                 setSongHeight($toSong);
                 shrinkSong($fromSong);
 
-                $(document).on('scroll', onDocumentScroll);
-
                 if (getIndexOfCurrentSong() > 0) {
-                    $historyButton.show();
                     $historyButton.removeClass('offscreen');
                 }
             }
@@ -644,7 +641,6 @@ var transitionToNextSong = function($fromSong, $toSong) {
                     complete: function() {
                         $(document).on('scroll', onDocumentScroll);
                         if (getIndexOfCurrentSong() > 1) {
-                            $historyButton.show();
                             $historyButton.removeClass('offscreen');
                         }
                     }
@@ -672,8 +668,7 @@ var transitionToNextSong = function($fromSong, $toSong) {
                             complete: function() {
                                 $(document).on('scroll', onDocumentScroll);
 
-                                if (getIndexOfCurrentSong() > 1) {
-                                    $historyButton.show();
+                                if (getIndexOfCurrentSong() > 0) {
                                     $historyButton.removeClass('offscreen');
                                 }
                             }
@@ -1242,6 +1237,7 @@ var toggleHistoryButton = function(e) {
 
     var currentSongOffset = $currentSong.offset().top - 50;
     var windowScrollTop = $(window).scrollTop();
+
     if (currentSongOffset < windowScrollTop + fixedHeaderHeight){
         $historyButton.removeClass('offscreen');
     } else {
