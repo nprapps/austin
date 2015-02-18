@@ -1271,8 +1271,8 @@ var onContinueButtonClick = function(e) {
 var onSongCardClick = function(e) {
     var songEventName = getSongEventName(getSongIDFromHTML($(this)));
 
-    if ($(this).attr('class') == 'song small') {
-        ANALYTICS.trackEvent('show-show-details', songEventName);
+    if ($(this).hasClass('small') {
+        ANALYTICS.trackEvent('song-show-details', songEventName);
     }
 
     if ($(this).attr('id') !== $currentSong.attr('id')) {
