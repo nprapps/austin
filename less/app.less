@@ -223,7 +223,7 @@ h1,h2,h3,h4,h5,h6 {
 
 	.slug {
 		text-transform: uppercase;
-		font-family: 'Knockout 31 4r';
+		font-family: @font-family-condensed;
 		font-size: @font-size-large;
 		margin: 0 0 @line-height-computed / 2;
 		color: @music-red-light;
@@ -266,7 +266,7 @@ h1,h2,h3,h4,h5,h6 {
 		color: #999;
 		font-size: .875rem;
 		text-transform: uppercase;
-		font-family: 'Knockout 31 4r';
+		font-family: @font-family-condensed;
 		letter-spacing: 0.1rem;
 	}
 
@@ -418,7 +418,7 @@ h1,h2,h3,h4,h5,h6 {
 	width: 100%;
 	z-index: 100;
 	color: #fff;
-	font-family: 'Knockout 31 4r';
+	font-family: @font-family-condensed;
 	text-transform: uppercase;
 	text-align: center;
 	font-size: 5vw;
@@ -552,7 +552,7 @@ h1,h2,h3,h4,h5,h6 {
 	}
 
 	.slug {
-		font-family: 'Knockout 31 4r';
+		font-family: @font-family-condensed;
 		color: @music-red-light;
 		text-transform: uppercase;
 	}
@@ -586,7 +586,7 @@ h1,h2,h3,h4,h5,h6 {
 		font-size: @font-size-base * 0.875;
 		color: @music-hp-link-color;
 		-webkit-font-smoothing: antialiased;
-		// font-family: 'Knockout 31 4r';
+		// font-family: @font-family-condensed;
 		text-transform: lowercase;
 		// letter-spacing: 1px;
 		cursor: pointer;
@@ -629,7 +629,7 @@ h1,h2,h3,h4,h5,h6 {
 	.transition(all 0.2s ease-in-out);
 	color: @music-hp-link-color;
 	border: 1px solid @music-hp-link-color;
-	// font-family: 'Knockout 31 4r';
+	// font-family: @font-family-condensed;
 	text-transform: uppercase;
 	letter-spacing: 0.1rem;
 	font-size: @font-size-base * 0.712;
@@ -694,6 +694,8 @@ h1,h2,h3,h4,h5,h6 {
 
 .song {
 	border-top: 2px solid transparent;
+	background: darken(@music-hp-dark, 5%);
+	border-color: @music-hp-dark;
 	.transition(0.3s all ease-in-out);
 	-webkit-backface-visibility: hidden; // prevent flickering in Safari
 
@@ -715,10 +717,14 @@ h1,h2,h3,h4,h5,h6 {
 		border-color: transparent;
 	}
 
+	&.playing {
+		background: transparent;
+	}
+
 	&.small {
 		cursor: pointer;
 		background: darken(@music-hp-dark, 5%);
-		border-color: @music-hp-dark;
+		border-color: ;
 	}
 
 	.song-info {
@@ -761,7 +767,7 @@ h1,h2,h3,h4,h5,h6 {
 				}
 			}
 
-			margin-bottom: @line-height-computed;
+			margin-bottom: 0;
 			margin-right: 0;
 
 			@media screen and (max-width: @screen-xs-max){
@@ -824,7 +830,7 @@ h1,h2,h3,h4,h5,h6 {
 }
 
 .artist {
-	font-family: 'Knockout 31 4r';
+	font-family: @font-family-condensed;
 	text-transform: uppercase;
 	letter-spacing: 0.1rem;
 	font-size: @font-size-base * 3;
@@ -847,17 +853,32 @@ h1,h2,h3,h4,h5,h6 {
 
 .review-wrapper {
 	clear: both;
-	.transition(all 0.2s ease-in-out 0.2s);
+	.transition(all 0.3s ease-in-out);
 	.transform-origin(top);
 	.scaleY(1);
 	opacity: 1;
 	max-height: 100%;
 
 	.song.small & {
-		.transition(all 0.2s ease-in-out);
+		.transition(all 0.3s ease-in-out);
 		.scaleY(0);
 		opacity: 0;
 		max-height: 0;
+	}
+
+	.hometown {
+		font-family: @font-family-condensed;
+		text-transform: uppercase;
+		color: #666;
+	}
+
+	.website {
+		text-transform: uppercase;
+		font-size: @font-size-small;
+
+		a {
+			color: @music-red-light;
+		}
 	}
 
 	.review {
@@ -1001,7 +1022,7 @@ h1,h2,h3,h4,h5,h6 {
 	}
 
 	.label {
-		font-family: 'Knockout 31 4r','Helvetica Neue',sans-serif;
+		font-family: @font-family-condensed;
 		font-size: @font-size-base * 0.785;
 		font-weight: normal;
 		text-transform: uppercase;
@@ -1020,6 +1041,18 @@ h1,h2,h3,h4,h5,h6 {
 		outline: 0;
 		cursor: pointer;
 
+		&.play-song-button {
+			color: @music-red-light;
+			opacity: 1;
+			.scale(1);
+			.transition(all 0.2s ease-in-out 0.3s);
+
+			.playing & {
+				opacity: 0;
+				.scale(0);
+			}
+		}
+
 		&.favorite {
 			color: @music-red-light;
 
@@ -1036,7 +1069,7 @@ h1,h2,h3,h4,h5,h6 {
 
 .tag-header {
 	font-size: @font-size-small;
-	font-family: 'Knockout 31 4r';
+	font-family: @font-family-condensed;
 	text-transform: uppercase;
 	letter-spacing: 0.1rem;
 	color: rgba(255,255,255,0.5);
@@ -1371,7 +1404,7 @@ h1,h2,h3,h4,h5,h6 {
 
 .filter-title,
 .filter-title:visited {
-	font-family: 'Knockout 31 4r';
+	font-family: @font-family-condensed;
 	text-transform: uppercase;
 	background: @music-hp-light;
 	color: #9b9b9b;
@@ -1431,7 +1464,7 @@ h1,h2,h3,h4,h5,h6 {
 		font-family: 'Gotham SSm',Helvetica,Arial,sans-serif;
         text-transform: none;
         @media screen and (max-width: @screen-xs-max){
-			font-family: 'Knockout 31 4r';
+			font-family: @font-family-condensed;
         }
 	}
 }
@@ -1552,7 +1585,7 @@ h1,h2,h3,h4,h5,h6 {
 		.name {
 			color: @music-red-light;
 			display: block;
-			font-family: 'Knockout 31 4r';
+			font-family: @font-family-condensed;
 			text-transform: uppercase;
 			-webkit-font-smoothing: subpixel-antialiased;
 		}
