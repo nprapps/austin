@@ -844,6 +844,10 @@ var onFavoriteClick = function(e) {
         });
 
         simpleStorage.set('favoritedSongs', favoritedSongs);
+
+        if (playFavorites) {
+            $(this).parents('.song').hide();
+        }
     }
 
     if (favoritedSongs.length > 0) {
