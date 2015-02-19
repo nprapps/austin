@@ -88,14 +88,10 @@
          * New message received.
          */
         var _onReceiveMessage = function(e) {
-            _log('Received message: ' + e.data);
+            _log('Received message: ');
+            _log(e.data, true);
 
-            var match = e.data.match(MESSAGE_REGEX);
-
-            var messageType = match[1];
-            var message = match[2];
-
-            _fire(messageType, message);
+            _fire(e.data['messageType'], e.data['message']);
         };
 
         /*;
@@ -139,9 +135,13 @@
          * @param {String} message Message data to send.
          */
         var sendMessage = function(messageType, message) {
-            message = messageType + MESSAGE_DELIMITER + message;
+            message = {
+                'messageType': messageType,
+                'message': message
+            }
 
-            _log('Sending message: ' + message);
+            _log('Sending message:');
+            _log(message, true);
             
             _customMessageBus.broadcast(message);
         };
@@ -150,7 +150,10 @@
 
         var castReceiverManager = cast.receiver.CastReceiverManager.getInstance();
 
-        _customMessageBus = castReceiverManager.getCastMessageBus(_config['namespace']);
+        _customMessageBus = castReceiverManager.getCastMessageBus(
+            _config['namespace'],
+            cast.receiver.CastMessageBus.MessageType.JSON
+        );
         _customMessageBus.onMessage = _onReceiveMessage;         
 
         castReceiverManager.onReady = _onCastReceiverReady;
@@ -339,14 +342,10 @@
          * New message received.
          */
         var _onReceiveMessage = function(namespace, data) {
-            _log('Received message: ' + data);
+            _log('Received message:');
+            _log(data, true);
 
-            var match = data.match(MESSAGE_REGEX);
-
-            var messageType = match[1];
-            var message = match[2];
-
-            _fire(messageType, message);
+            _fire(data['messageType'], data['message']);
         };
 
         /*
@@ -390,9 +389,13 @@
          * @param {String} message Message data to send.
          */
         var sendMessage = function(messageType, message) {
-            message = messageType + MESSAGE_DELIMITER + message;
+            message = {
+                'messageType': messageType,
+                'message': message
+            }
             
-            _log('Sending message: ' + message);
+            _log('Sending message:');
+            _log(message, true);
 
             _session.sendMessage(
                 config['namespace'],
