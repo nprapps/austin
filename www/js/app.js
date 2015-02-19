@@ -896,7 +896,7 @@ var getIndexOfCurrentSong = function() {
 var onFavoriteClick = function(e) {
     e.stopPropagation();
 
-    $(this).find('.heart').toggleClass('icon-heart-empty icon-heart');
+    $(this).parents('.song').find('.heart').toggleClass('icon-heart-empty icon-heart');
 
     var songID = getSongIDFromHTML($(this).parents('.song'));
 

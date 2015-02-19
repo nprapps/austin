@@ -1047,19 +1047,34 @@ h1,h2,h3,h4,h5,h6 {
 	overflow: hidden;
 	// bottom: 0;
 	// left: @grid-gutter-width / 2;
-	.animation(fadeInOutBig 0.5s ease-in-out);
 
-
-	.song.small & {
+	&.song-tools-small {
+		opacity: 0;
+		max-height: 0;
 		position: absolute;
-		bottom: 50%;
+		top: 50%;
 		right: @grid-gutter-width / 2;
 		left: auto;
-		margin-bottom: -@font-size-base * 3 / 2;
-		.animation(fadeInOutSmall 0.5s ease-in-out);
+		margin-top: -@font-size-base * 3 / 2;
+		.scale(0);
+		.transition(all 0.3s ease-in-out 0.3s);
+
+		.song.small & {
+			max-height: 100%;
+			opacity: 1;
+			.scale(1);
+		}
 
 		li {
 			display: inline-block;
+
+			.amazon,
+			.itunes,
+			.rdio,
+			.spotify,
+			.download {
+				display: none;
+			}
 		}
 
 		.label {
@@ -1070,6 +1085,8 @@ h1,h2,h3,h4,h5,h6 {
 			display: none;
 		}
 	}
+
+
 
 	li {
 		display: block;
@@ -1117,10 +1134,6 @@ h1,h2,h3,h4,h5,h6 {
 
 		&.favorite {
 			color: @music-red-light;
-
-			.small & {
-				margin-left: 1rem;
-			}
 		}
 	}
 
