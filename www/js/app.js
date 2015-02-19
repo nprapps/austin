@@ -381,7 +381,7 @@ var playNextSong = function(nextSongID) {
 }
 
 var updateBackNextButtons = function() {
-    var songs = playFavorites ? favoritedSongs : songOrder;
+    var songs = getCurrentSongList();
 
     // Are there songs before this one?
     if (currentSongID == songs[0] || APP_CONFIG.ENFORCE_PLAYBACK_LIMITS){
@@ -410,7 +410,7 @@ var updateTotalSongsPlayed = function() {
  */
 var getNextSongID = function() {
     var nextSongID = null;
-    var songs = playFavorites ? favoritedSongs : songOrder;
+    var songs = getCurrentSongList();
 
     // If the user has played songs before    
     if (maxSongIndex !== null) {
@@ -561,7 +561,7 @@ var getSongIDFromHTML = function($song) {
  * Get the index of the current song in the list of songs to play.
  */
 var getIndexOfCurrentSong = function() {
-    var songs = playFavorites ? favoritedSongs : songOrder;
+    var songs = getCurrentSongList();
 
     return _.indexOf(songs, currentSongID);
 }
@@ -623,9 +623,8 @@ var skipSong = function() {
  * Return to previous song in the list.
  */
 var backSong = function() {
-    var songs = playFavorites ? favoritedSongs : songOrder;
-    var songID = getSongIDFromHTML($currentSong);
-    var playedIndex = _.indexOf(songs, songID);
+    var songs = getCurrentSongList();
+    var playedIndex = getIndexOfCurrentSong();
     var previousSongID = songs[playedIndex - 1];
 
     playNextSong(previousSongID);         
@@ -833,6 +832,17 @@ var swapTapeDeck = function() {
 }
 
 /*
+ * Get the current playing list of songs (songOrder or favoritedSongs).
+ */
+var getCurrentSongList = function() {
+    if (playFavorites) {
+        return favoritedSongs;
+    }
+
+    return songOrder;
+}
+
+/*
  * Helper function for getting the song artist and title.
  * For analytics tracking.
  */
@@ -844,11 +854,28 @@ var getSongEventName = function(songId) {
  * Check if play history is visible
  */
 var toggleHistoryButton = function(e) {
-    // hide history button if there is no history or current song isn't last song in the list
-    if (getIndexOfCurrentSong() < 1 || $currentSong.attr('id') !== $songs.children().last().attr('id')) {
+    var currentSongIndex = getIndexOfCurrentSong();
+
+    // Hide if there is no history
+    if (currentSongIndex == 0) {
         $historyButton.addClass('offscreen');
 
         return;
+    }
+
+    // Hide if not on last song
+    if (playFavorites) {
+        if (currentSongID !== favoritedSongs[favoritedSongs.length - 1]) {
+            $historyButton.addClass('offscreen');
+            
+            return;
+        }
+    } else {
+        if (currentSongIndex !== maxSongIndex) {
+            $historyButton.addClass('offscreen');
+
+            return;
+        }
     }
 
     var currentSongOffset = $currentSong.offset().top - 50;
