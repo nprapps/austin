@@ -342,6 +342,8 @@
          * New message received.
          */
         var _onReceiveMessage = function(namespace, data) {
+            data = JSON.parse(data); 
+
             _log('Received message:');
             _log(data, true);
 
