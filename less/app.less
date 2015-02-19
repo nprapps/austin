@@ -666,8 +666,9 @@ h1,h2,h3,h4,h5,h6 {
 
 	@media screen and (max-width: @screen-xs-max){
 		.full-list,
-		.share {
-			display: none;
+		.share,
+		.play-toggle {
+			display: none !important;
 		}
 	}
 }
@@ -1397,7 +1398,8 @@ h1,h2,h3,h4,h5,h6 {
 	}
 
 	.full-list,
-	.share {
+	.share,
+	.play-toggle {
 		.vertical-center;
 		position: absolute;
 		z-index: 700;
@@ -1413,11 +1415,27 @@ h1,h2,h3,h4,h5,h6 {
 	}
 
 	.share {
-		right: 0.5rem;
+		left: 4.5rem;
 
 		a {
 			cursor: pointer;
 		}
+	}
+
+	.play-toggle {
+		right: 0.5rem;
+	    display: none;
+
+	    .label {
+	    	font-size: @font-size-base * 0.785;
+	    	line-height: @font-size-base * 1.5;
+	    	vertical-align: middle;
+	    	color: #999;
+	    }
+
+	    .play-all {
+	        display: none;
+	    }
 	}
 }
 
