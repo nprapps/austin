@@ -411,6 +411,10 @@ var onCastReceiverPlayAll = function() {
 var onCastSenderReadyToPlay = function() {
     var songId = getNextSongID();
 
+    if (playFavorites) {
+        castSender.sendMessage('play-favorites', favoritedSongs.join(','));
+    }
+        
     castSender.sendMessage('start-song', songId);
 }
 
@@ -754,7 +758,8 @@ var getNextSongID = function() {
             var indexOfCurrentSong = getIndexOfCurrentSong();
 
             if (indexOfCurrentSong == songs.length - 1) {
-                return nextSongID;
+                // Loop at the end, otherwise we can get into weird restart scenarios
+                return songs[0];
             } else {
                 nextSongID = songs[indexOfCurrentSong + 1];
             }
