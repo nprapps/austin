@@ -347,7 +347,12 @@ var onCastSenderStopped = function() {
     $duration.show();
     isSenderCasting = false;
 
-    playNextSong();
+    var song = SONG_DATA[currentSongID];
+    var songURL = 'http://podcastdownload.npr.org/anon.npr-mp3' + song['download_url'] + '.mp3';
+
+    $audioPlayer.jPlayer('setMedia', {
+        mp3: songURL
+    }).jPlayer('play');
 }
 
 /*
@@ -409,7 +414,7 @@ var onCastReceiverPlayAll = function() {
 }
 
 var onCastSenderReadyToPlay = function() {
-    var songId = getNextSongID();
+    var songId = currentSongID || getNextSongID();
 
     if (playFavorites) {
         castSender.sendMessage('play-favorites', favoritedSongs.join(','));
