@@ -844,7 +844,8 @@ var getSongEventName = function(songId) {
  * Check if play history is visible
  */
 var toggleHistoryButton = function(e) {
-    if (getIndexOfCurrentSong() < 1) {
+    // hide history button if there is no history or current song isn't last song in the list
+    if (getIndexOfCurrentSong() < 1 || $currentSong.attr('id') !== $songs.children().last().attr('id')) {
         $historyButton.addClass('offscreen');
 
         return;
