@@ -144,7 +144,7 @@ var onDocumentLoad = function(e) {
     $pause.on('click', onPauseClick);
     $(window).on('resize', onWindowResize);
     $(document).on('scroll', onDocumentScroll);
-    $historyButton.on('click', showHistory);
+    $historyButton.on('click', onShowHistoryClick);
     $songs.on('click', '.song', onSongCardClick);
     $songs.on('click', '.song-tools .amazon', onAmazonClick);
     $songs.on('click', '.song-tools .itunes', oniTunesClick);
@@ -561,7 +561,13 @@ var onPlayFavoritesClick = function(e) {
         if (_.indexOf(favoritedSongs, currentSongID) < 0) {
             playNextSong();
         } else {
-            $currentSong.velocity('scroll', { duration: 750, offset: -fixedHeaderHeight });
+            $currentSong.velocity('scroll', {
+                duration: 750,
+                offset: -fixedHeaderHeight,
+                complete: function() {
+                    toggleHistoryButton();
+                }
+            });
         }
     }
 }
@@ -580,7 +586,13 @@ var onPlayAllClick = function(e) {
     showAllSongs();
     updateBackNextButtons();
 
-    $currentSong.velocity('scroll', { duration: 750, offset: -fixedHeaderHeight });
+    $currentSong.velocity('scroll', {
+        duration: 750,
+        offset: -fixedHeaderHeight,
+        complete: function() {
+            toggleHistoryButton();
+        }
+    });
 
     if (isSenderCasting) {
         castSender.sendMessage('play-all');
@@ -1469,7 +1481,7 @@ var getSongEventName = function(songId) {
 /*
  * Scroll to the top of the history
  */
-var showHistory = function() {
+var onShowHistoryClick = function() {
     $songs.velocity('scroll');
 }
 
@@ -1478,6 +1490,8 @@ var showHistory = function() {
  */
 var toggleHistoryButton = function(e) {
     if (getIndexOfCurrentSong() < 1) {
+        $historyButton.addClass('offscreen');
+
         return;
     }
 
