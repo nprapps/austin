@@ -1,3 +1,6 @@
+/*
+ * Setup the chromecast invitation for this browser.
+ */
 var setupChromecastLanding = function() {
     // Desktop Chrome
     if (is_chrome && !is_touch) {

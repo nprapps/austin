@@ -101,7 +101,6 @@ var onDocumentLoad = function(e) {
     $landingReturnDeck = $('.landing-return-deck');
     $landingFirstDeck = $('.landing-firstload-deck');
     $landingCastReceiverDeck = $('.landing-cast-receiver-deck');    
-    $shuffleSongs = $('.shuffle-songs');
     $player = $('.player-container')
     $play = $('.play');
     $back = $('.back');
@@ -216,6 +215,9 @@ var setupAudio = function() {
     });
 }
 
+/*
+ * Audio began playing.
+ */
 var onAudioPlayed = function() {
     $pause.show();
     $play.hide();
@@ -225,6 +227,9 @@ var onAudioPlayed = function() {
     }
 }
 
+/*
+ * Audio is now paused.
+ */
 var onAudioPaused = function() {
     $play.show();
     $pause.hide();
@@ -234,6 +239,9 @@ var onAudioPaused = function() {
     }
 }
 
+/*
+ * Track finished playing.
+ */
 var onAudioEnded = function(e) {
     onAudioPaused();
     playNextSong();
@@ -271,94 +279,6 @@ var playWelcomeAudio = function() {
     } else {
         $audioPlayer.jPlayer('play');
     }
-}
-
-/*
- * Skip the welcome audio.
- */
-var onSkipIntroClick = function(e) {
-    e.stopPropagation();
-
-    playNextSong();
-}
-
-/*
- * Play only favorited tracks.
- */
-var onPlayFavoritesClick = function(e) {
-    e.stopPropagation();
-
-    $playFavorites.hide();
-    $playAll.show();
-    
-    playFavorites = true;
-    
-    showFavoriteSongs();
-    updateBackNextButtons();
-
-    if (isSenderCasting) {
-        castSender.sendMessage('play-favorites', favoritedSongs.join(','));
-    } else {
-        // Advance to next track if current track is not in favorites list
-        if (_.indexOf(favoritedSongs, currentSongID) < 0) {
-            playNextSong();
-        } else {
-            $currentSong.velocity('scroll', {
-                duration: 750,
-                offset: -fixedHeaderHeight,
-                complete: function() {
-                    toggleHistoryButton();
-                }
-            });
-        }
-    }
-}
-
-/*
- * Play all tracks.
- */
-var onPlayAllClick = function(e) {
-    e.stopPropagation();
-
-    $playAll.hide();
-    $playFavorites.show();
-
-    playFavorites = false;
-
-    showAllSongs();
-    updateBackNextButtons();
-
-    $currentSong.velocity('scroll', {
-        duration: 750,
-        offset: -fixedHeaderHeight,
-        complete: function() {
-            toggleHistoryButton();
-        }
-    });
-
-    if (isSenderCasting) {
-        castSender.sendMessage('play-all');
-    }
-}
-
-/*
- * Show only favorite songs in the list.
- */
-var showFavoriteSongs = function() {
-    $songs.find('.song').hide();
-
-    for (var i = 0; i < favoritedSongs.length; i++) {
-        var songId = favoritedSongs[i];
-
-        $('#song-' + songId).show();
-    }
-}
-
-/*
- * Show all songs in the list.
- */
-var showAllSongs = function() {
-    $songs.find('.song').show();
 }
 
 /*
@@ -479,6 +399,13 @@ var updateBackNextButtons = function() {
 }
 
 /*
+ * Update the total songs played
+ */
+var updateTotalSongsPlayed = function() {
+    $playedSongs.text(maxSongIndex + 1);
+}
+
+/*
  * Get the next song to rotate into the player.
  */
 var getNextSongID = function() {
@@ -587,6 +514,9 @@ var transitionToNextSong = function($fromSong, $toSong) {
     }
 }
 
+/*
+ * Transition to next song on Chromecast receiver.
+ */
 var castReceiverTransitionToNextSong = function($fromSong, $toSong) {
     $songs.find('.song').hide();
     setSongHeight($toSong);
@@ -636,6 +566,612 @@ var getIndexOfCurrentSong = function() {
     return _.indexOf(songs, currentSongID);
 }
 
+/*
+ * Preload song art to make things smoother.
+ */
+var preloadSongImages = function() {
+    if (currentSongID == songOrder[songOrder.length - 1]) {
+        return;
+    }
+
+    // Include previous song. Case: castReceiver loads all songs at once so starting at a random point and clicking back would mean the song art was not pre-loaded.
+    var nextSongIDs = [songOrder[getIndexOfCurrentSong() + 1], songOrder[getIndexOfCurrentSong() - 1]];
+
+    _.each(nextSongIDs, function(nextSongID) {
+        var nextSong = SONG_DATA[nextSongID]
+
+        if (!nextSong) {
+            return;
+        }
+
+        if (checkSongArtCached('http://npr.org' + nextSong['song_art']) == false) {
+            var songArt = new Image();
+            songArt.src = 'http://npr.org' + nextSong['song_art'];
+        } else {
+            return;
+        }
+    });      
+}
+
+var checkSongArtCached = function(src) {
+    var songArt = new Image();
+    songArt.src = src;
+
+    return songArt.complete;
+}
+
+/*
+ * User clicked to skip to the next song
+ */
+var skipSong = function() {
+    if (APP_CONFIG.ENFORCE_PLAYBACK_LIMITS) {
+        if (usedSkips.length < APP_CONFIG.SKIP_LIMIT) {
+            usedSkips.push(moment.utc());
+
+            playNextSong();
+            simpleStorage.set('usedSkips', usedSkips);
+            writeSkipsRemaining();
+        } else {
+            $skip.addClass('disabled');
+        }
+    } else {
+        playNextSong();
+    }
+}
+
+/*
+ * Return to previous song in the list.
+ */
+var backSong = function() {
+    var songs = playFavorites ? favoritedSongs : songOrder;
+    var songID = getSongIDFromHTML($currentSong);
+    var playedIndex = _.indexOf(songs, songID);
+    var previousSongID = songs[playedIndex - 1];
+
+    playNextSong(previousSongID);         
+}
+
+/*
+ * Show only favorite songs in the list.
+ */
+var showFavoriteSongs = function() {
+    $songs.find('.song').hide();
+
+    for (var i = 0; i < favoritedSongs.length; i++) {
+        var songId = favoritedSongs[i];
+
+        $('#song-' + songId).show();
+    }
+}
+
+/*
+ * Show all songs in the list.
+ */
+var showAllSongs = function() {
+    $songs.find('.song').show();
+}
+
+/*
+ * Load state from browser storage
+ */
+var loadState = function() {
+    favoritedSongs = simpleStorage.get('favoritedSongs') || [];
+    maxSongIndex = simpleStorage.get('maxSongIndex') || null;
+    usedSkips = simpleStorage.get('usedSkips') || [];
+    totalSongsPlayed = simpleStorage.get('totalSongsPlayed') || 0;
+    songOrder = simpleStorage.get('songOrder') || null;
+
+    if (songOrder === null) {
+        songOrder = _.shuffle(_.keys(SONG_DATA));
+        simpleStorage.set('songOrder', songOrder);
+    } 
+
+    if (isReceiverCasting) {
+        $landingFirstDeck.hide();
+        $landingReturnDeck.hide();
+        $landingCastReceiverDeck.show();       
+    } else {
+        if (maxSongIndex !== null) {
+            buildListeningHistory();
+            $landingReturnDeck.show();        
+        } else {
+            $landingFirstDeck.show();       
+        }  
+    }      
+
+    if (favoritedSongs.length > 0) {
+        for (var i = 0; i < favoritedSongs.length; i++) {
+            var $favoritedSong = $('#song-' + favoritedSongs[i]);
+
+            var $songsFavoriteStar = $favoritedSong.find('.favorite .heart').first();
+            
+            $songsFavoriteStar.removeClass('icon-heart-empty');
+            $songsFavoriteStar.addClass('icon-heart');
+        }
+
+        $playToggle.show();
+    }
+
+    checkSkips();
+}
+
+/*
+ * Reconstruct listening history from stashed id's.
+ */
+var buildListeningHistory = function() {
+    // Remove last played song so we can continue playing the song where we left off. 
+    var lastSongIndex = maxSongIndex; 
+
+    if (castReceiver) {
+        lastSongIndex = songOrder.length - 1;
+    } 
+
+    for (var i = 0; i <= lastSongIndex; i++) {
+        var songID = songOrder[i];
+        var song = SONG_DATA[songID];
+
+        var context = $.extend(APP_CONFIG, song);
+        var html = JST.song(context);
+
+        $songs.append(html);
+    };
+
+    $songs.find('.song').addClass('small');
+}
+
+/*
+ * Reset everything we can legally reset
+ */
+var resetState = function() {
+    simpleStorage.deleteKey('favoritedSongs');
+    simpleStorage.set('maxSongIndex');
+    simpleStorage.set('songOrder');
+}
+
+/*
+ * Reset the legal limitations. For development only.
+ */
+var resetLegalLimits = function() {
+    simpleStorage.set('usedSkips', usedSkips);
+}
+
+/*
+ * Check to see if some skips are past the skip limit window
+ */
+var checkSkips = function() {
+    var now = moment.utc();
+    var skipped = true;
+
+    while (skipped) {
+        skipped = false;
+
+        for (i = 0; i < usedSkips.length; i++) {
+            if (now.subtract(1, 'hour').isAfter(usedSkips[i])) {
+                usedSkips.splice(i, 1);
+                skipped = true;
+                break;
+            }
+        }
+    }
+
+    simpleStorage.set('usedSkips', usedSkips);
+    writeSkipsRemaining();
+}
+
+/*
+ * Update the skip limit display
+ */
+var writeSkipsRemaining = function() {
+    if (APP_CONFIG.ENFORCE_PLAYBACK_LIMITS) {
+        if (usedSkips.length == APP_CONFIG.SKIP_LIMIT - 1) {
+            $skipsRemaining.text(APP_CONFIG.SKIP_LIMIT - usedSkips.length + ' skip available')
+            $skip.removeClass('disabled');
+        }
+        else if (usedSkips.length == APP_CONFIG.SKIP_LIMIT) {
+            var text = 'Skipping available in ';
+                text += moment(usedSkips[usedSkips.length - 1]).add(1, 'hour').fromNow(true);
+            $skipsRemaining.text(text);
+            $skip.addClass('disabled');
+        }
+        else {
+            $skipsRemaining.text(APP_CONFIG.SKIP_LIMIT - usedSkips.length + ' skips available')
+            $skip.removeClass('disabled');
+        }
+    } else {
+        return null;
+    }
+}
+
+/*
+ * Hide the welcome screen and show the playing song
+ */
+var hideWelcome  = function($song) {
+    // if (isSenderCasting) {
+    //     $songsWrapper.hide();
+    // }
+
+    $('.songs, .player-container').show();
+    $fixedHeader.show();
+
+    $song.velocity("scroll", { duration: 750, offset: -fixedHeaderHeight });
+    $('.landing-wrapper').hide().css('height', '');
+    $landing.velocity('fadeOut', {
+        duration: 1000,
+        complete: function() {
+            $('.poster').removeClass('shrink').attr('style','');
+        }
+    });
+
+    isPlayingWelcome = false;
+}
+
+/*
+ * Animate the tape deck after landing click
+ */
+var swapTapeDeck = function() {
+    $landing.find('.poster-static').css('opacity', 0);
+    $landing.find('.poster').css('opacity', 1);
+    $landing.addClass('start');
+
+    $landing.find('.tip-one').addClass('show');
+
+    _.delay(function() {
+        $landing.find('.tip-one').removeClass('show');
+    }, 4000);
+
+    _.delay(function() {
+        $landing.find('.tip-two').addClass('show');
+    }, 5000);
+
+    _.delay(function() {
+        $landing.find('.tip-two').removeClass('show');
+    }, 9000);
+
+    _.delay(function() {
+        $landing.find('.tip-three').addClass('show');
+    }, 10000);
+}
+
+/*
+ * Helper function for getting the song artist and title.
+ * For analytics tracking.
+ */
+var getSongEventName = function(songId) {
+    return SONG_DATA[songId]['artist'] + ' - ' + SONG_DATA[songId]['title'];
+}
+
+/*
+ * Check if play history is visible
+ */
+var toggleHistoryButton = function(e) {
+    if (getIndexOfCurrentSong() < 1) {
+        $historyButton.addClass('offscreen');
+
+        return;
+    }
+
+    var currentSongOffset = $currentSong.offset().top - 50;
+    var windowScrollTop = $(window).scrollTop();
+
+    if (currentSongOffset < windowScrollTop + fixedHeaderHeight){
+        $historyButton.removeClass('offscreen');
+    } else {
+        $historyButton.addClass('offscreen');
+    }
+}
+
+/*
+ * Begin shuffled playback from the landing screen.
+ */
+var onGoButtonClick = function(e) {
+    e.preventDefault();
+
+    ANALYTICS.begin('go');
+
+    swapTapeDeck();
+    $songs.find('.song').remove();
+    playWelcomeAudio();
+
+    if (PLAY_LAST) {
+        nextSongID = songOrder[songOrder.length - 1];    
+    }
+}
+
+/*
+ * Resume listening from the landing screen.
+ */
+var onContinueButtonClick = function(e) {
+    e.preventDefault();
+
+    ANALYTICS.begin('welcome-back');
+
+    $landing.velocity('fadeOut');
+
+    if (PLAY_LAST) {
+        nextSongID = songOrder[songOrder.length - 1];  
+        playNextSong(nextSongID);  
+    } else {
+        playNextSong();
+    }
+}
+
+/*
+ * Skip the welcome audio.
+ */
+var onSkipIntroClick = function(e) {
+    e.stopPropagation();
+
+    playNextSong();
+}
+
+/*
+ * Play only favorited tracks.
+ */
+var onPlayFavoritesClick = function(e) {
+    e.stopPropagation();
+
+    $playFavorites.hide();
+    $playAll.show();
+    
+    playFavorites = true;
+    
+    showFavoriteSongs();
+    updateBackNextButtons();
+
+    if (isSenderCasting) {
+        castSender.sendMessage('play-favorites', favoritedSongs.join(','));
+    } else {
+        // Advance to next track if current track is not in favorites list
+        if (_.indexOf(favoritedSongs, currentSongID) < 0) {
+            playNextSong();
+        } else {
+            $currentSong.velocity('scroll', {
+                duration: 750,
+                offset: -fixedHeaderHeight,
+                complete: function() {
+                    toggleHistoryButton();
+                }
+            });
+        }
+    }
+}
+
+/*
+ * Play all tracks.
+ */
+var onPlayAllClick = function(e) {
+    e.stopPropagation();
+
+    $playAll.hide();
+    $playFavorites.show();
+
+    playFavorites = false;
+
+    showAllSongs();
+    updateBackNextButtons();
+
+    $currentSong.velocity('scroll', {
+        duration: 750,
+        offset: -fixedHeaderHeight,
+        complete: function() {
+            toggleHistoryButton();
+        }
+    });
+
+    if (isSenderCasting) {
+        castSender.sendMessage('play-all');
+    }
+}
+
+
+/*
+ * Initiate fullscreen
+ */
+var onFullscreenStartClick = function(e) {
+    e.preventDefault();
+
+    if (screenfull.enabled) {
+        screenfull.request();  
+    }
+}
+
+/*
+ * Exit fullscreen
+ */
+var onFullscreenStopClick = function(e) {
+    e.preventDefault();
+
+    if (screenfull.enabled) {
+        screenfull.exit();      
+    }
+}
+
+/*
+ * Fullscreen status changed.
+ */
+var onFullscreenChange = function() {
+    if (screenfull.isFullscreen) {
+        ANALYTICS.startFullscreen(); 
+
+        $fullscreenStop.show();
+        $fullscreenStart.hide();         
+    } else {
+        ANALYTICS.stopFullscreen();  
+
+        $fullscreenStop.hide();
+        $fullscreenStart.show();          
+    }
+}
+
+/*
+ * Full-list link clicked.
+ */
+var onFullListClick = function() {
+    ANALYTICS.trackEvent('full-list');
+}
+
+/*
+ * User clicked to begin chromecasting.
+ */
+var onCastStartClick = function(e) {
+    e.preventDefault();
+
+    castSender.startCasting();
+}
+
+/*
+ * User clicked to stop chromecasting.
+ */
+var onCastStopClick = function(e) {
+    e.preventDefault();
+
+    castSender.stopCasting();
+    $castStop.hide();
+    $castStart.show();
+}
+
+
+
+/*
+ * Scroll to the top of the history
+ */
+var onShowHistoryClick = function() {
+    $songs.velocity('scroll');
+}
+
+/*
+ * Play the song, show the pause button
+ */
+var onPlayClick = function(e) {
+    e.preventDefault();
+
+    if (isSenderCasting) {
+        castSender.sendMessage('play');
+    } else {
+        $audioPlayer.jPlayer('play'); 
+    }   
+}
+
+/*
+ * Pause the song, show the play button
+ */
+var onPauseClick = function(e) {
+    e.preventDefault();
+
+    if (isSenderCasting) {
+        castSender.sendMessage('pause');
+    } else {
+        $audioPlayer.jPlayer('pause');
+    }
+}
+
+/*
+ * Handle clicks on the skip button.
+ */
+var onSkipClick = function(e) {
+    e.preventDefault();
+
+    if ($(this).hasClass('disabled')) {
+        return;
+    }
+
+    var songEventName = getSongEventName(currentSongID);
+    ANALYTICS.trackEvent('song-skip', songEventName);
+
+    if (isSenderCasting) {
+        castSender.sendMessage('skip');
+    } else {
+        skipSong();
+    }
+}
+
+/*
+ * User clicked to return to previous song.
+ */
+var onBackClick = function(e) {
+    e.preventDefault();
+
+    if ($(this).hasClass('disabled')) {
+        return;
+    }
+
+    var songEventName = getSongEventName(songOrder[getIndexOfCurrentSong() - 1]);
+    ANALYTICS.trackEvent('song-back', songEventName);
+
+    if (isSenderCasting) {
+        castSender.sendMessage('back');
+    } else {
+        backSong();
+    }   
+}
+
+/*
+ * Toggle played song card size
+ */
+var onSongCardClick = function(e) {
+    var songEventName = getSongEventName(getSongIDFromHTML($(this)));
+
+    if ($(this).hasClass('small')) {
+        ANALYTICS.trackEvent('song-show-details', songEventName);
+    }
+
+    if ($(this).attr('id') !== $currentSong.attr('id')) {
+        $songs.find('.song').not($currentSong).not($(this)).addClass('small');
+        $(this).toggleClass('small');
+    }
+}
+
+/*
+ * Track Amazon clicks on songs.
+ */
+var onAmazonClick = function(e) {
+    var songId = getSongIDFromHTML($(this).parents('.song'));
+    var songName = getSongEventName(songId);
+
+    ANALYTICS.trackEvent('amazon-click', songName);
+
+    e.stopPropagation();
+}
+
+/*
+ * Track iTunes clicks on songs.
+ */
+var oniTunesClick = function(e) {
+    var songId = getSongIDFromHTML($(this).parents('.song'));
+    var songName = getSongEventName(songId);
+
+    ANALYTICS.trackEvent('itunes-click', songName);
+
+    e.stopPropagation();
+}
+
+/*
+ * Track Rdio clicks on songs.
+ */
+var onRdioClick = function(e) {
+    var songId = getSongIDFromHTML($(this).parents('.song'));
+    var songName = getSongEventName(songId);
+
+    ANALYTICS.trackEvent('rdio-click', songName);
+
+    e.stopPropagation();
+}
+
+/*
+ * Track Spotify clicks on songs.
+ */
+var onSpotifyClick = function(e) {
+    var songId = getSongIDFromHTML($(this).parents('.song'));
+    var songName = getSongEventName(songId);
+
+    ANALYTICS.trackEvent('spotify-click', songName);
+
+    e.stopPropagation();
+}
+
+/*
+ * Favorite or unfavorite a track.
+ */
 var onFavoriteClick = function(e) {
     e.stopPropagation();
 
@@ -706,6 +1242,9 @@ var onFavoriteClick = function(e) {
     }
 }
 
+/*
+ * Play link on a specific track clicked.
+ */
 var onJumpToSongClick = function(e) {
     e.stopPropagation();
 
@@ -720,404 +1259,6 @@ var onJumpToSongClick = function(e) {
    } else {
        playNextSong(songID);            
    }
-}
-
-/*
- * Preload song art to make things smoother.
- */
-var preloadSongImages = function() {
-    if (currentSongID == songOrder[songOrder.length - 1]) {
-        return;
-    }
-
-    // Include previous song. Case: castReceiver loads all songs at once so starting at a random point and clicking back would mean the song art was not pre-loaded.
-    var nextSongIDs = [songOrder[getIndexOfCurrentSong() + 1], songOrder[getIndexOfCurrentSong() - 1]];
-
-    _.each(nextSongIDs, function(nextSongID) {
-        var nextSong = SONG_DATA[nextSongID]
-
-        if (!nextSong) {
-            return;
-        }
-
-        if (checkSongArtCached('http://npr.org' + nextSong['song_art']) == false) {
-            var songArt = new Image();
-            songArt.src = 'http://npr.org' + nextSong['song_art'];
-        } else {
-            return;
-        }
-    });      
-}
-
-var checkSongArtCached = function(src) {
-    var songArt = new Image();
-    songArt.src = src;
-
-    return songArt.complete;
-}
-
-/*
- * Update the total songs played
- */
-var updateTotalSongsPlayed = function() {
-    $playedSongs.text(maxSongIndex + 1);
-}
-
-/*
- * Play the song, show the pause button
- */
-var onPlayClick = function(e) {
-    e.preventDefault();
-
-    if (isSenderCasting) {
-        castSender.sendMessage('play');
-    } else {
-        $audioPlayer.jPlayer('play'); 
-    }   
-}
-
-/*
- * Pause the song, show the play button
- */
-var onPauseClick = function(e) {
-    e.preventDefault();
-
-    if (isSenderCasting) {
-        castSender.sendMessage('pause');
-    } else {
-        $audioPlayer.jPlayer('pause');
-    }
-}
-
-/*
- * Handle clicks on the skip button.
- */
-var onSkipClick = function(e) {
-    e.preventDefault();
-
-    if ($(this).hasClass('disabled')) {
-        return;
-    }
-
-    var songEventName = getSongEventName(currentSongID);
-    ANALYTICS.trackEvent('song-skip', songEventName);
-
-    if (isSenderCasting) {
-        castSender.sendMessage('skip');
-    } else {
-        skipSong();
-    }
-}
-
-/*
- * User clicked to return to previous song.
- */
-var onBackClick = function(e) {
-    e.preventDefault();
-
-    if ($(this).hasClass('disabled')) {
-        return;
-    }
-
-    var songEventName = getSongEventName(songOrder[getIndexOfCurrentSong() - 1]);
-    ANALYTICS.trackEvent('song-back', songEventName);
-
-    if (isSenderCasting) {
-        castSender.sendMessage('back');
-    } else {
-        backSong();
-    }   
-}
-
-/*
- * User clicked to skip to the next song
- */
-var skipSong = function() {
-    if (APP_CONFIG.ENFORCE_PLAYBACK_LIMITS) {
-        if (usedSkips.length < APP_CONFIG.SKIP_LIMIT) {
-            usedSkips.push(moment.utc());
-
-            playNextSong();
-            simpleStorage.set('usedSkips', usedSkips);
-            writeSkipsRemaining();
-        } else {
-            $skip.addClass('disabled');
-        }
-    } else {
-        playNextSong();
-    }
-}
-
-/*
- * Return to previous song in the list.
- */
-var backSong = function() {
-    var songs = playFavorites ? favoritedSongs : songOrder;
-    var songID = getSongIDFromHTML($currentSong);
-    var playedIndex = _.indexOf(songs, songID);
-    var previousSongID = songs[playedIndex - 1];
-
-    playNextSong(previousSongID);         
-}
-
-/*
- * User clicked to begin chromecasting.
- */
-var onCastStartClick = function(e) {
-    e.preventDefault();
-
-    castSender.startCasting();
-}
-
-/*
- * User clicked to stop chromecasting.
- */
-var onCastStopClick = function(e) {
-    e.preventDefault();
-
-    castSender.stopCasting();
-    $castStop.hide();
-    $castStart.show();
-}
-
-/*
- * Check to see if some skips are past the skip limit window
- */
-var checkSkips = function() {
-    var now = moment.utc();
-    var skipped = true;
-
-    while (skipped) {
-        skipped = false;
-
-        for (i = 0; i < usedSkips.length; i++) {
-            if (now.subtract(1, 'hour').isAfter(usedSkips[i])) {
-                usedSkips.splice(i, 1);
-                skipped = true;
-                break;
-            }
-        }
-    }
-
-    simpleStorage.set('usedSkips', usedSkips);
-    writeSkipsRemaining();
-}
-
-/*
- * Update the skip limit display
- */
-var writeSkipsRemaining = function() {
-    if (APP_CONFIG.ENFORCE_PLAYBACK_LIMITS) {
-        if (usedSkips.length == APP_CONFIG.SKIP_LIMIT - 1) {
-            $skipsRemaining.text(APP_CONFIG.SKIP_LIMIT - usedSkips.length + ' skip available')
-            $skip.removeClass('disabled');
-        }
-        else if (usedSkips.length == APP_CONFIG.SKIP_LIMIT) {
-            var text = 'Skipping available in ';
-                text += moment(usedSkips[usedSkips.length - 1]).add(1, 'hour').fromNow(true);
-            $skipsRemaining.text(text);
-            $skip.addClass('disabled');
-        }
-        else {
-            $skipsRemaining.text(APP_CONFIG.SKIP_LIMIT - usedSkips.length + ' skips available')
-            $skip.removeClass('disabled');
-        }
-    } else {
-        return null;
-    }
-}
-
-/*
- * Load state from browser storage
- */
-var loadState = function() {
-    favoritedSongs = simpleStorage.get('favoritedSongs') || [];
-    maxSongIndex = simpleStorage.get('maxSongIndex') || null;
-    usedSkips = simpleStorage.get('usedSkips') || [];
-    totalSongsPlayed = simpleStorage.get('totalSongsPlayed') || 0;
-    songOrder = simpleStorage.get('songOrder') || null;
-
-    if (songOrder === null) {
-        shuffleSongs();
-    } 
-
-    if (isReceiverCasting) {
-        $landingFirstDeck.hide();
-        $landingReturnDeck.hide();
-        $landingCastReceiverDeck.show();       
-    } else {
-        if (maxSongIndex !== null) {
-            buildListeningHistory();
-            $landingReturnDeck.show();        
-        } else {
-            $landingFirstDeck.show();       
-        }  
-    }      
-
-    if (favoritedSongs.length > 0) {
-        for (var i = 0; i < favoritedSongs.length; i++) {
-            var $favoritedSong = $('#song-' + favoritedSongs[i]);
-
-            var $songsFavoriteStar = $favoritedSong.find('.favorite .heart').first();
-            
-            $songsFavoriteStar.removeClass('icon-heart-empty');
-            $songsFavoriteStar.addClass('icon-heart');
-        }
-
-        $playToggle.show();
-    }
-
-    checkSkips();
-}
-
-/*
- * Reset everything we can legally reset
- */
-var resetState = function() {
-    simpleStorage.deleteKey('favoritedSongs');
-    simpleStorage.set('maxSongIndex');
-    simpleStorage.set('songOrder');
-}
-
-/*
- * Reset the legal limitations. For development only.
- */
-var resetLegalLimits = function() {
-    simpleStorage.set('usedSkips', usedSkips);
-}
-
-/*
- * Reconstruct listening history from stashed id's.
- */
-var buildListeningHistory = function() {
-    // Remove last played song so we can continue playing the song where we left off. 
-    var lastSongIndex = maxSongIndex; 
-
-    if (castReceiver) {
-        lastSongIndex = songOrder.length - 1;
-    } 
-
-    for (var i = 0; i <= lastSongIndex; i++) {
-        var songID = songOrder[i];
-        var song = SONG_DATA[songID];
-
-        var context = $.extend(APP_CONFIG, song);
-        var html = JST.song(context);
-
-        $songs.append(html);
-    };
-
-    $songs.find('.song').addClass('small');
-}
-
-/*
- * Shuffle the entire list of songs.
- */
-var shuffleSongs = function() {
-    songOrder = _.shuffle(_.keys(SONG_DATA));
-    simpleStorage.set('songOrder', songOrder);
-}
-
-/*
- * Hide the welcome screen and show the playing song
- */
-var hideWelcome  = function($song) {
-    // if (isSenderCasting) {
-    //     $songsWrapper.hide();
-    // }
-
-    $('.songs, .player-container').show();
-    $fixedHeader.show();
-
-    $song.velocity("scroll", { duration: 750, offset: -fixedHeaderHeight });
-    $('.landing-wrapper').hide().css('height', '');
-    $landing.velocity('fadeOut', {
-        duration: 1000,
-        complete: function() {
-            $('.poster').removeClass('shrink').attr('style','');
-        }
-    });
-
-    isPlayingWelcome = false;
-}
-
-/*
- * Animate the tape deck after landing click
- */
-var swapTapeDeck = function() {
-    $landing.find('.poster-static').css('opacity', 0);
-    $landing.find('.poster').css('opacity', 1);
-    $landing.addClass('start');
-
-    $landing.find('.tip-one').addClass('show');
-
-    _.delay(function() {
-        $landing.find('.tip-one').removeClass('show');
-    }, 4000);
-
-    _.delay(function() {
-        $landing.find('.tip-two').addClass('show');
-    }, 5000);
-
-    _.delay(function() {
-        $landing.find('.tip-two').removeClass('show');
-    }, 9000);
-
-    _.delay(function() {
-        $landing.find('.tip-three').addClass('show');
-    }, 10000);
-}
-
-
-/*
- * Begin shuffled playback from the landing screen.
- */
-var onGoButtonClick = function(e) {
-    e.preventDefault();
-
-    ANALYTICS.begin('go');
-
-    swapTapeDeck();
-    $songs.find('.song').remove();
-    playWelcomeAudio();
-
-    if (PLAY_LAST) {
-        nextSongID = songOrder[songOrder.length - 1];    
-    }
-}
-
-/*
- * Resume listening from the landing screen.
- */
-var onContinueButtonClick = function(e) {
-    e.preventDefault();
-
-    ANALYTICS.begin('welcome-back');
-
-    $landing.velocity('fadeOut');
-
-    if (PLAY_LAST) {
-        nextSongID = songOrder[songOrder.length - 1];  
-        playNextSong(nextSongID);  
-    } else {
-        playNextSong();
-    }
-}
-
-/*
- * Toggle played song card size
- */
-var onSongCardClick = function(e) {
-    var songEventName = getSongEventName(getSongIDFromHTML($(this)));
-
-    if ($(this).hasClass('small')) {
-        ANALYTICS.trackEvent('song-show-details', songEventName);
-    }
-
-    if ($(this).attr('id') !== $currentSong.attr('id')) {
-        $songs.find('.song').not($currentSong).not($(this)).addClass('small');
-        $(this).toggleClass('small');
-    }
 }
 
 /*
@@ -1179,129 +1320,6 @@ var onDocumentKeyDown = function(e) {
             break;
     }
     return true;
-}
-
-/*
- * Track Amazon clicks on songs.
- */
-var onAmazonClick = function(e) {
-    var songId = getSongIDFromHTML($(this).parents('.song'));
-    var songName = getSongEventName(songId);
-
-    ANALYTICS.trackEvent('amazon-click', songName);
-
-    e.stopPropagation();
-}
-
-/*
- * Track iTunes clicks on songs.
- */
-var oniTunesClick = function(e) {
-    var songId = getSongIDFromHTML($(this).parents('.song'));
-    var songName = getSongEventName(songId);
-
-    ANALYTICS.trackEvent('itunes-click', songName);
-
-    e.stopPropagation();
-}
-
-/*
- * Track Rdio clicks on songs.
- */
-var onRdioClick = function(e) {
-    var songId = getSongIDFromHTML($(this).parents('.song'));
-    var songName = getSongEventName(songId);
-
-    ANALYTICS.trackEvent('rdio-click', songName);
-
-    e.stopPropagation();
-}
-
-/*
- * Track Spotify clicks on songs.
- */
-var onSpotifyClick = function(e) {
-    var songId = getSongIDFromHTML($(this).parents('.song'));
-    var songName = getSongEventName(songId);
-
-    ANALYTICS.trackEvent('spotify-click', songName);
-
-    e.stopPropagation();
-}
-
-/*
- * Helper function for getting the song artist and title.
- * For analytics tracking.
- */
-var getSongEventName = function(songId) {
-    return SONG_DATA[songId]['artist'] + ' - ' + SONG_DATA[songId]['title'];
-}
-
-/*
- * Scroll to the top of the history
- */
-var onShowHistoryClick = function() {
-    $songs.velocity('scroll');
-}
-
-/*
- * Check if play history is visible
- */
-var toggleHistoryButton = function(e) {
-    if (getIndexOfCurrentSong() < 1) {
-        $historyButton.addClass('offscreen');
-
-        return;
-    }
-
-    var currentSongOffset = $currentSong.offset().top - 50;
-    var windowScrollTop = $(window).scrollTop();
-
-    if (currentSongOffset < windowScrollTop + fixedHeaderHeight){
-        $historyButton.removeClass('offscreen');
-    } else {
-        $historyButton.addClass('offscreen');
-    }
-}
-
-/*
- * Initiate fullscreen
- */
-var onFullscreenStartClick = function(e) {
-    e.preventDefault();
-
-    if (screenfull.enabled) {
-        screenfull.request();  
-    }
-}
-
-/*
- * Exit fullscreen
- */
-var onFullscreenStopClick = function(e) {
-    e.preventDefault();
-
-    if (screenfull.enabled) {
-        screenfull.exit();      
-    }
-}
-
-var onFullscreenChange = function() {
-    if (screenfull.isFullscreen) {
-        ANALYTICS.startFullscreen(); 
-
-        $fullscreenStop.show();
-        $fullscreenStart.hide();         
-    } else {
-        ANALYTICS.stopFullscreen();  
-
-        $fullscreenStop.hide();
-        $fullscreenStart.show();          
-    }
-}
-
-var onFullListClick = function() {
-    ANALYTICS.trackEvent('full-list');
 }
 
 /*
