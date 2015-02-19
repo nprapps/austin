@@ -244,6 +244,9 @@ var onCastReceiverCreated = function(receiver) {
     castReceiver.onMessage('play-all', onCastReceiverPlayAll);
 }
 
+/*
+ * Sender connected to existing session.
+ */
 var onCastReceiverAddSender = function() {
     if (currentSongID !== null) {
         castReceiver.sendMessage('now-playing', currentSongID);        
@@ -356,6 +359,139 @@ var onCastSenderStopped = function() {
 }
 
 /*
+ * Sender requested receiver prepare for playback.
+ */
+var onCastReceiverInit = function(senderSongOrder) {
+    isReceiverCasting = true;
+
+    $landingCastReceiverDeck.show();      
+    $landingFirstDeck.hide();
+    $landingReturnDeck.hide();
+
+    senderSongOrder = senderSongOrder.split(',');
+    songOrder = senderSongOrder;
+    simpleStorage.set('songOrder', songOrder);
+
+    $songs.find('.song').remove();
+    buildListeningHistory();
+
+    castReceiver.sendMessage('ready-to-play');
+}
+
+/*
+ * Sender requested that receiver begin playing.
+ */
+var onCastReceiverPlay = function(songId) {
+    $audioPlayer.jPlayer('play');
+}
+
+/*
+ * Sender requested that receiver pause.
+ */
+var onCastReceiverPause = function() {
+    $audioPlayer.jPlayer('pause');
+}
+
+/*
+ * Sender requested that receiver skip to the next song.
+ */
+var onCastReceiverSkipSong = function() {
+    skipSong();
+}
+
+/*
+ * Sender requested that the receiver go back to the previous song.
+ */
+var onCastReceiverBack = function() {
+    backSong();
+}
+
+/*
+ * Send requested that the receiver start a particular song.
+ */
+var onCastReceiverStartSong = function(songId) {
+    songId = parseInt(songId);
+
+    $fixedHeader.show();
+    $songsWrapper.show();
+    $landing.hide();    
+
+    playNextSong(songId);
+}
+
+/*
+ * Sender requested that the receiver begin playing only favorites.
+ */
+var onCastReceiverPlayFavorites = function(favorites) {
+    favoritedSongs = favorites.split(',');
+    playFavorites = true;
+    
+    // Advance to next track if current track is not in favorites list
+    if (_.indexOf(favoritedSongs, currentSongID) < 0) {
+        playNextSong();
+    }
+}
+
+/*
+ * Sender requested that the receiver return to playing all tracks.
+ */
+var onCastReceiverPlayAll = function() {
+    playFavorites = false;
+}
+
+/*
+ * Receiver reported it is ready to begin playing.
+ */
+var onCastSenderReadyToPlay = function() {
+    var songId = currentSongID || getNextSongID();
+
+    if (playFavorites) {
+        castSender.sendMessage('play-favorites', favoritedSongs.join(','));
+    }
+        
+    castSender.sendMessage('start-song', songId);
+}
+
+/*
+ * Receiver reported that it is now playing a song.
+ */
+var onCastSenderNowPlaying = function(songId) {
+    playNextSong(songId);
+}
+
+/*
+ * Receiver reported it is now playing audio.
+ */
+var onCastSenderPlay = function() {
+    $play.hide();
+    $pause.show(); 
+}
+
+/*
+ * Receiver reported audio is now paused.
+ */
+var onCastSenderPause = function() {
+    $play.show();
+    $pause.hide();
+}
+
+/*
+ * Receiver reported it is now playing favorites.
+ */
+var onCastSenderPlayingFavorites = function() {
+    $playFavorites.hide();
+    $playAll.show();
+    
+    playFavorites = true;
+    
+    showFavoriteSongs();
+    updateBackNextButtons();
+
+    // Refresh favorites list on receiver
+    castSender.sendMessage('play-favorites', favoritedSongs.join(','));
+}
+
+/*
  * Begin chromecasting.
  */
 var onCastStartClick = function(e) {
@@ -373,99 +509,7 @@ var onCastStopClick = function(e) {
     $castStart.show();
 }
 
-var onCastReceiverPlay = function(songId) {
-    $audioPlayer.jPlayer('play');
-}
 
-var onCastReceiverPause = function() {
-    $audioPlayer.jPlayer('pause');
-}
-
-var onCastReceiverSkipSong = function() {
-    skipSong();
-}
-
-var onCastReceiverBack = function() {
-    backSong();
-}
-
-var onCastReceiverStartSong = function(songId) {
-    songId = parseInt(songId);
-
-    $fixedHeader.show();
-    $songsWrapper.show();
-    $landing.hide();    
-
-    playNextSong(songId);
-}
-
-var onCastReceiverPlayFavorites = function(favorites) {
-    favoritedSongs = favorites.split(',');
-    playFavorites = true;
-    
-    // Advance to next track if current track is not in favorites list
-    if (_.indexOf(favoritedSongs, currentSongID) < 0) {
-        playNextSong();
-    }
-}
-
-var onCastReceiverPlayAll = function() {
-    playFavorites = false;
-}
-
-var onCastSenderReadyToPlay = function() {
-    var songId = currentSongID || getNextSongID();
-
-    if (playFavorites) {
-        castSender.sendMessage('play-favorites', favoritedSongs.join(','));
-    }
-        
-    castSender.sendMessage('start-song', songId);
-}
-
-var onCastSenderNowPlaying = function(songId) {
-    playNextSong(songId);
-}
-
-var onCastSenderPlay = function() {
-    $play.hide();
-    $pause.show(); 
-}
-
-var onCastSenderPause = function() {
-    $play.show();
-    $pause.hide();
-}
-
-var onCastSenderPlayingFavorites = function() {
-    $playFavorites.hide();
-    $playAll.show();
-    
-    playFavorites = true;
-    
-    showFavoriteSongs();
-    updateBackNextButtons();
-
-    // Refresh favorites list on receiver
-    castSender.sendMessage('play-favorites', favoritedSongs.join(','));
-}
-
-var onCastReceiverInit = function(senderSongOrder) {
-    isReceiverCasting = true;
-
-    $landingCastReceiverDeck.show();      
-    $landingFirstDeck.hide();
-    $landingReturnDeck.hide();
-
-    senderSongOrder = senderSongOrder.split(',');
-    songOrder = senderSongOrder;
-    simpleStorage.set('songOrder', songOrder);
-
-    $songs.find('.song').remove();
-    buildListeningHistory();
-
-    castReceiver.sendMessage('ready-to-play');
-}
 
 /*
  * Configure jPlayer.
