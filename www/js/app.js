@@ -178,6 +178,7 @@ var onDocumentLoad = function(e) {
         resetLegalLimits();
     }
     
+    setupChromecastLanding();
     loadState();
     setupAudio();
 
