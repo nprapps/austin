@@ -772,7 +772,7 @@ var getNextSongID = function() {
  * Animate transition forward or backward to the next song to play.
  */
 var transitionToNextSong = function($fromSong, $toSong) {
-    // toSong is in the history  
+    // toSong is in the history
     if ($toSong.offset().top < $fromSong.offset().top) {
         $toSong.velocity("scroll", {
             duration: 350,
@@ -788,7 +788,7 @@ var transitionToNextSong = function($fromSong, $toSong) {
             }
         });
     // toSong is in history, but further down the list than fromSong
-    } else if ($toSong.hasClass('small') && $toSong.attr('id') !== $fromSong.next().attr('id')) {
+    } else if ($toSong.attr('id') !== $songs.children().last().attr('id') && $toSong.attr('id') !== $fromSong.next().attr('id')) {
         var shrinkOffset = $fromSong.outerHeight() - $toSong.outerHeight();
         $("html").velocity('scroll', {
             duration: 300,
