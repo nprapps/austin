@@ -52,7 +52,7 @@
 @tag-11: darken(#416ab8, 10%);
 
 // Z-indexes
-@z-player-controls: 100;
+@z-player-controls: 1050;
 @z-player-info: 100;
 @z-fixed-header: 200;
 @z-fixed-player: 500;
@@ -1236,7 +1236,7 @@ h1,h2,h3,h4,h5,h6 {
 		margin-right: @grid-gutter-width / 2;
 		position: absolute;
 		left: 0;
-		right: 0;
+		right: auto;
 		top: 2rem;
 		height: 4rem;
 		line-height: 4rem;
@@ -1247,6 +1247,7 @@ h1,h2,h3,h4,h5,h6 {
 			text-align: center;
 			margin-right: 0;
 			top: 1.5rem;
+			right: 0;
 			height: 3rem;
 			line-height: 2rem;
 		}
@@ -1357,15 +1358,17 @@ h1,h2,h3,h4,h5,h6 {
 	}
 
 	.playback-info {
+		left: 11.5rem;
 		right: 0.5rem;
-		top: 2.4rem;
+		top: 3.5rem;
+		bottom: 0;
 		text-align: right;
 		line-height: 1.4;
 		position: absolute;
 
 		p {
 			line-height: 1.5;
-			margin-bottom: 0.2rem;
+			margin-bottom: 0;
 		}
 
 		.is-cast-receiver & {
@@ -1416,6 +1419,20 @@ h1,h2,h3,h4,h5,h6 {
 		}
 	}
 
+	.skips {
+		@media screen and (min-width: @screen-sm) {
+			 .no-touch & {
+			 	display: none;
+			 }  
+
+			 position: absolute;
+			 left: 0;
+			 bottom: 0;
+			 right: auto;
+			 text-align: left;
+		}
+	}
+
 	.favorites-count {
 		display: none;
 	}
@@ -1457,23 +1474,63 @@ h1,h2,h3,h4,h5,h6 {
 
 	.play-toggle {
 		right: 0.5rem;
-	    display: none;
 
 	    .label {
 	    	font-size: @font-size-base * 0.785;
 	    	line-height: @font-size-base * 1.5;
 	    	vertical-align: middle;
-	    	color: #999;
+	    	text-transform: uppercase;
+
+
+		    @media screen and (max-width: @screen-xs-max){
+		    	font-size: @font-size-base * 0.715;
+		    }
+	    }
+
+	    .play-all,
+	    .play-favorites {
+	    	&:hover {
+	    		text-decoration: none;
+	    	}
 	    }
 
 	    .play-all {
 	        display: none;
 	    }
 
-	    .icon-heart {
+	    .play-favorites.disabled,
+	    .play-favorites.disabled.label {
+	    	color: #fff;
+	    	opacity: 0.1;
+	    }
+
+    	.icon-heart {
 	    	display: inline-block;
 	    	width: 1.5rem;
 	    }
+
+	    @media screen and (min-width: @screen-sm){
+			top: 3rem;
+
+		    .icon-heart {
+		    	width: 1rem;
+		    }
+
+		    .icon-heart,
+		    .fa-music {
+		    	font-size: 1rem;
+		    	line-height: 1.5rem;
+		    	vertical-align: middle;
+		    }
+	    }
+	}
+
+	.tooltip.fade.in {
+		z-index: 700;
+	}
+
+	.tooltip .tooltip-arrow {
+		bottom: 1px;
 	}
 }
 
@@ -1483,7 +1540,7 @@ h1,h2,h3,h4,h5,h6 {
 .player-button:hover {
 	display: inline-block;
 	height: 4rem;
-	width: 4rem;
+	width: 3.2rem;
 	background: @gray-dark;
 	color: @music-red-light;
 	line-height: 3rem;
@@ -1491,9 +1548,20 @@ h1,h2,h3,h4,h5,h6 {
 	font-size: @font-size-base * 3;
 	vertical-align: middle;
 
+	.icon-forward,
+	.icon-backward,
+	.icon-play,
+	.icon-pause,
+	.icon-play:before,
+	.icon-pause:before,
+	.icon-forward:before,
+	.icon-backward:before {
+		margin: 0;
+	}
+
 	&.back,
 	&.skip {
-		width: 2.5rem;
+		width: 2rem;
 		font-size: @font-size-base * 2;
 	}
 

@@ -690,8 +690,6 @@ var loadState = function() {
             $songsFavoriteStar.removeClass('icon-heart-empty');
             $songsFavoriteStar.addClass('icon-heart');
         }
-
-        $playToggle.show();
     }
 
     checkSkips();
@@ -768,16 +766,22 @@ var checkSkips = function() {
 var writeSkipsRemaining = function() {
     if (APP_CONFIG.ENFORCE_PLAYBACK_LIMITS) {
         if (usedSkips.length == APP_CONFIG.SKIP_LIMIT - 1) {
+
+            var numberOfSkipsAvailable = APP_CONFIG.SKIP_LIMIT - usedSkips.length + ' skips available';
+            $skip.tooltip('hide').attr('title', numberOfSkipsAvailable).tooltip('fixTitle').tooltip('show');
             $skipsRemaining.text(APP_CONFIG.SKIP_LIMIT - usedSkips.length + ' skip available')
             $skip.removeClass('disabled');
         }
         else if (usedSkips.length == APP_CONFIG.SKIP_LIMIT) {
             var text = 'Skipping available in ';
                 text += moment(usedSkips[usedSkips.length - 1]).add(1, 'hour').fromNow(true);
+            $skip.tooltip('hide').attr('title', text).tooltip('fixTitle').tooltip('show');  
             $skipsRemaining.text(text);
             $skip.addClass('disabled');
         }
         else {
+            var numberOfSkipsAvailable = APP_CONFIG.SKIP_LIMIT - usedSkips.length + ' skips available';
+            $skip.tooltip('hide').attr('title', numberOfSkipsAvailable).tooltip('fixTitle').tooltip('show');
             $skipsRemaining.text(APP_CONFIG.SKIP_LIMIT - usedSkips.length + ' skips available')
             $skip.removeClass('disabled');
         }
@@ -941,7 +945,12 @@ var onSkipIntroClick = function(e) {
  * Play only favorited tracks.
  */
 var onPlayFavoritesClick = function(e) {
+    e.preventDefault();
     e.stopPropagation();
+
+    if ($(this).hasClass('disabled')) {
+        return;
+    }
 
     $playFavorites.hide();
     $playAll.show();
@@ -1244,7 +1253,7 @@ var onFavoriteClick = function(e) {
     }
 
     if (favoritedSongs.length > 0) {
-        $playToggle.show();
+        $playFavorites.removeClass('disabled');
 
         // Update castReceiver's list of favorites
         if (playFavorites) {
@@ -1257,9 +1266,8 @@ var onFavoriteClick = function(e) {
             }
         }
     } else {
-        $playToggle.hide();
         $playAll.hide();
-        $playFavorites.show();
+        $playFavorites.addClass('disabled').show();
 
         if (playFavorites) {
             playFavorites = false;
@@ -1281,9 +1289,9 @@ var onFavoriteClick = function(e) {
 
 var checkNumberOfFavorites = function() {
     if (favoritedSongs.length === 0) {
-        $playFavorites.hide();
+        $playFavorites.addClass('disabled');
     } else {
-        $playFavorites.show();
+        $playFavorites.removeClass('disabled');
         updateNumberOfFavorites();
     }
 }
