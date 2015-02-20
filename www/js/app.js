@@ -544,7 +544,7 @@ var setSongHeight = function($song){
     }
 
     if ($song !== null) {
-        windowHeight = Modernizr.touch ? window.innerHeight || $(window).height() : $(window).height();
+        windowHeight = is_touch ? window.innerHeight || $(window).height() : $(window).height();
         songHeight = windowHeight - $player.height() - $fixedHeader.height();
 
         $song.find('.container-fluid').css('height', songHeight);
@@ -768,22 +768,30 @@ var writeSkipsRemaining = function() {
         if (usedSkips.length == APP_CONFIG.SKIP_LIMIT - 1) {
 
             var numberOfSkipsAvailable = APP_CONFIG.SKIP_LIMIT - usedSkips.length + ' skips available';
-            $skip.tooltip('hide').attr('title', numberOfSkipsAvailable).tooltip('fixTitle').tooltip('show');
+            if (!is_touch){
+                $skip.tooltip('hide').attr('title', numberOfSkipsAvailable).tooltip('fixTitle').tooltip('show');
+            }
             $skipsRemaining.text(APP_CONFIG.SKIP_LIMIT - usedSkips.length + ' skip available')
             $skip.removeClass('disabled');
         }
         else if (usedSkips.length == APP_CONFIG.SKIP_LIMIT) {
             var text = 'Skipping available in ';
                 text += moment(usedSkips[usedSkips.length - 1]).add(1, 'hour').fromNow(true);
-            $skip.tooltip('hide').attr('title', text).tooltip('fixTitle').tooltip('show');  
+            if (!is_touch){
+                $skip.tooltip('hide').attr('title', text).tooltip('fixTitle').tooltip('show');  
+            }
             $skipsRemaining.text(text);
             $skip.addClass('disabled');
         }
         else {
             var numberOfSkipsAvailable = APP_CONFIG.SKIP_LIMIT - usedSkips.length + ' skips available';
-            $skip.tooltip('hide').attr('title', numberOfSkipsAvailable).tooltip('fixTitle').tooltip('show');
             $skipsRemaining.text(APP_CONFIG.SKIP_LIMIT - usedSkips.length + ' skips available')
             $skip.removeClass('disabled');
+
+            if (!is_touch){
+                $skip.tooltip('hide').attr('title', numberOfSkipsAvailable).tooltip('fixTitle').tooltip('show');
+            }
+
         }
     } else {
         return null;

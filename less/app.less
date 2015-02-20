@@ -1527,10 +1527,20 @@ h1,h2,h3,h4,h5,h6 {
 
 	.tooltip.fade.in {
 		z-index: 700;
+		width: auto;
+		opacity: 1;
 	}
 
 	.tooltip .tooltip-arrow {
 		bottom: 1px;
+		border-top-color: @white;
+	}
+
+	.tooltip .tooltip-inner {
+		min-width: 10rem;
+		border-radius: 0;
+		color: @text-color;
+		background: @white;
 	}
 }
 
