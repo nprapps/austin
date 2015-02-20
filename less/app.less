@@ -1285,7 +1285,7 @@ h1,h2,h3,h4,h5,h6 {
 	.artist {
 		font-size: @font-size-base;
 		letter-spacing: 0.1rem;
-		margin-bottom: 0.25rem;
+		margin-bottom: 0.3rem;
 	}
 
 	.song-title {
@@ -1360,7 +1360,7 @@ h1,h2,h3,h4,h5,h6 {
 	.playback-info {
 		left: 11.5rem;
 		right: 0.5rem;
-		top: 3.5rem;
+		top: 3.6rem;
 		bottom: 0;
 		text-align: right;
 		line-height: 1.4;
@@ -1401,37 +1401,40 @@ h1,h2,h3,h4,h5,h6 {
 		@media screen and (min-width: @screen-sm){
 			position: absolute;
 		}
-	}
 
-	.skips,
-	.favorites-count,
-	.playlist-progress {
-		color: #999;
-		text-transform: uppercase;
-		font-size: @font-size-base * 0.785;
-		padding: 0;
-		line-height: 1.2;
+		.skips,
+		.favorites-count,
+		.playlist-progress {
+			color: #999;
+			text-transform: uppercase;
+			font-size: @font-size-base * 0.785;
+			padding: 0;
+			line-height: 1.5;
 
-		@media screen and (max-width: @screen-xs-max){
-			font-size: @font-size-base * 0.715;
-			margin-bottom: 0;
-			line-height: 1;
+			@media screen and (max-width: @screen-xs-max){
+				font-size: @font-size-base * 0.715;
+				margin-bottom: 0;
+				line-height: 1;
+			}
+		}
+
+		.skips {
+			@media screen and (min-width: @screen-sm) {
+				 .no-touch & {
+				 	display: none;
+				 }  
+
+				 position: absolute;
+				 left: 0;
+				 bottom: 0.1rem;
+				 right: auto;
+				 text-align: left;
+				 line-height: 1;
+			}
 		}
 	}
 
-	.skips {
-		@media screen and (min-width: @screen-sm) {
-			 .no-touch & {
-			 	display: none;
-			 }  
 
-			 position: absolute;
-			 left: 0;
-			 bottom: 0;
-			 right: auto;
-			 text-align: left;
-		}
-	}
 
 	.favorites-count {
 		display: none;
@@ -1500,6 +1503,7 @@ h1,h2,h3,h4,h5,h6 {
 
 	    .play-favorites.disabled,
 	    .play-favorites.disabled.label {
+	    	cursor: not-allowed;
 	    	color: #fff;
 	    	opacity: 0.1;
 	    }
