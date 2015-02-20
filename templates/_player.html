@@ -27,6 +27,7 @@
                         </div>
                         <div class="playback-info">
                             <p class="playlist-progress"><span class="played-songs"></span> of {{ total_songs }} songs played</p>
+                            <p class="favorites-count"><span class="number-of-favorites"></span> of {{ total_songs }} songs favorited</p>
                             <p class="skips"><span class="skips-remaining"></span></p>
                         </div>
 
@@ -39,7 +40,11 @@
                         </div>
 
                         <div class="play-toggle visible-xs">
-                            <a href="#" class="play-favorites"><span class="label">Play favorites</span> <span class="icon-heart"></span></a>
+                            <a href="#" class="play-favorites">
+                                <span class="label">Play favorites
+                                </span>
+                                <span class="icon-heart"></span>
+                            </a>
                             <a href="#" class="play-all"><span class="label">Play all songs</span> <span class="fa fa-music"></span></a>
                         </div>
                     </div>

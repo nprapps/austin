@@ -66,6 +66,7 @@ var isFirstPlay = true;
 var currentSongID = null;
 var maxSongIndex = null;
 var playFavorites = false;
+var numberOfFavorites = null;
 
 var isSenderCasting = false;
 var isReceiverCasting = false;
@@ -112,6 +113,7 @@ var onDocumentLoad = function(e) {
     $skipIntroButton = $('.skip-intro');
     $playToggle = $('.play-toggle');
     $playFavorites = $('.play-favorites');
+    $numberOfFavorites = $('.number-of-favorites');
     $playAll = $('.play-all');
 
     $fullscreenButtons = $('.fullscreen');
@@ -693,6 +695,8 @@ var loadState = function() {
     }
 
     checkSkips();
+
+    checkNumberOfFavorites();
 }
 
 /*
@@ -943,6 +947,7 @@ var onPlayFavoritesClick = function(e) {
     $playAll.show();
     
     playFavorites = true;
+    $html.addClass('playing-favorites');
     
     showFavoriteSongs();
     updateBackNextButtons();
@@ -975,6 +980,7 @@ var onPlayAllClick = function(e) {
     $playFavorites.show();
 
     playFavorites = false;
+    $html.removeClass('playing-favorites');    
 
     showAllSongs();
     updateBackNextButtons();
@@ -1269,6 +1275,26 @@ var onFavoriteClick = function(e) {
             }
         }
     }
+
+    checkNumberOfFavorites();
+}
+
+var checkNumberOfFavorites = function() {
+    if (favoritedSongs.length === 0) {
+        $playFavorites.hide();
+    } else {
+        $playFavorites.show();
+        updateNumberOfFavorites();
+    }
+}
+
+var updateNumberOfFavorites = function() {
+    $numberOfFavorites.text(favoritedSongs.length);
+    // if (favoritedSongs.length > 1) {
+    //     $playFavorites.find('.plural-favorites').show();    
+    // } else {
+    //     $playFavorites.find('.plural-favorites').hide(); 
+    // }
 }
 
 /*

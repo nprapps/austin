@@ -1385,7 +1385,8 @@ h1,h2,h3,h4,h5,h6 {
 				right: 0;
 			}
 
-			.playlist-progress {
+			.playlist-progress,
+			.favorites-count {
 				left: 0;
 			}
 		}
@@ -1396,6 +1397,7 @@ h1,h2,h3,h4,h5,h6 {
 	}
 
 	.skips,
+	.favorites-count,
 	.playlist-progress {
 		color: #999;
 		text-transform: uppercase;
@@ -1407,6 +1409,20 @@ h1,h2,h3,h4,h5,h6 {
 			font-size: @font-size-base * 0.715;
 			margin-bottom: 0;
 			line-height: 1;
+		}
+	}
+
+	.favorites-count {
+		display: none;
+	}
+
+	.playing-favorites & {
+		.playlist-progress {
+			display: none;
+		}
+
+		.favorites-count {
+			display: block;
 		}
 	}
 
