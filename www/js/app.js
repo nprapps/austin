@@ -179,11 +179,6 @@ var onDocumentLoad = function(e) {
         resetState();
         resetLegalLimits();
     }
-    
-    if (APP_CONFIG.ENFORCE_PLAYBACK_LIMITS) {
-        $('.play-song-button').hide();
-        console.log('done')
-    }
 
     setupChromecastLanding();
     loadState();
