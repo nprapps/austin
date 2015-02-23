@@ -30,18 +30,8 @@ var onCastReceiverCreated = function(receiver) {
     $html.addClass('is-cast-receiver');
     $player.find('.controls').hide();
     $fixedHeader.find('.fixed-header-controls').hide();
-    $historyButton.hide();
-}
-
-/*
- * Chromecast receiver mode activated.
- */
-var onCastReceiverCreated = function(receiver) {
-    castReceiver = receiver;
-
-    $html.addClass('is-cast-receiver');
-    $player.find('.controls').hide();
-    $fixedHeader.find('.fixed-header-controls').hide();
+    $skipsRemaining.hide();
+    $playFavorites.hide();
     $historyButton.hide();
 
     castReceiver.onMessage('init', onCastReceiverInit);

@@ -1613,3 +1613,23 @@ h1,h2,h3,h4,h5,h6 {
 .current-song {
 	position: relative;
 }
+
+@cast-padding-w: 3rem;
+@cast-padding-h: 1.5rem;
+
+.is-cast-receiver {
+	.fixed-header {
+		padding-top: @cast-padding-h;
+		padding-left: @cast-padding-w;
+		height: 6rem;
+	}
+
+	.player-container {
+		padding: 0 @cast-padding-w @cast-padding-h @cast-padding-w;
+	}
+
+	.song {
+		padding-left: @cast-padding-w;
+		padding-right: @cast-padding-w;
+	}
+}
