@@ -543,14 +543,16 @@ var shrinkSong = function($el) {
  *  Set the height of the currently playing song to fill the viewport.
  */
 var setSongHeight = function($song){
+    windowHeight = is_touch ? window.innerHeight || $(window).height() : $(window).height();
+    songHeight = windowHeight - $player.height() - $fixedHeader.height();
+
+    $songs.css('min-height', windowHeight - $player.height());
+
     if (_.isUndefined($song) && $currentSong !== null) {
         $song = $currentSong;
     }
 
     if ($song !== null) {
-        windowHeight = is_touch ? window.innerHeight || $(window).height() : $(window).height();
-        songHeight = windowHeight - $player.height() - $fixedHeader.height();
-
         $song.find('.container-fluid').css('height', songHeight);
         $song.css('min-height', songHeight);
         $song.removeClass('small');
@@ -985,7 +987,7 @@ var onPlayFavoritesClick = function(e) {
             playNextSong();
         } else {
             $currentSong.velocity('scroll', {
-                duration: 750,
+                duration: 0,
                 offset: -fixedHeaderHeight,
                 complete: function() {
                     toggleHistoryButton();
@@ -1011,7 +1013,7 @@ var onPlayAllClick = function(e) {
     updateBackNextButtons();
 
     $currentSong.velocity('scroll', {
-        duration: 750,
+        duration: 0,
         offset: -fixedHeaderHeight,
         complete: function() {
             toggleHistoryButton();
