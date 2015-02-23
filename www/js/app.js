@@ -180,6 +180,11 @@ var onDocumentLoad = function(e) {
         resetLegalLimits();
     }
     
+    if (APP_CONFIG.ENFORCE_PLAYBACK_LIMITS) {
+        $('.play-song-button').hide();
+        console.log('done')
+    }
+
     setupChromecastLanding();
     loadState();
     setupAudio();
@@ -789,7 +794,7 @@ var writeSkipsRemaining = function() {
             $skipsRemaining.text(text);
             $skip.addClass('disabled');
         }
-        // If there is mroe than one skip left
+        // If there is more than one skip left
         else {
             var numberOfSkipsAvailable = APP_CONFIG.SKIP_LIMIT - usedSkips.length + ' skips available';
 
