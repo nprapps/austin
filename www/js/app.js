@@ -638,13 +638,15 @@ var backSong = function() {
  * Show only favorite songs in the list.
  */
 var showFavoriteSongs = function() {
-    $songs.find('.song').hide();
+    var $favoritedSongs = [];
 
     for (var i = 0; i < favoritedSongs.length; i++) {
         var songId = favoritedSongs[i];
 
-        $('#song-' + songId).show();
+        $favoritedSongs.push($('#song-' + songId)[0]);
     }
+
+    $songs.find('.song').not($favoritedSongs).hide();
 }
 
 /*
@@ -686,7 +688,7 @@ var loadState = function() {
         for (var i = 0; i < favoritedSongs.length; i++) {
             var $favoritedSong = $('#song-' + favoritedSongs[i]);
 
-            var $songsFavoriteStar = $favoritedSong.find('.favorite .heart').first();
+            var $songsFavoriteStar = $favoritedSong.find('.favorite .heart');
             
             $songsFavoriteStar.removeClass('icon-heart-empty');
             $songsFavoriteStar.addClass('icon-heart');
