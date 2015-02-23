@@ -766,15 +766,18 @@ var checkSkips = function() {
  */
 var writeSkipsRemaining = function() {
     if (APP_CONFIG.ENFORCE_PLAYBACK_LIMITS) {
+        // If there is only one skip left
         if (usedSkips.length == APP_CONFIG.SKIP_LIMIT - 1) {
 
-            var numberOfSkipsAvailable = APP_CONFIG.SKIP_LIMIT - usedSkips.length + ' skips available';
+            var numberOfSkipsAvailable = APP_CONFIG.SKIP_LIMIT - usedSkips.length + ' skip available';
             if (!is_touch){
                 $skip.tooltip('hide').attr('title', numberOfSkipsAvailable).tooltip('fixTitle').tooltip('show');
             }
-            $skipsRemaining.text(APP_CONFIG.SKIP_LIMIT - usedSkips.length + ' skip available')
+
+            $skipsRemaining.text(numberOfSkipsAvailable);
             $skip.removeClass('disabled');
         }
+        // If all skips used
         else if (usedSkips.length == APP_CONFIG.SKIP_LIMIT) {
             var text = 'Skipping available in ';
                 text += moment(usedSkips[usedSkips.length - 1]).add(1, 'hour').fromNow(true);
@@ -784,15 +787,16 @@ var writeSkipsRemaining = function() {
             $skipsRemaining.text(text);
             $skip.addClass('disabled');
         }
+        // If there is mroe than one skip left
         else {
             var numberOfSkipsAvailable = APP_CONFIG.SKIP_LIMIT - usedSkips.length + ' skips available';
-            $skipsRemaining.text(APP_CONFIG.SKIP_LIMIT - usedSkips.length + ' skips available')
-            $skip.removeClass('disabled');
 
             if (!is_touch){
                 $skip.tooltip('hide').attr('title', numberOfSkipsAvailable).tooltip('fixTitle').tooltip('show');
             }
 
+            $skipsRemaining.text(numberOfSkipsAvailable);
+            $skip.removeClass('disabled');
         }
     } else {
         return null;
