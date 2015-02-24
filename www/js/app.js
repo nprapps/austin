@@ -820,13 +820,17 @@ var hideWelcome  = function($song) {
 
     $('.songs, .player-container').show();
     $fixedHeader.show();
-
-    $song.velocity("scroll", { duration: 750, offset: -fixedHeaderHeight });
-    $('.landing-wrapper').hide().css('height', '');
-    $landing.velocity('fadeOut', {
-        duration: 1000,
+    $song.velocity("scroll", {
+        duration: 750,
+        offset: -fixedHeaderHeight,
         complete: function() {
-            $('.poster').removeClass('shrink').attr('style','');
+            $('.landing-wrapper').hide().css('height', '');
+            $landing.velocity('fadeOut', {
+                duration: 1000,
+                complete: function() {
+                    $('.poster').removeClass('shrink').attr('style','');
+                }
+            });
         }
     });
 
