@@ -29,7 +29,7 @@
                         <li><a target="_blank" href="http://podcastdownload.npr.org/anon.npr-mp3<%= download_url %>.mp3" class="download"><span class="icon-download-cloud"></span> <span class="label">Download Song</span></a></li>
                         <% } %>
                         <li><a class="favorite"><span class="heart icon-heart-empty"></span> <span class="label">Favorite Song</span></a></li>
-                        <% if (!ENFORCE_PLAYBACK_LIMITS) { %>}
+                        <% if (!ENFORCE_PLAYBACK_LIMITS) { %>
                         <li><a href="#" class="play-song-button"><span class="fa fa-play-circle fa-fw"></span> <span class="label">Play song</span></a></li>
                         <% } %>
                     </ul>
@@ -40,7 +40,7 @@
                 <% if (castReceiver === null) { %>
                 <ul class="song-tools song-tools-small list-unstyled">
                     <li><a class="favorite"><span class="heart icon-heart-empty"></span> <span class="label">Favorite Song</span></a></li>
-                    <% if (!ENFORCE_PLAYBACK_LIMITS) { %>}                    
+                    <% if (!ENFORCE_PLAYBACK_LIMITS) { %>                  
                     <li><a href="#" class="play-song-button"><span class="fa fa-play-circle fa-fw"></span> <span class="label">Play song</span></a></li>
                     <% } %>
                 </ul>

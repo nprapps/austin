@@ -54,7 +54,6 @@ var PLAY_LAST = (window.location.search.indexOf('playlast') >= 0);
 // Global state
 var firstShareLoad = true;
 var isPlayingWelcome = true;
-var playedsongCount = null;
 var usedSkips = [];
 var totalSongsPlayed = 0;
 var songHeight = null;
@@ -178,11 +177,6 @@ var onDocumentLoad = function(e) {
     if (RESET_STATE) {
         resetState();
         resetLegalLimits();
-    }
-    
-    if (APP_CONFIG.ENFORCE_PLAYBACK_LIMITS) {
-        $('.play-song-button').hide();
-        console.log('done')
     }
 
     setupChromecastLanding();
@@ -1264,6 +1258,11 @@ var onFavoriteClick = function(e) {
         var indexOfSongToUnfavorite = _.indexOf(favoritedSongs, songID);
         favoritedSongs.splice(indexOfSongToUnfavorite, 1);
 
+        // If the unfavorite leaves the favoritedSongs list empty, revert the song count text to 'all songs' mode
+        if (favoritedSongs.length === 0) {
+            $html.removeClass('playing-favorites');
+        };
+
         // favoritedSongs must be in the same order as songOrder
         favoritedSongs = _.sortBy(favoritedSongs, function(songId) { 
             return _.indexOf(songOrder, songId); 
@@ -1322,11 +1321,6 @@ var checkNumberOfFavorites = function() {
 
 var updateNumberOfFavorites = function() {
     $numberOfFavorites.text(favoritedSongs.length);
-    // if (favoritedSongs.length > 1) {
-    //     $playFavorites.find('.plural-favorites').show();    
-    // } else {
-    //     $playFavorites.find('.plural-favorites').hide(); 
-    // }
 }
 
 /*
