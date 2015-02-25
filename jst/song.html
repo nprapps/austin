@@ -1,18 +1,28 @@
 <div class="song" id='song-<%= id %>'>
     <div class="container-fluid">
         <div class="song-info">
-            <img class="album-cover img-responsive" src="http://npr.org<%= song_art %>">
+            <!-- <img class="album-cover img-responsive" src="http://npr.org<%= song_art %>"> -->
+            <img class="album-cover img-responsive" src="http://npr.org/assets/img/2015/02/23/gabi-by-timothy-saccenti.jpg">
             <div class="song-info-wrapper">
                 <h2 class="artist"><%= artist %></h2>
                 <h1 class="song-title">&lsquo;<%= title %>&rsquo;</h1>
 
                 <div class="review-wrapper">
-                    <p class="hometown">Hometown: <%= hometown %></p>
-                    <p class="description"><%= description %></p>
-                    <p class="website"><a target="_blank" href="<%= learn_more_url %>">More about this band <i class="fa fa-angle-right"></i></a></p>
 
                     <% if (castReceiver === null) { %>
-                    <ul class="song-tools list-unstyled">
+                    <ul class="song-tools song-actions list-unstyled">
+                        <li><a class="favorite"><span class="heart icon-heart-empty"></span> <span class="label">Favorite Song</span></a></li>
+                        <% if (!ENFORCE_PLAYBACK_LIMITS) { %>
+                        <li><a href="#" class="play-song-button"><span class="fa fa-play-circle fa-fw"></span> <span class="label">Play song</span></a></li>
+                        <% } %>
+                    </ul>
+                    <% } %>
+
+                    <p class="hometown">Hometown: <%= hometown %></p>
+                    <p class="description"><%= description %> </p>
+
+                    <% if (castReceiver === null) { %>
+                    <ul class="song-tools song-links list-unstyled">
                         <% if (asin) { %>
                         <li><a target="_blank" href="http://amazon.com/dp/<%= asin %>?tag=npr-5-20" class="amazon"><span class="icon-amazon"></span> <span class="label">Buy on Amazon</span></a></li>
                         <% } %>
@@ -27,10 +37,6 @@
                         <% } %>
                         <% if (DOWNLOADS_ALLOWED) { %>
                         <li><a target="_blank" href="http://podcastdownload.npr.org/anon.npr-mp3<%= download_url %>.mp3" class="download"><span class="icon-download-cloud"></span> <span class="label">Download Song</span></a></li>
-                        <% } %>
-                        <li><a class="favorite"><span class="heart icon-heart-empty"></span> <span class="label">Favorite Song</span></a></li>
-                        <% if (!ENFORCE_PLAYBACK_LIMITS) { %>
-                        <li><a href="#" class="play-song-button"><span class="fa fa-play-circle fa-fw"></span> <span class="label">Play song</span></a></li>
                         <% } %>
                     </ul>
                     <% } %>
