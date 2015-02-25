@@ -1401,6 +1401,8 @@ h1,h2,h3,h4,h5,h6 {
 
 		@media screen and (min-width: @screen-sm){
 			position: absolute;
+			top: auto;
+			bottom: 0.1rem;
 		}
 
 		.skips,
@@ -1493,13 +1495,30 @@ h1,h2,h3,h4,h5,h6 {
 
 	    .play-all,
 	    .play-favorites {
+	    	@media screen and (min-width: @screen-sm){
+	    		.btn;
+	    		.btn-default;
+	    		display: inline-block;
+	    		background: transparent;
+	    		border-color: @music-red-light;
+	    		color: @music-red-light;
+
+	    		.label {
+	    			line-height: 1;
+	    		}
+
+	    		&:hover {
+	    			.no-touch & {
+	    				background-color: @music-red-light;
+	    				border-color: @music-red-light;
+	    				color: #fff;
+	    			}
+	    		}
+	    	}
+
 	    	&:hover {
 	    		text-decoration: none;
 	    	}
-	    }
-
-	    .play-all {
-	        display: none;
 	    }
 
 	    .play-favorites.disabled,
@@ -1515,7 +1534,7 @@ h1,h2,h3,h4,h5,h6 {
 	    }
 
 	    @media screen and (min-width: @screen-sm){
-			top: 3rem;
+			top: 3.2rem;
 
 		    .icon-heart {
 		    	width: 1rem;

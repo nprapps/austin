@@ -970,8 +970,8 @@ var onPlayFavoritesClick = function(e) {
         return;
     }
 
-    $playFavorites.hide();
-    $playAll.show();
+    $playFavorites.addClass('hide');
+    $playAll.removeClass('hide');
     
     playFavorites = true;
     $html.addClass('playing-favorites');
@@ -1003,8 +1003,8 @@ var onPlayFavoritesClick = function(e) {
 var onPlayAllClick = function(e) {
     e.stopPropagation();
 
-    $playAll.hide();
-    $playFavorites.show();
+    $playAll.addClass('hide');
+    $playFavorites.removeClass('hide');
 
     playFavorites = false;
     $html.removeClass('playing-favorites');    
@@ -1289,7 +1289,7 @@ var onFavoriteClick = function(e) {
             }
         }
     } else {
-        $playAll.hide();
+        $playAll.addClass('hide');
         $playFavorites.addClass('disabled').show();
 
         if (playFavorites) {
