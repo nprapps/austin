@@ -179,6 +179,11 @@ var onDocumentLoad = function(e) {
         resetLegalLimits();
     }
 
+    if (APP_CONFIG.ENFORCE_PLAYBACK_LIMITS) {
+        $html.addClass('enforce-playback-limits');
+        $playFavorites.hide();
+    }
+
     setupChromecastLanding();
     loadState();
     setupAudio();
@@ -696,7 +701,9 @@ var loadState = function() {
 
     checkSkips();
 
-    checkNumberOfFavorites();
+    if (!APP_CONFIG.ENFORCE_PLAYBACK_LIMITS) {
+        checkNumberOfFavorites();        
+    }
 }
 
 /*
@@ -1275,39 +1282,41 @@ var onFavoriteClick = function(e) {
         }
     }
 
-    if (favoritedSongs.length > 0) {
-        $playFavorites.removeClass('disabled');
+    if (!APP_CONFIG.ENFORCE_PLAYBACK_LIMITS) {
+        if (favoritedSongs.length > 0) {
+            $playFavorites.removeClass('disabled');
 
-        // Update castReceiver's list of favorites
-        if (playFavorites) {
-            if (isSenderCasting) {
-                castSender.sendMessage('play-favorites', favoritedSongs.join(','));
-            } else {
-                if (_.indexOf(favoritedSongs, songID) < 0) {
+            // Update castReceiver's list of favorites
+            if (playFavorites) {
+                if (isSenderCasting) {
+                    castSender.sendMessage('play-favorites', favoritedSongs.join(','));
+                } else {
+                    if (_.indexOf(favoritedSongs, songID) < 0) {
+                        playNextSong();
+                    }
+                }
+            }
+        } else {
+            $playAll.addClass('hide');
+            $playFavorites.addClass('disabled').show();
+
+            if (playFavorites) {
+                playFavorites = false;
+
+                showAllSongs();
+                updateBackNextButtons();
+
+                if (isSenderCasting) {
+                    castSender.sendMessage('play-all');
+                    $currentSong.velocity('scroll', { duration: 750, offset: -fixedHeaderHeight });
+                } else {
                     playNextSong();
                 }
             }
-        }
-    } else {
-        $playAll.addClass('hide');
-        $playFavorites.addClass('disabled').show();
+        }  
 
-        if (playFavorites) {
-            playFavorites = false;
-
-            showAllSongs();
-            updateBackNextButtons();
-
-            if (isSenderCasting) {
-                castSender.sendMessage('play-all');
-                $currentSong.velocity('scroll', { duration: 750, offset: -fixedHeaderHeight });
-            } else {
-                playNextSong();
-            }
-        }
+        checkNumberOfFavorites();        
     }
-
-    checkNumberOfFavorites();
 }
 
 var checkNumberOfFavorites = function() {

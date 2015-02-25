@@ -1403,6 +1403,11 @@ h1,h2,h3,h4,h5,h6 {
 			position: absolute;
 			top: auto;
 			bottom: 0.1rem;
+
+			.enforce-playback-limits & {
+				bottom: auto;
+				top: 2.5rem;
+			}
 		}
 
 		.skips,
@@ -1507,6 +1512,10 @@ h1,h2,h3,h4,h5,h6 {
 	    			line-height: 1;
 	    		}
 
+	    		&.disabled {
+	    			background: transparent;
+	    		}
+
 	    		&:hover {
 	    			.no-touch & {
 	    				background-color: @music-red-light;
@@ -1581,6 +1590,7 @@ h1,h2,h3,h4,h5,h6 {
 	text-align: center;
 	font-size: @font-size-base * 3;
 	vertical-align: middle;
+	outline: 0;
 
 	.icon-forward,
 	.icon-backward,
