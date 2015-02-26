@@ -868,6 +868,7 @@ h1,h2,h3,h4,h5,h6 {
 			@media screen and (max-width: @screen-xs-max){
 				.song-title {
 					text-indent: -0.4rem;
+					margin-bottom: 1rem;
 				}
 
 				.tag-header {
@@ -954,6 +955,12 @@ h1,h2,h3,h4,h5,h6 {
 		color: #666;
 		font-size: @font-size-base * 0.785;
 		letter-spacing: 0.1rem;
+
+		.touch & {
+			@media screen and (max-width: @screen-xs-max){
+				font-size: @font-size-base;
+			}
+		}
 	}
 
 	.website {
@@ -1082,6 +1089,13 @@ h1,h2,h3,h4,h5,h6 {
 		clear: left;
 		text-align: right;
 	}
+
+	.touch & {
+		@media screen and (max-width: @screen-xs-max){
+			font-size: @font-size-base * 1.1;
+			margin-bottom: @line-height-computed / 2;
+		}
+	}
 }
 
 .song-tools {
@@ -1117,15 +1131,20 @@ h1,h2,h3,h4,h5,h6 {
 			min-height: 33px;
 
 			@media screen and (max-width: @screen-xs-max){
-				width: 50%;
+				width: 100% / 3;
 				float: left;
 				margin-bottom: 4px;
 
-				&:nth-child(odd){
+				&:nth-child(1n){
 					padding-right: 2px;
 				}
 
-				&:nth-child(even){
+				&:nth-child(2n){
+					padding-left: 2px;
+					padding-right: 2px;
+				}
+
+				&:nth-child(3n){
 					padding-left: 2px;
 				}
 
@@ -1182,10 +1201,12 @@ h1,h2,h3,h4,h5,h6 {
 				.btn-default;
 				display: block;
 				width: 100%;
+				padding: 0.75rem;
 				background: transparent;
 				border-color: desaturate(@tag-1, 10%);
 				color: desaturate(@tag-1, 10%);
 				text-align: left;
+				font-size: @font-size-base * 1.1;
 
 				&:hover {
 					background: transparent;
