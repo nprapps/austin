@@ -11,9 +11,9 @@
 
                     <% if (castReceiver === null) { %>
                     <ul class="song-tools song-actions list-unstyled">
-                        <li><a class="favorite"><span class="heart icon-heart-empty"></span> <span class="label">Favorite Song</span></a></li>
+                        <li><a class="favorite"><span class="icon heart icon-heart-empty"></span> Favorite Song</a></li>
                         <% if (!ENFORCE_PLAYBACK_LIMITS) { %>
-                        <li><a href="#" class="play-song-button"><span class="fa fa-play-circle fa-fw"></span> <span class="label">Play song</span></a></li>
+                        <li><a href="#" class="play-song-button"><span class="icon fa fa-play-circle fa-fw"></span> Play song</a></li>
                         <% } %>
                     </ul>
                     <% } %>
@@ -22,21 +22,29 @@
                     <p class="description"><%= description %> </p>
 
                     <% if (castReceiver === null) { %>
-                    <ul class="song-tools song-links list-unstyled">
+                    <% if (itunes||DOWNLOADS_ALLOWED||asin) { %>
+                    <h3>Get The Song</h3>
+                    <% } %>
+                    <ul class="song-tools song-links buy list-unstyled">
+                        <% if (DOWNLOADS_ALLOWED) { %>
+                        <li><a target="_blank" href="http://podcastdownload.npr.org/anon.npr-mp3<%= download_url %>.mp3" class="download"><span class="icon icon-download-cloud"></span> Download</a></li>
+                        <% } %>
                         <% if (asin) { %>
-                        <li><a target="_blank" href="http://amazon.com/dp/<%= asin %>?tag=npr-5-20" class="amazon"><span class="icon-amazon"></span> <span class="label">Buy on Amazon</span></a></li>
+                        <li><a target="_blank" href="http://amazon.com/dp/<%= asin %>?tag=npr-5-20" class="amazon"><span class="icon icon-amazon"></span> Amazon</a></li>
                         <% } %>
                         <% if (itunes) { %>
-                        <li><a target="_blank" href="<%= itunes %>&at=11l79Y" class="itunes"><span class="icon-appstore"></span> <span class="label">Buy on iTunes</span></a></li>
+                        <li><a target="_blank" href="<%= itunes %>&at=11l79Y" class="itunes"><span class="icon icon-appstore"></span> iTunes</a></li>
                         <% } %>
+                    </ul>
+                    <% if (rdio||spotify) { %>
+                    <h3>Stream</h3>
+                    <% } %>
+                    <ul class="song-tools song-links stream list-unstyled">
                         <% if (rdio) { %>
-                        <li><a target="_blank" href="<%= rdio %>" class="rdio"><span class="icon-rdio"></span> <span class="label">Listen on Rdio</span></a></li>
+                        <li><a target="_blank" href="<%= rdio %>" class="rdio"><span class="icon icon-rdio"></span> Rdio</a></li>
                         <% } %>
                         <% if (spotify) { %>
-                        <li><a target="_blank" href="<%= spotify %>" class="spotify"><span class="icon-spotify-circled"></span> <span class="label">Listen on Spotify</span></a></li>
-                        <% } %>
-                        <% if (DOWNLOADS_ALLOWED) { %>
-                        <li><a target="_blank" href="http://podcastdownload.npr.org/anon.npr-mp3<%= download_url %>.mp3" class="download"><span class="icon-download-cloud"></span> <span class="label">Download Song</span></a></li>
+                        <li><a target="_blank" href="<%= spotify %>" class="spotify"><span class="icon icon-spotify-circled"></span> Spotify</a></li>
                         <% } %>
                     </ul>
                     <% } %>
@@ -45,9 +53,9 @@
 
                 <% if (castReceiver === null) { %>
                 <ul class="song-tools song-tools-small list-unstyled">
-                    <li><a class="favorite"><span class="heart icon-heart-empty"></span> <span class="label">Favorite Song</span></a></li>
-                    <% if (!ENFORCE_PLAYBACK_LIMITS) { %>                  
-                    <li><a href="#" class="play-song-button"><span class="fa fa-play-circle fa-fw"></span> <span class="label">Play song</span></a></li>
+                    <li><a class="favorite"><span class="heart icon icon-heart-empty"></span></a></li>
+                    <% if (!ENFORCE_PLAYBACK_LIMITS) { %>
+                    <li><a href="#" class="play-song-button"><span class="fa icon fa-play-circle fa-fw"></span></a></li>
                     <% } %>
                 </ul>
                 <% } %>
