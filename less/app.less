@@ -1168,6 +1168,14 @@ h1,h2,h3,h4,h5,h6 {
 			}
 		}
 
+		.no-touch & {
+			&:hover {
+				color: #fff;
+				border-color: #fff;
+				background: transparent;
+			}
+		}
+
 		.touch & {
 			@media screen and (max-width: @screen-xs-max){
 				.btn;
@@ -1604,6 +1612,7 @@ h1,h2,h3,h4,h5,h6 {
 	    		background: transparent;
 	    		border-color: @music-red-light;
 	    		color: @music-red-light;
+	    		.transition(all 0.3s ease-in-out);
 
 	    		.label {
 	    			line-height: 1;
