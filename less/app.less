@@ -1207,7 +1207,9 @@ h1,h2,h3,h4,h5,h6 {
 	top: 50%;
 	right: @grid-gutter-width / 2;
 	left: auto;
-	margin-top: -@font-size-base * 3 / 2;
+	margin-top: -0.75rem;
+	margin-bottom: 0;
+	overflow: visible;
 	.scale(0);
 	.transition(all 0.1s ease-in-out);
 
@@ -1231,6 +1233,7 @@ h1,h2,h3,h4,h5,h6 {
 
 		.icon {
 			font-size: @font-size-base * 1.5;
+			position: static;
 		}
 	}
 
