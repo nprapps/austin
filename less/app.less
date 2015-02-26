@@ -221,16 +221,17 @@ h1,h2,h3,h4,h5,h6 {
 		max-height: 100%;
 	}
 
-	.slug {
+	.title + h2 {
 		text-transform: uppercase;
 		font-family: @font-family-condensed;
-		font-size: @font-size-large;
+		font-size: @font-size-small;
+		letter-spacing: 0.1rem;
 		margin: 0 0 @line-height-computed / 2;
-		color: @music-red-light;
+		color: @gray-light;
 	}
 
 	.title {
-		font-size: @font-size-base * 2;
+		font-size: @font-size-base * 3;
 		line-height: 1;
 		font-family: 'Gotham';
 		text-transform: uppercase;
