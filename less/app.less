@@ -1180,8 +1180,9 @@ h1,h2,h3,h4,h5,h6 {
 				text-align: left;
 
 				&:hover {
-					background: desaturate(@tag-1, 10%);
-					color: #fff;
+					background: transparent;
+					border-color: desaturate(@tag-1, 10%);
+					color: desaturate(@tag-1, 10%);
 				}
 
 				&.favorite,
@@ -1190,8 +1191,8 @@ h1,h2,h3,h4,h5,h6 {
 					color: @music-red-light;
 
 					&:hover {
-						background: @music-red-light;
-						color: #fff;
+						border-color: @music-red-light;
+						color: @music-red-light;
 					}
 				}
 			}
