@@ -332,7 +332,7 @@ var playNextSong = function(nextSongID) {
 
     if (!isSenderCasting) {
         // Start audio playback
-        var nextsongURL = 'http://podcastdownload.npr.org/anon.npr-mp3' + nextSong['download_url'] + '.mp3';
+        var nextsongURL = 'http://podcastdownload.npr.org/anon.npr-mp3' + nextSong['stream_url'] + '.mp3';
 
         $audioPlayer.jPlayer('setMedia', {
             mp3: nextsongURL
