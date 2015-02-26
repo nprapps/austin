@@ -676,6 +676,36 @@ h1,h2,h3,h4,h5,h6 {
 // Playlist
 // --------------------------------------------------
 
+.mobile-share {
+	// padding: 0 1rem;
+	background: #142129;
+	overflow: hidden;
+
+	li {
+		width: 50%;
+		padding: 0;
+		float: left;
+
+		&:first-child {
+			padding-right: 2px;
+		}
+
+		&:last-child {
+			padding-left: 2px;
+		}
+	}
+
+	li a {
+		display: block;
+		height: 3rem;
+		line-height: 3rem;
+		vertical-align: middle;
+		text-align: center;
+		background-color: @music-dark;
+		color: @music-medium;
+	}
+}
+
 .show-history,
 .show-history:hover,
 .show-history:focus,
@@ -1113,7 +1143,6 @@ h1,h2,h3,h4,h5,h6 {
 
 		.touch & {
 			min-height: 33px;
-			font-size: 2rem;
 		}
 	}
 
