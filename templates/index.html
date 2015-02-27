@@ -4,7 +4,7 @@
 <div class="landing">
     <div class="landing-wrapper">
         <div class="landing-content">
-            <a target="_blank" href="http://npr.org/music"><img class="logo img-responsive" src="{{ S3_BASE_URL }}/assets/img/npr_music_rgb.svg"></a>
+            <a target="_blank" href="http://npr.org/music"><img class="logo img-responsive" src="http://media.npr.org/chrome/music/music-logo.svg"></a>
             <div class="landing-card">
                 <h1 class="title">{{ COPY.content.brand }}</h1>
                 <h2>{{ COPY.content.subtitle }}</h2>
@@ -39,8 +39,14 @@
             </div>
         </div>
     </div>
-    <div class="poster-static">
+    <div class="covervid-wrapper">
+        <video class="covervid-video" poster="./assets/img/intro/crowd000.jpg" loop="true">
+            <source src="./assets/img/intro/crowd.mp4" type="video/mp4">
+            <source src="./assets/img/intro/crowd.webm" type="video/webm">
+        </video>
     </div>
+<!--     <div class="poster-static">
+    </div> -->
     <div class="poster">
         <p class="tip-one">Turn up your volume</p>
         <p class="tip-two">Turn down the lights</p>

@@ -30,6 +30,9 @@ var $fullList = null;
 var $skipIntroButton = null;
 var $playFavorites = null;
 var $playAll = null;
+var $video = null;
+var $videoWrapper = null;
+
 
 // In-app cast buttons
 var $castButtons = null;
@@ -114,6 +117,8 @@ var onDocumentLoad = function(e) {
     $playFavorites = $('.play-favorites');
     $numberOfFavorites = $('.number-of-favorites');
     $playAll = $('.play-all');
+    $video = $('.covervid-video');
+    $videoWrapper = $('.covervid-wrapper');
 
     $fullscreenButtons = $('.fullscreen');
     $fullscreenStart = $('.fullscreen .start');
@@ -187,6 +192,12 @@ var onDocumentLoad = function(e) {
     setupChromecastLanding();
     loadState();
     setupAudio();
+
+    $video.coverVid(1280, 720);
+
+    if(!is_touch){
+        $video.get(0).play();
+    }
 
     $(document).keydown(onDocumentKeyDown);
 

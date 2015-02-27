@@ -123,7 +123,7 @@ h1,h2,h3,h4,h5,h6 {
 // --------------------------------------------------
 
 .landing {
-	text-align: right;
+	text-align: center;
 	clear: both;
 	display: none;
 	position: fixed;
@@ -134,8 +134,10 @@ h1,h2,h3,h4,h5,h6 {
 	z-index: 600;
 	overflow: hidden;
 
-	@media screen and (max-width: @screen-xs-max){
-		text-align: left;
+	.touch & {
+		background-image: url("../assets/img/intro/crowd077.jpg");
+		background-size: cover;
+		background-position: center center;
 	}
 
 	.landing-firstload-deck,
@@ -144,18 +146,19 @@ h1,h2,h3,h4,h5,h6 {
 	}
 
 	.landing-wrapper {
+		position: absolute;
 		padding: 20px;
-		width: 100% / 3;
+		width: 100%;
+		top: 0;
 		left: 0;
-		background-color: white;
+		z-index: 100;
+		background-color: transparent;
 		display: table;
+		opacity: 1;
+		.transition(opacity 1s ease-in-out);
 
-		@media screen and (min-aspect-ratio: 2/1) {
-			width: 40%;
-		}
-
-		@media screen and (max-width: @screen-xs-max){
-			width: 100%;
+		.start& {
+			opacity: 0;
 		}
 	}
 
@@ -197,7 +200,7 @@ h1,h2,h3,h4,h5,h6 {
 	}
 
 	.landing-content {
-		background: @white;
+		// background: @white;
 		display: table-cell;
 		vertical-align: middle;
 	}
@@ -238,7 +241,7 @@ h1,h2,h3,h4,h5,h6 {
 		margin: 2rem 0 @line-height-computed / 2;
 		color: @music-red-light;
 		letter-spacing: 0.1rem;
-		color: #333;
+		color: #fff;
 
 		@media screen and (max-width: @screen-xs-max){
 			font-size: @font-size-base * 3.2;
@@ -313,6 +316,7 @@ h1,h2,h3,h4,h5,h6 {
 			.btn-sm;
 
 			color: @music-hp-link-color;
+			background: transparent;
 			border-color: @music-hp-link-color;
 			text-transform: uppercase;
 			font-size: @font-size-base * 0.785;
@@ -329,7 +333,8 @@ h1,h2,h3,h4,h5,h6 {
 .songs-wrapper {
 	display: block;
 
-	.poster {
+	.poster,
+	.poster-static {
 		position: fixed;
 		display: none;
 
@@ -339,17 +344,37 @@ h1,h2,h3,h4,h5,h6 {
 	}
 }
 
-.poster,
-.poster-static {
+.covervid-wrapper video {
+	display: block;
+	width: 100%;
 	position: absolute;
-	height: 100%;
+	top: 0;
+	right: 0;
 	bottom: 0;
+	left: 0;
+}
+
+.covervid-wrapper {
+	.touch & {
+		display: none;
+	}
 }
 
 .poster,
-.poster-static {
+.poster-static,
+.covervid-wrapper {
+	position: absolute;
+	height: 100%;
+	width: 100%:
+	top: 0;
+}
+
+.poster,
+.poster-static,
+.covervid-wrapper {
 	right: 0;
-	width: 100% * 2/3;
+	top: 0;
+	width: 100%;
 	background-repeat: no-repeat;
 	background-position: left center;
 	overflow: hidden;
@@ -367,18 +392,6 @@ h1,h2,h3,h4,h5,h6 {
 			background-position: 67% center;
 		}
 	}
-
-	&:after {
-		content: ' ';
-		background: @tag-3;
-		opacity: 0.6;
-		position: absolute;
-		top: 0;
-		right: 0;
-		bottom: 0;
-		left: 0;
-	}
-
 }
 
 .poster-static {
@@ -389,33 +402,6 @@ h1,h2,h3,h4,h5,h6 {
 
 .poster {
 	opacity: 0;
-	background: fadeout(@tag-5, 15%);
-
-	&:before {
-		content: ' ';
-		background-image: url('../assets/img/tape.gif');
-		background-size: cover;
-		position: absolute;
-		top: 0;
-		right: 0;
-		left: 0;
-		height: 100%;
-		opacity: 1;
-		.transition(opacity 1s ease-in-out);
-	}
-
-	@media screen and (max-width: @screen-xs-max){
-		width: 0;
-	}
-
-	.start& {
-		width: 100%;
-
-		&:after {
-			.animation(cycle-colors 8s infinite linear);
-		}
-	}
-
 	&.shrink {
 		cursor: pointer;
 
