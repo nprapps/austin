@@ -76,11 +76,17 @@ def clean_songs(verify):
             # Verify links
             if verify:
                 try:
-                    audio_link = 'http://pd.npr.org/anon.npr-mp3%s.mp3' % row['download_url']
-                    audio_request = requests.head(audio_link)
+                    stream_url = 'http://podcastdownload.npr.org/anon.npr-mp3%s.mp3' % row['stream_url']
+                    stream_request = requests.head(stream_url)
 
-                    if audio_request.status_code != 200:
-                        print '--> %s The audio URL is invalid: %s' % (audio_request.status_code, audio_link)
+                    if stream_request.status_code != 302:
+                        print '--> %s The stream url is invalid: %s' % (stream_request.status_code, stream_url)
+
+                    foo="""download_url = row['download_url'].replace('pd.npr.org', 'podcastdownload.npr.org')
+                    download_request = requests.head(download_url)
+
+                    if download_request.status_code != 200:
+                        print '--> %s The download URL is invalid: %s' % (download_request.status_code, download_url)"""
 
                     song_art_link = 'http://www.npr.org%s' % row['song_art']
                     song_art_request = requests.head(song_art_link)
