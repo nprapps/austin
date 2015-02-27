@@ -853,7 +853,7 @@ var hideWelcome  = function($song) {
  * Animate the tape deck after landing click
  */
 var swapTapeDeck = function() {
-    $landing.find('.poster-static').css('opacity', 0);
+    // $landing.find('.poster-static').css('opacity', 0);
     $landing.find('.poster').css('opacity', 1);
     $landing.addClass('start');
 
