@@ -459,6 +459,22 @@ var getNextSongID = function() {
  * Animate transition forward or backward to the next song to play.
  */
 var transitionToNextSong = function($fromSong, $toSong) {
+
+    var scrollToNextSong = function(){
+        $toSong.velocity("scroll", {
+            duration: 500,
+            offset: -(fixedHeaderHeight),
+            delay: 300,
+            begin: function() {
+                $(document).off('scroll');
+            },
+            complete: function() {
+                $(document).on('scroll', onDocumentScroll);
+                toggleHistoryButton();
+            }
+        });
+    }
+
     // toSong is in the history
     if ($toSong.offset().top < $fromSong.offset().top) {
         $toSong.velocity("scroll", {
@@ -485,19 +501,7 @@ var transitionToNextSong = function($fromSong, $toSong) {
             },
             complete: function() {
                 setSongHeight($toSong);
-
-                $toSong.velocity("scroll", {
-                    duration: 500,
-                    offset: -(fixedHeaderHeight),
-                    delay: 300,
-                    begin: function() {
-                        $(document).off('scroll');
-                    },
-                    complete: function() {
-                        $(document).on('scroll', onDocumentScroll);
-                        toggleHistoryButton();
-                    }
-                });
+                scrollToNextSong();
             }
         });
     // toSong is newly added to the list
@@ -514,16 +518,7 @@ var transitionToNextSong = function($fromSong, $toSong) {
                 $toSong.velocity('fadeIn', {
                     duration: 300,
                     complete: function(){
-                        $(this).velocity("scroll", {
-                            duration: 500,
-                            offset: -fixedHeaderHeight,
-                            delay: 300,
-                            complete: function() {
-                                $(document).on('scroll', onDocumentScroll);
-
-                                toggleHistoryButton();
-                            }
-                        });
+                        scrollToNextSong();
                     }
                 });
             }
