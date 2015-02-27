@@ -832,6 +832,7 @@ h1,h2,h3,h4,h5,h6 {
 		}
 
 		@media screen and (max-width: @screen-xs-max){
+			vertical-align: top;
 			padding-top: 0;
 		}
 
@@ -1376,7 +1377,7 @@ h1,h2,h3,h4,h5,h6 {
 			text-align: center;
 			margin-right: 0;
 			left: 0;
-			top: 1.5rem;
+			top: 0.3rem;
 			right: 0;
 			height: 3rem;
 			line-height: 2rem;
@@ -1432,6 +1433,11 @@ h1,h2,h3,h4,h5,h6 {
 		right: 0;
 		z-index: 500;
 		height: 2rem;
+
+		@media screen and (max-width: @screen-xs-max){
+			top: auto;
+			bottom: 1rem;
+		}
 
 		.current-time,
 		.duration {
@@ -1510,7 +1516,7 @@ h1,h2,h3,h4,h5,h6 {
 			left: 0.5rem;
 			right: 0.5rem;
 			top: auto;
-			bottom: 0;
+			bottom: 0.2rem;
 			text-align: left;
 			z-index: 500;
 
@@ -1598,6 +1604,12 @@ h1,h2,h3,h4,h5,h6 {
 		a {
 			color: @music-red-light;
 			font-size: @font-size-base * 1.5;
+		}
+
+		@media screen and (max-width: @screen-xs-max){
+			.transform(none);
+			top: 0;
+			line-height: 3.4rem;
 		}
 	}
 
