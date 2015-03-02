@@ -128,7 +128,7 @@ DISQUS_UUID = '211d091e-a573-11e4-a82b-14109fed4b76'
 CHROMECAST_APP_ID = None
 CHROMECAST_NAMESPACE = 'urn:x-cast:nprviz.austin'
 
-WELCOME_AUDIO = '/npr/specialmusic/2014/12/20141208_specialmusic_welcome.mp3'
+WELCOME_AUDIO = '/%s/assets/austin-intro.mp3' % PROJECT_SLUG
 
 SKIP_LIMIT = 6
 
@@ -169,6 +169,7 @@ def configure_targets(deployment_target):
     global DEPLOYMENT_TARGET
     global DISQUS_SHORTNAME
     global CHROMECAST_APP_ID
+    global WELCOME_AUDIO
 
     if deployment_target == 'production':
         S3_BUCKET = PRODUCTION_S3_BUCKET
@@ -178,7 +179,7 @@ def configure_targets(deployment_target):
         SERVER_BASE_URL = 'http://%s/%s' % (SERVERS[0], PROJECT_SLUG)
         SERVER_LOG_PATH = '/var/log/%s' % PROJECT_FILENAME
         DISQUS_SHORTNAME = 'npr-news'
-        CHROMECAST_APP_ID = '6122CF9A' 
+        CHROMECAST_APP_ID = '6122CF9A'
         DEBUG = False
     elif deployment_target == 'staging':
         S3_BUCKET = STAGING_S3_BUCKET
@@ -199,6 +200,7 @@ def configure_targets(deployment_target):
         SERVER_LOG_PATH = '/tmp'
         DISQUS_SHORTNAME = 'nprviz-test'
         CHROMECAST_APP_ID = '649AB354'
+        WELCOME_AUDIO = '/assets/austin-intro.mp3'
         DEBUG = True
 
     DEPLOYMENT_TARGET = deployment_target

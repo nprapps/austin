@@ -64,7 +64,7 @@ var favoritedSongs = [];
 var songOrder = null;
 var isFirstPlay = true;
 var currentSongID = null;
-var maxSongIndex = null;
+var maxSongIndex = 0;
 var playFavorites = false;
 var numberOfFavorites = null;
 
@@ -286,7 +286,7 @@ var onAudioTimeUpdate = function(e) {
  */
 var playWelcomeAudio = function() {
     $audioPlayer.jPlayer('setMedia', {
-        mp3: 'http://podcastdownload.npr.org/anon.npr-mp3' + APP_CONFIG.WELCOME_AUDIO
+        mp3: APP_CONFIG.WELCOME_AUDIO
     });
 
     $playerArtist.text('');
@@ -439,7 +439,7 @@ var getNextSongID = function() {
     var songs = getCurrentSongList();
 
     // If the user has played songs before
-    if (maxSongIndex !== null) {
+    if (maxSongIndex > 0) {
         // If this is the first play of the session, play the last song that was ever played
         if (isFirstPlay) {
             nextSongID = songs[maxSongIndex];
@@ -674,7 +674,7 @@ var loadState = function() {
         $landingReturnDeck.hide();
         $landingCastReceiverDeck.show();
     } else {
-        if (maxSongIndex !== null) {
+        if (maxSongIndex > 0) {
             buildListeningHistory();
             $landingReturnDeck.show();
         } else {
