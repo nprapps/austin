@@ -212,7 +212,7 @@ var onDocumentLoad = function(e) {
         'onSenderStarted': onCastSenderStarted,
         'onSenderReconnected': onCastSenderReconnected,
         'onSenderStopped': onCastSenderStopped,
-        'debug': true
+        'debug': APP_CONFIG.DEBUG
     });
 }
 
