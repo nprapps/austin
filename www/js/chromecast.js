@@ -71,7 +71,6 @@ var onCastReceiverAddSender = function() {
  * Chromecast sender mode activated.
  */
 var onCastSenderCreated = function(sender) {
-    console.log('onCastSenderCreated');
     $isNotDesktopChrome.hide();
     $getCastExtension.hide();
     $welcomeCastStartNote.show();
@@ -90,7 +89,6 @@ var onCastSenderCreated = function(sender) {
  * A cast device is available.
  */
 var onCastSenderReady = function() {
-    console.log('onCastSenderReady');
     ANALYTICS.readyChromecast();
 
     $castButtons.show();
@@ -101,7 +99,6 @@ var onCastSenderReady = function() {
  * A cast session started.
  */
 var onCastSenderStarted = function() {
-    console.log('onCastSenderStarted');
     ANALYTICS.startChromecast();
 
     $landingCastReceiverDeck.show();
