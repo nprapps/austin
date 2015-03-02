@@ -1350,7 +1350,9 @@ var checkNumberOfFavorites = function() {
 }
 
 var updateNumberOfFavorites = function() {
-    $numberOfFavorites.text(favoritedSongs.length);
+    var favoritesText = favoritedSongs.length;
+        favoritesText += favoritedSongs.length === 1 ? ' favorite' : ' favorites';
+    $numberOfFavorites.text(favoritesText);
 }
 
 /*
