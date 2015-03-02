@@ -438,27 +438,20 @@ var getNextSongID = function() {
     var nextSongID = null;
     var songs = getCurrentSongList();
 
-    // If the user has played songs before
-    if (maxSongIndex > 0) {
-        // If this is the first play of the session, play the last song that was ever played
-        if (isFirstPlay) {
-            nextSongID = songs[maxSongIndex];
+    // If this is the first play of the session, play the last song that was ever played
+    if (isFirstPlay) {
+        nextSongID = songs[maxSongIndex];
 
-        // If this ISN'T the first play of the session
-        } else {
-            var indexOfCurrentSong = getIndexOfCurrentSong();
-
-            if (indexOfCurrentSong == songs.length - 1) {
-                // Loop at the end, otherwise we can get into weird restart scenarios
-                return songs[0];
-            } else {
-                nextSongID = songs[indexOfCurrentSong + 1];
-            }
-        }
-
-    // If this is the first time the user is playing any song
+    // If this ISN'T the first play of the session
     } else {
-        nextSongID = songs[0];
+        var indexOfCurrentSong = getIndexOfCurrentSong();
+
+        if (indexOfCurrentSong == songs.length - 1) {
+            // Loop at the end, otherwise we can get into weird restart scenarios
+            return songs[0];
+        } else {
+            nextSongID = songs[indexOfCurrentSong + 1];
+        }
     }
 
     return nextSongID;
