@@ -180,6 +180,7 @@ def configure_targets(deployment_target):
         SERVER_LOG_PATH = '/var/log/%s' % PROJECT_FILENAME
         DISQUS_SHORTNAME = 'npr-news'
         CHROMECAST_APP_ID = '6122CF9A'
+        WELCOME_AUDIO = '/%s/assets/austin-intro.mp3' % PROJECT_SLUG
         DEBUG = False
     elif deployment_target == 'staging':
         S3_BUCKET = STAGING_S3_BUCKET
@@ -190,6 +191,7 @@ def configure_targets(deployment_target):
         SERVER_LOG_PATH = '/var/log/%s' % PROJECT_FILENAME
         DISQUS_SHORTNAME = 'nprviz-test'
         CHROMECAST_APP_ID = '649AB354'
+        WELCOME_AUDIO = '/%s/assets/austin-intro.mp3' % PROJECT_SLUG
         DEBUG = True
     else:
         S3_BUCKET = None
