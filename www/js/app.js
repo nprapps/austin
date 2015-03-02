@@ -150,6 +150,7 @@ var onDocumentLoad = function(e) {
     $(document).on('scroll', onDocumentScroll);
     $historyButton.on('click', onShowHistoryClick);
     $songs.on('click', '.song', onSongCardClick);
+    $songs.on('click', '.song-tools .download', onSongDownloadClick)
     $songs.on('click', '.song-tools .amazon', onAmazonClick);
     $songs.on('click', '.song-tools .itunes', oniTunesClick);
     $songs.on('click', '.song-tools .rdio', onRdioClick);
@@ -212,7 +213,7 @@ var onDocumentLoad = function(e) {
         'onSenderStarted': onCastSenderStarted,
         'onSenderReconnected': onCastSenderReconnected,
         'onSenderStopped': onCastSenderStopped,
-        'debug': APP_CONFIG.DEBUG
+        'debug': true
     });
 }
 
@@ -1196,6 +1197,18 @@ var onSongCardClick = function(e) {
         $songs.find('.song').not($currentSong).not($(this)).addClass('small');
         $(this).toggleClass('small');
     }
+}
+
+/*
+ * Track song downloads.
+ */
+var onSongDownloadClick = function(e) {
+    var songId = getSongIDFromHTML($(this).parents('.song'));
+    var songName = getSongEventName(songId);
+
+    ANALYTICS.trackEvent('song-download', songName);
+
+    e.stopPropagation();
 }
 
 /*
