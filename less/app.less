@@ -244,7 +244,7 @@ h1,h2,h3,h4,h5,h6 {
 		color: #fff;
 
 		@media screen and (max-width: @screen-xs-max){
-			font-size: @font-size-base * 3.2;
+			font-size: @font-size-base * 2.5;
 		}
 	}
 
@@ -264,6 +264,10 @@ h1,h2,h3,h4,h5,h6 {
 		@media screen and (max-width: @screen-xs-max){
 			display: none;
 		}
+
+		+ p {
+			margin-top: @line-height-computed * 2;
+		}
 	}
 
 	p {
@@ -274,13 +278,21 @@ h1,h2,h3,h4,h5,h6 {
 		letter-spacing: 0.1rem;
 	}
 
-
 	.language-advisory {
 		font-size: 0.7rem;
 		color: lighten(#666, 20%);
 		padding-left: 1rem;
 		margin-top: @line-height-computed;
 		text-indent: -0.5rem;
+
+		+ p {
+			margin-top: @line-height-computed;
+		}
+	}
+
+	.credits,
+	.pubdate {
+		font-size: 0.7rem;
 	}
 
 	.tags-wrapper,
