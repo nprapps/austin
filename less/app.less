@@ -1156,6 +1156,11 @@ h1,h2,h3,h4,h5,h6 {
 				a {
 					overflow: hidden;
 				}
+
+                // Hide download (aaaaaahhhhhh)
+                &:first-child {
+                    display: none;
+                }
 			}
 		}
 	}
@@ -1229,6 +1234,10 @@ h1,h2,h3,h4,h5,h6 {
 						color: @music-red-light;
 					}
 				}
+
+                &.download {
+                    display: none;
+                }
 			}
 		}
 	}
