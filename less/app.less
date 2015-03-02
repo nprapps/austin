@@ -1369,10 +1369,17 @@ h1,h2,h3,h4,h5,h6 {
 
 	.skip,
 	.back {
+		.transition(opacity 0.3s ease-in-out);
+
 		&.disabled {
 			color: @white;
 			opacity: 0.1;
 			cursor: not-allowed;
+
+			.playing-favorites & {
+				opacity: 0;
+				cursor: default;
+			}
 		}
 	}
 
