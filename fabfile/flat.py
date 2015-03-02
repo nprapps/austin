@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import copy
 from cStringIO import StringIO
 from fnmatch import fnmatch
 import gzip
@@ -37,12 +38,14 @@ def deploy_file(connection, src, dst, headers={}):
         k = Key(bucket)
         k.key = dst
 
-    if 'Content-Type' not in headers:
-        headers['Content-Type'] = mimetypes.guess_type(src)[0]
+    file_headers = copy.copy(headers)
+
+    if 'Content-Type' not in file_headers:
+        file_headers['Content-Type'] = mimetypes.guess_type(src)[0]
 
     # Gzip file
     if os.path.splitext(src)[1].lower() in GZIP_FILE_TYPES:
-        headers['Content-Encoding'] = 'gzip'
+        file_headers['Content-Encoding'] = 'gzip'
 
         with open(src, 'rb') as f_in:
             contents = f_in.read()
@@ -56,11 +59,12 @@ def deploy_file(connection, src, dst, headers={}):
         local_md5.update(output.getvalue())
         local_md5 = local_md5.hexdigest()
 
+
         if local_md5 == s3_md5:
             print 'Skipping %s (has not changed)' % src
         else:
             print 'Uploading %s --> %s (gzipped)' % (src, dst)
-            k.set_contents_from_string(output.getvalue(), headers, policy='public-read')
+            k.set_contents_from_string(output.getvalue(), file_headers, policy='public-read')
     # Non-gzip file
     else:
         with open(src, 'rb') as f:
