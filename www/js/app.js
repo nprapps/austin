@@ -58,7 +58,6 @@ var PLAY_LAST = (window.location.search.indexOf('playlast') >= 0);
 var firstShareLoad = true;
 var isPlayingWelcome = true;
 var usedSkips = [];
-var totalSongsPlayed = 0;
 var songHeight = null;
 var fixedHeaderHeight = null;
 var is_small_screen = false;
@@ -103,7 +102,7 @@ var onDocumentLoad = function(e) {
     $fixedHeader = $('.fixed-header');
     $landingReturnDeck = $('.landing-return-deck');
     $landingFirstDeck = $('.landing-firstload-deck');
-    $landingCastReceiverDeck = $('.landing-cast-receiver-deck');    
+    $landingCastReceiverDeck = $('.landing-cast-receiver-deck');
     $player = $('.player-container')
     $play = $('.play');
     $back = $('.back');
@@ -135,7 +134,7 @@ var onDocumentLoad = function(e) {
     $welcomeCastStartButton = $('.chromecast-deck .is-desktop-chrome .start');
     $isNotDesktopChrome = $('.chromecast-deck .is-not-desktop-chrome');
     $isTouch = $('.chromecast-deck .is-not-desktop-chrome .is-touch');
-    $isNotChrome = $('.chromecast-deck .is-not-desktop-chrome .is-not-chrome');    
+    $isNotChrome = $('.chromecast-deck .is-not-desktop-chrome .is-not-chrome');
 
     onWindowResize();
     $landing.show();
@@ -309,8 +308,8 @@ var playNextSong = function(nextSongID) {
         return;
     }
 
-    // nextSongID would've only been defined in onBackClick() 
-    if (_.isUndefined(nextSongID)) { 
+    // nextSongID would've only been defined in onBackClick()
+    if (_.isUndefined(nextSongID)) {
         nextSongID = getNextSongID();
 
         // If on the last song (there's no next song to play)
@@ -377,18 +376,22 @@ var playNextSong = function(nextSongID) {
 
     var currentSongIndex = getIndexOfCurrentSong();
 
-    if (currentSongIndex > maxSongIndex || maxSongIndex === null) {
+    if (currentSongIndex > maxSongIndex) {
         maxSongIndex = currentSongIndex;
 
         if ((maxSongIndex + 1) % 5 === 0) {
             ANALYTICS.trackEvent('max-song-index', (maxSongIndex + 1).toString());
-        }        
+        }
 
         simpleStorage.set('maxSongIndex', maxSongIndex);
     }
 
     if (castReceiver) {
-        castReceiver.sendMessage('now-playing', currentSongID);
+        castReceiver.sendMessage('now-playing', {
+            'songOrder': songOrder,
+            'maxSongIndex': maxSongIndex,
+            'currentSongID': currentSongID
+        });
     }
 
     updateBackNextButtons();
@@ -429,13 +432,13 @@ var getNextSongID = function() {
     var nextSongID = null;
     var songs = getCurrentSongList();
 
-    // If the user has played songs before    
+    // If the user has played songs before
     if (maxSongIndex !== null) {
         // If this is the first play of the session, play the last song that was ever played
         if (isFirstPlay) {
             nextSongID = songs[maxSongIndex];
-        
-        // If this ISN'T the first play of the session                            
+
+        // If this ISN'T the first play of the session
         } else {
             var indexOfCurrentSong = getIndexOfCurrentSong();
 
@@ -447,12 +450,12 @@ var getNextSongID = function() {
             }
         }
 
-    // If this is the first time the user is playing any song            
+    // If this is the first time the user is playing any song
     } else {
         nextSongID = songs[0];
     }
 
-    return nextSongID;    
+    return nextSongID;
 }
 
 /*
@@ -604,7 +607,7 @@ var preloadSongImages = function() {
         } else {
             return;
         }
-    });      
+    });
 }
 
 var checkSongArtCached = function(src) {
@@ -641,7 +644,7 @@ var backSong = function() {
     var playedIndex = getIndexOfCurrentSong();
     var previousSongID = songs[playedIndex - 1];
 
-    playNextSong(previousSongID);         
+    playNextSong(previousSongID);
 }
 
 /*
@@ -671,35 +674,34 @@ var showAllSongs = function() {
  */
 var loadState = function() {
     favoritedSongs = simpleStorage.get('favoritedSongs') || [];
-    maxSongIndex = simpleStorage.get('maxSongIndex') || null;
+    maxSongIndex = simpleStorage.get('maxSongIndex') || 0;
     usedSkips = simpleStorage.get('usedSkips') || [];
-    totalSongsPlayed = simpleStorage.get('totalSongsPlayed') || 0;
     songOrder = simpleStorage.get('songOrder') || null;
 
     if (songOrder === null) {
         songOrder = _.shuffle(_.keys(SONG_DATA));
         simpleStorage.set('songOrder', songOrder);
-    } 
+    }
 
     if (isReceiverCasting) {
         $landingFirstDeck.hide();
         $landingReturnDeck.hide();
-        $landingCastReceiverDeck.show();       
+        $landingCastReceiverDeck.show();
     } else {
         if (maxSongIndex !== null) {
             buildListeningHistory();
-            $landingReturnDeck.show();        
+            $landingReturnDeck.show();
         } else {
-            $landingFirstDeck.show();       
-        }  
-    }      
+            $landingFirstDeck.show();
+        }
+    }
 
     if (favoritedSongs.length > 0) {
         for (var i = 0; i < favoritedSongs.length; i++) {
             var $favoritedSong = $('#song-' + favoritedSongs[i]);
 
             var $songsFavoriteStar = $favoritedSong.find('.favorite .heart');
-            
+
             $songsFavoriteStar.removeClass('icon-heart-empty');
             $songsFavoriteStar.addClass('icon-heart');
         }
@@ -708,7 +710,7 @@ var loadState = function() {
     checkSkips();
 
     if (!APP_CONFIG.ENFORCE_PLAYBACK_LIMITS) {
-        checkNumberOfFavorites();        
+        checkNumberOfFavorites();
     }
 }
 
@@ -716,12 +718,12 @@ var loadState = function() {
  * Reconstruct listening history from stashed id's.
  */
 var buildListeningHistory = function() {
-    // Remove last played song so we can continue playing the song where we left off. 
-    var lastSongIndex = maxSongIndex; 
+    // Remove last played song so we can continue playing the song where we left off.
+    var lastSongIndex = maxSongIndex;
 
     if (castReceiver) {
         lastSongIndex = songOrder.length - 1;
-    } 
+    }
 
     for (var i = 0; i <= lastSongIndex; i++) {
         var songID = songOrder[i];
@@ -741,8 +743,8 @@ var buildListeningHistory = function() {
  */
 var resetState = function() {
     simpleStorage.deleteKey('favoritedSongs');
-    simpleStorage.set('maxSongIndex');
-    simpleStorage.set('songOrder');
+    simpleStorage.deleteKey('maxSongIndex');
+    simpleStorage.deleteKey('songOrder');
 }
 
 /*
@@ -796,7 +798,7 @@ var writeSkipsRemaining = function() {
             var text = 'Skipping available in ';
                 text += moment(usedSkips[usedSkips.length - 1]).add(1, 'hour').fromNow(true);
             if (!is_touch){
-                $skip.tooltip('hide').attr('title', text).tooltip('fixTitle').tooltip('show');  
+                $skip.tooltip('hide').attr('title', text).tooltip('fixTitle').tooltip('show');
             }
             $skipsRemaining.text(text);
             $skip.addClass('disabled');
@@ -907,7 +909,7 @@ var toggleHistoryButton = function(e) {
     if (playFavorites) {
         if (currentSongID !== favoritedSongs[favoritedSongs.length - 1]) {
             $historyButton.addClass('offscreen');
-            
+
             return;
         }
     } else {
@@ -941,7 +943,7 @@ var onGoButtonClick = function(e) {
     playWelcomeAudio();
 
     if (PLAY_LAST) {
-        nextSongID = songOrder[songOrder.length - 1];    
+        nextSongID = songOrder[songOrder.length - 1];
     }
 }
 
@@ -956,8 +958,8 @@ var onContinueButtonClick = function(e) {
     $landing.velocity('fadeOut');
 
     if (PLAY_LAST) {
-        nextSongID = songOrder[songOrder.length - 1];  
-        playNextSong(nextSongID);  
+        nextSongID = songOrder[songOrder.length - 1];
+        playNextSong(nextSongID);
     } else {
         playNextSong();
     }
@@ -985,10 +987,10 @@ var onPlayFavoritesClick = function(e) {
 
     $playFavorites.addClass('hide');
     $playAll.removeClass('hide');
-    
+
     playFavorites = true;
     $html.addClass('playing-favorites');
-    
+
     showFavoriteSongs();
     updateBackNextButtons();
 
@@ -1020,7 +1022,7 @@ var onPlayAllClick = function(e) {
     $playFavorites.removeClass('hide');
 
     playFavorites = false;
-    $html.removeClass('playing-favorites');    
+    $html.removeClass('playing-favorites');
 
     showAllSongs();
     updateBackNextButtons();
@@ -1046,7 +1048,7 @@ var onFullscreenStartClick = function(e) {
     e.preventDefault();
 
     if (screenfull.enabled) {
-        screenfull.request();  
+        screenfull.request();
     }
 }
 
@@ -1057,7 +1059,7 @@ var onFullscreenStopClick = function(e) {
     e.preventDefault();
 
     if (screenfull.enabled) {
-        screenfull.exit();      
+        screenfull.exit();
     }
 }
 
@@ -1066,15 +1068,15 @@ var onFullscreenStopClick = function(e) {
  */
 var onFullscreenChange = function() {
     if (screenfull.isFullscreen) {
-        ANALYTICS.startFullscreen(); 
+        ANALYTICS.startFullscreen();
 
         $fullscreenStop.show();
-        $fullscreenStart.hide();         
+        $fullscreenStart.hide();
     } else {
-        ANALYTICS.stopFullscreen();  
+        ANALYTICS.stopFullscreen();
 
         $fullscreenStop.hide();
-        $fullscreenStart.show();          
+        $fullscreenStart.show();
     }
 }
 
@@ -1123,8 +1125,8 @@ var onPlayClick = function(e) {
     if (isSenderCasting) {
         castSender.sendMessage('play');
     } else {
-        $audioPlayer.jPlayer('play'); 
-    }   
+        $audioPlayer.jPlayer('play');
+    }
 }
 
 /*
@@ -1177,7 +1179,7 @@ var onBackClick = function(e) {
         castSender.sendMessage('back');
     } else {
         backSong();
-    }   
+    }
 }
 
 /*
@@ -1258,10 +1260,10 @@ var onFavoriteClick = function(e) {
         ANALYTICS.trackEvent('song-favorite', getSongEventName(songID));
 
         favoritedSongs.push(songID);
-        
+
         // favoritedSongs must be in the same order as songOrder
-        favoritedSongs = _.sortBy(favoritedSongs, function(songId) { 
-            return _.indexOf(songOrder, songId); 
+        favoritedSongs = _.sortBy(favoritedSongs, function(songId) {
+            return _.indexOf(songOrder, songId);
         });
 
         simpleStorage.set('favoritedSongs', favoritedSongs);
@@ -1277,8 +1279,8 @@ var onFavoriteClick = function(e) {
         };
 
         // favoritedSongs must be in the same order as songOrder
-        favoritedSongs = _.sortBy(favoritedSongs, function(songId) { 
-            return _.indexOf(songOrder, songId); 
+        favoritedSongs = _.sortBy(favoritedSongs, function(songId) {
+            return _.indexOf(songOrder, songId);
         });
 
         simpleStorage.set('favoritedSongs', favoritedSongs);
@@ -1319,9 +1321,9 @@ var onFavoriteClick = function(e) {
                     playNextSong();
                 }
             }
-        }  
+        }
 
-        checkNumberOfFavorites();        
+        checkNumberOfFavorites();
     }
 }
 
@@ -1344,7 +1346,7 @@ var updateNumberOfFavorites = function() {
 var onJumpToSongClick = function(e) {
     e.stopPropagation();
 
-    var songID = getSongIDFromHTML($(this).parents('.song'));    
+    var songID = getSongIDFromHTML($(this).parents('.song'));
 
     var songEventName = getSongEventName(songID);
 
@@ -1353,7 +1355,7 @@ var onJumpToSongClick = function(e) {
    if (isSenderCasting) {
        castSender.sendMessage('start-song', songID);
    } else {
-       playNextSong(songID);            
+       playNextSong(songID);
    }
 }
 
@@ -1369,12 +1371,12 @@ var onDocumentKeyDown = function(e) {
             }
 
             var songEventName = getSongEventName(songOrder[getIndexOfCurrentSong() - 1]);
-            ANALYTICS.trackEvent('song-back', songEventName);            
+            ANALYTICS.trackEvent('song-back', songEventName);
 
             if (isSenderCasting) {
                 castSender.sendMessage('back');
             }
-            backSong();  
+            backSong();
 
             break;
 
@@ -1385,12 +1387,12 @@ var onDocumentKeyDown = function(e) {
             }
 
             var songEventName = getSongEventName(currentSongID);
-            ANALYTICS.trackEvent('song-skip', songEventName);            
+            ANALYTICS.trackEvent('song-skip', songEventName);
 
             if (isSenderCasting) {
                 castSender.sendMessage('skip');
-            }        
-            if (!(e.altKey)) {                
+            }
+            if (!(e.altKey)) {
                 skipSong();
             }
             break;
@@ -1409,8 +1411,8 @@ var onDocumentKeyDown = function(e) {
                 if ($audioPlayer.data('jPlayer').status.paused) {
                     $audioPlayer.jPlayer('play');
                 } else {
-                    $audioPlayer.jPlayer('pause');       
-                }           
+                    $audioPlayer.jPlayer('pause');
+                }
             }
 
             break;
@@ -1435,7 +1437,7 @@ var onWindowResize = function(e) {
  * Document scrolled
  */
 var onDocumentScroll = _.throttle(function(e) {
-    toggleHistoryButton();       
+    toggleHistoryButton();
 }, 200);
 
 $(onDocumentLoad);

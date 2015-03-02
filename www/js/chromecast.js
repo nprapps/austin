@@ -5,18 +5,18 @@ var setupChromecastLanding = function() {
     // Desktop Chrome
     if (is_chrome && !is_touch) {
         $welcomeCastStartNote.hide();
-        $welcomeCastStartButton.hide();        
+        $welcomeCastStartButton.hide();
         $isNotDesktopChrome.hide();
-        $getCastExtension.show();  
-    // Any mobile  
+        $getCastExtension.show();
+    // Any mobile
     } else if (is_touch) {
         $isDesktopChrome.hide();
-        $isNotChrome.hide();        
+        $isNotChrome.hide();
         $isTouch.show();
     // Desktop not Chrome
     } else {
-        $isDesktopChrome.hide();  
-        $isTouch.hide();      
+        $isDesktopChrome.hide();
+        $isTouch.hide();
         $isNotChrome.show();
     }
 }
@@ -38,8 +38,8 @@ var onCastReceiverCreated = function(receiver) {
     castReceiver.onMessage('play', onCastReceiverPlay);
     castReceiver.onMessage('pause', onCastReceiverPause);
     castReceiver.onMessage('skip', onCastReceiverSkipSong);
-    castReceiver.onMessage('back', onCastReceiverBack);   
-    castReceiver.onMessage('start-song', onCastReceiverStartSong); 
+    castReceiver.onMessage('back', onCastReceiverBack);
+    castReceiver.onMessage('start-song', onCastReceiverStartSong);
     castReceiver.onMessage('play-favorites', onCastReceiverPlayFavorites);
     castReceiver.onMessage('play-all', onCastReceiverPlayAll);
 }
@@ -49,10 +49,14 @@ var onCastReceiverCreated = function(receiver) {
  */
 var onCastReceiverAddSender = function() {
     if (currentSongID !== null) {
-        castReceiver.sendMessage('now-playing', currentSongID);        
+        castReceiver.sendMessage('now-playing', {
+            'songOrder': songOrder,
+            'maxSongIndex': maxSongIndex,
+            'currentSongID': currentSongID
+        });
 
         if (playFavorites) {
-            castReceiver.sendMessage('playing-favorites'); 
+            castReceiver.sendMessage('playing-favorites');
         }
     }
 
@@ -67,6 +71,7 @@ var onCastReceiverAddSender = function() {
  * Chromecast sender mode activated.
  */
 var onCastSenderCreated = function(sender) {
+    console.log('onCastSenderCreated');
     $isNotDesktopChrome.hide();
     $getCastExtension.hide();
     $welcomeCastStartNote.show();
@@ -85,6 +90,7 @@ var onCastSenderCreated = function(sender) {
  * A cast device is available.
  */
 var onCastSenderReady = function() {
+    console.log('onCastSenderReady');
     ANALYTICS.readyChromecast();
 
     $castButtons.show();
@@ -95,9 +101,10 @@ var onCastSenderReady = function() {
  * A cast session started.
  */
 var onCastSenderStarted = function() {
+    console.log('onCastSenderStarted');
     ANALYTICS.startChromecast();
 
-    $landingCastReceiverDeck.show();   
+    $landingCastReceiverDeck.show();
     $landingFirstDeck.hide();
     $landingReturnDeck.hide();
 
@@ -105,15 +112,16 @@ var onCastSenderStarted = function() {
     $castStop.show();
     $castStart.hide();
     $currentTime.hide();
-    $duration.hide();    
+    $duration.hide();
 
     isSenderCasting = true;
 
     $audioPlayer.jPlayer('stop');
 
-    senderSongOrder = songOrder.join(',');
-
-    castSender.sendMessage('init', senderSongOrder);
+    castSender.sendMessage('init', {
+        'songOrder': songOrder,
+        'maxSongIndex': maxSongIndex
+    });
 }
 
 /*
@@ -129,21 +137,19 @@ var onCastSenderReconnected = function() {
     $fixedHeader.show();
     $songsWrapper.show();
     $songs.show();
-    $landing.hide();        
- 
+    $landing.hide();
+
     isSenderCasting = true;
 
     $audioPlayer.jPlayer('stop');
-
-    senderSongOrder = songOrder.join(',');
 }
 
 /*
  * A cast session stopped.
  */
 var onCastSenderStopped = function() {
-    ANALYTICS.stopChromecast();  
-      
+    ANALYTICS.stopChromecast();
+
     $castStart.show();
     $castStop.hide();
     $currentTime.show();
@@ -161,16 +167,17 @@ var onCastSenderStopped = function() {
 /*
  * Sender requested receiver prepare for playback.
  */
-var onCastReceiverInit = function(senderSongOrder) {
+var onCastReceiverInit = function(data) {
     isReceiverCasting = true;
 
-    $landingCastReceiverDeck.show();      
+    $landingCastReceiverDeck.show();
     $landingFirstDeck.hide();
     $landingReturnDeck.hide();
 
-    senderSongOrder = senderSongOrder.split(',');
-    songOrder = senderSongOrder;
+    songOrder = data['songOrder'];
     simpleStorage.set('songOrder', songOrder);
+    maxSongIndex = data['maxSongIndex'];
+    simpleStorage.set('maxSongIndex', maxSongIndex);
 
     $songs.find('.song').remove();
     buildListeningHistory();
@@ -181,7 +188,7 @@ var onCastReceiverInit = function(senderSongOrder) {
 /*
  * Sender requested that receiver begin playing.
  */
-var onCastReceiverPlay = function(songId) {
+var onCastReceiverPlay = function() {
     $audioPlayer.jPlayer('play');
 }
 
@@ -214,7 +221,7 @@ var onCastReceiverStartSong = function(songId) {
 
     $fixedHeader.show();
     $songsWrapper.show();
-    $landing.hide();    
+    $landing.hide();
 
     playNextSong(songId);
 }
@@ -222,10 +229,10 @@ var onCastReceiverStartSong = function(songId) {
 /*
  * Sender requested that the receiver begin playing only favorites.
  */
-var onCastReceiverPlayFavorites = function(favorites) {
-    favoritedSongs = favorites.split(',');
+var onCastReceiverPlayFavorites = function(data) {
+    favoritedSongs = data['favoritedSongs'];
     playFavorites = true;
-    
+
     // Advance to next track if current track is not in favorites list
     if (_.indexOf(favoritedSongs, currentSongID) < 0) {
         playNextSong();
@@ -246,17 +253,30 @@ var onCastSenderReadyToPlay = function() {
     var songId = currentSongID || getNextSongID();
 
     if (playFavorites) {
-        castSender.sendMessage('play-favorites', favoritedSongs.join(','));
+        castSender.sendMessage('play-favorites', {
+            'favoritedSongs': favoritedSongs
+        });
     }
-        
+
     castSender.sendMessage('start-song', songId);
 }
 
 /*
  * Receiver reported that it is now playing a song.
  */
-var onCastSenderNowPlaying = function(songId) {
-    playNextSong(songId);
+var onCastSenderNowPlaying = function(data) {
+    maxSongIndex = data['maxSongIndex'];
+    simpleStorage.set('maxSongIndex', maxSongIndex);
+
+    if (!_.isEqual(songOrder, data['songOrder'])) {
+        songOrder = data['songOrder'];
+        simpleStorage.set('songOrder', songOrder);
+
+        $songs.find('.song').remove();
+        buildListeningHistory();
+    }
+
+    playNextSong(data['currentSongID']);
 }
 
 /*
@@ -264,7 +284,7 @@ var onCastSenderNowPlaying = function(songId) {
  */
 var onCastSenderPlay = function() {
     $play.hide();
-    $pause.show(); 
+    $pause.show();
 }
 
 /*
@@ -281,13 +301,14 @@ var onCastSenderPause = function() {
 var onCastSenderPlayingFavorites = function() {
     $playFavorites.hide();
     $playAll.show();
-    
+
     playFavorites = true;
-    
+
     showFavoriteSongs();
     updateBackNextButtons();
 
     // Refresh favorites list on receiver
-    castSender.sendMessage('play-favorites', favoritedSongs.join(','));
+    castSender.sendMessage('play-favorites', {
+        'favoritedSongs': favoritedSongs
+    });
 }
-
