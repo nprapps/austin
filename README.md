@@ -1,8 +1,3 @@
-Copyright 2014 NPR.  All rights reserved.  No part of these materials may be reproduced, modified, stored in a retrieval system, or retransmitted, in any form or by any means, electronic, mechanical or otherwise, without prior written permission from NPR.
-
-(Want to use this code? Send an email to nprapps@npr.org!)
-
-
 austin
 ========================
 
@@ -30,7 +25,9 @@ austin
 What is this?
 -------------
 
-**TKTK: Describe austin here.**
+Put on your headphones and listen to 100 of NPR Music's favorite songs from SXSW 2015.
+
+This code is open source under the MIT license. See `LICENSE` for complete details.
 
 Assumptions
 -----------
@@ -383,4 +380,3 @@ The Google Analytics events tracked in this application are:
 |austin|full-list||
 
 **Note:** `song-back` is fired both when clicking the back button and when playing a song in the history list by clicking on it.
-
