@@ -26,7 +26,7 @@
                     <% } %>
                     <ul class="song-tools song-links buy list-unstyled">
                         <% if (DOWNLOADS_ALLOWED) { %>
-                        <li><a target="_blank" href="http://podcastdownload.npr.org/anon.npr-mp3<%= download_url %>.mp3" class="download"><span class="icon icon-download-cloud"></span> Download</a></li>
+                        <li><a target="_blank" href="<%= download_url %>" class="download"><span class="icon icon-download-cloud"></span> Download</a></li>
                         <% } %>
                         <% if (asin) { %>
                         <li><a target="_blank" href="http://amazon.com/dp/<%= asin %>?tag=npr-5-20" class="amazon"><span class="icon icon-amazon"></span> Amazon</a></li>

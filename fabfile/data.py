@@ -78,13 +78,13 @@ def clean_songs(verify):
             # Verify links
             if verify:
                 try:
-                    stream_url = 'http://podcastdownload.npr.org/anon.npr-mp3%s.mp3' % row['stream_url']
+                    stream_url = 'http://pd.npr.org/anon.npr-mp3%s.mp3' % row['stream_url']
                     stream_request = requests.head(stream_url)
 
-                    if stream_request.status_code != 302:
+                    if stream_request.status_code != 200:
                         print '--> %s The stream url is invalid: %s' % (stream_request.status_code, stream_url)
 
-                    download_url = row['download_url'].replace('pd.npr.org', 'podcastdownload.npr.org')
+                    download_url = row['download_url']
                     download_request = requests.head(download_url)
 
                     if download_request.status_code != 200:
@@ -114,6 +114,10 @@ def clean_songs(verify):
                     print '--> Duplicate title: %s' % row['title']
                 else:
                     unique_song_title.append(row['title'])
+
+            if row['download_url']:
+                filename = row['download_url'].split('/')[-1]
+                row['download_url'] = '/%s/downloads/%s' % (app_config.PROJECT_SLUG, filename)
 
             output[row['id']] = row
 
