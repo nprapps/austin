@@ -33,7 +33,6 @@ var $playAll = null;
 var $video = null;
 var $videoWrapper = null;
 
-
 // In-app cast buttons
 var $castButtons = null;
 var $castStart = null;
@@ -69,8 +68,8 @@ var maxSongIndex = null;
 var playFavorites = false;
 var numberOfFavorites = null;
 
+var isCastReceiver = (window.location.search.indexOf('newscast-receiver=true') >= 0);
 var isSenderCasting = false;
-var isReceiverCasting = false;
 var castSender = null;
 var castReceiver = null;
 
@@ -116,7 +115,6 @@ var onDocumentLoad = function(e) {
     $playFavorites = $('.play-favorites');
     $numberOfFavorites = $('.number-of-favorites');
     $playAll = $('.play-all');
-    $video = $('.covervid-video');
     $videoWrapper = $('.covervid-wrapper');
 
     $fullscreenButtons = $('.fullscreen');
@@ -177,6 +175,14 @@ var onDocumentLoad = function(e) {
     $welcomeCastStartButton.on('click', onCastStartClick);
     $castStop.on('click', onCastStopClick);
 
+    if (!(is_touch || isCastReceiver)) {
+        $videoWrapper.html(JST.video());
+
+        $video = $('.covervid-video');
+        $video.coverVid(1280, 720);
+        $video.get(0).play();
+    }
+
     SHARE.setup();
 
     if (RESET_STATE) {
@@ -192,12 +198,6 @@ var onDocumentLoad = function(e) {
     setupChromecastLanding();
     loadState();
     setupAudio();
-
-    $video.coverVid(1280, 720);
-
-    if(!is_touch){
-        $video.get(0).play();
-    }
 
     $(document).keydown(onDocumentKeyDown);
 
@@ -333,6 +333,10 @@ var playNextSong = function(nextSongID) {
         );
         $nextSong = $(JST.song(context));
 
+        if (castReceiver) {
+            $songs.empty();
+        }
+
         $songs.append($nextSong);
     }
 
@@ -356,7 +360,8 @@ var playNextSong = function(nextSongID) {
         hideWelcome($nextSong);
     } else {
         if (castReceiver) {
-            castReceiverTransitionToNextSong($currentSong, $nextSong);
+            setSongHeight($nextSong);
+            $nextSong.show();
         } else {
             transitionToNextSong($currentSong, $nextSong);
         }
@@ -531,15 +536,6 @@ var transitionToNextSong = function($fromSong, $toSong) {
 }
 
 /*
- * Transition to next song on Chromecast receiver.
- */
-var castReceiverTransitionToNextSong = function($fromSong, $toSong) {
-    $songs.find('.song').hide();
-    setSongHeight($toSong);
-    $toSong.show();
-}
-
-/*
  *  Display a song in the condensed layout
  */
 var shrinkSong = function($el) {
@@ -592,30 +588,19 @@ var preloadSongImages = function() {
         return;
     }
 
-    // Include previous song. Case: castReceiver loads all songs at once so starting at a random point and clicking back would mean the song art was not pre-loaded.
+    // Include previous song.
     var nextSongIDs = [songOrder[getIndexOfCurrentSong() + 1], songOrder[getIndexOfCurrentSong() - 1]];
 
     _.each(nextSongIDs, function(nextSongID) {
-        var nextSong = SONG_DATA[nextSongID]
+        var nextSong = SONG_DATA[nextSongID];
 
         if (!nextSong) {
             return;
         }
 
-        if (checkSongArtCached('http://npr.org' + nextSong['song_art']) == false) {
-            var songArt = new Image();
-            songArt.src = 'http://npr.org' + nextSong['song_art'];
-        } else {
-            return;
-        }
+        var songArt = new Image();
+        songArt.src = 'http://npr.org' + nextSong['song_art'];
     });
-}
-
-var checkSongArtCached = function(src) {
-    var songArt = new Image();
-    songArt.src = src;
-
-    return songArt.complete;
 }
 
 /*
@@ -684,7 +669,7 @@ var loadState = function() {
         simpleStorage.set('songOrder', songOrder);
     }
 
-    if (isReceiverCasting) {
+    if (isCastReceiver) {
         $landingFirstDeck.hide();
         $landingReturnDeck.hide();
         $landingCastReceiverDeck.show();
@@ -719,6 +704,10 @@ var loadState = function() {
  * Reconstruct listening history from stashed id's.
  */
 var buildListeningHistory = function() {
+    if (castReceiver) {
+        return;
+    }
+
     // Remove last played song so we can continue playing the song where we left off.
     var lastSongIndex = maxSongIndex;
 
@@ -996,7 +985,9 @@ var onPlayFavoritesClick = function(e) {
     updateBackNextButtons();
 
     if (isSenderCasting) {
-        castSender.sendMessage('play-favorites', favoritedSongs.join(','));
+        castSender.sendMessage('play-favorites', {
+            'favoritedSongs': favoritedSongs
+        });
     } else {
         // Advance to next track if current track is not in favorites list
         if (_.indexOf(favoritedSongs, currentSongID) < 0) {
@@ -1310,7 +1301,9 @@ var onFavoriteClick = function(e) {
             // Update castReceiver's list of favorites
             if (playFavorites) {
                 if (isSenderCasting) {
-                    castSender.sendMessage('play-favorites', favoritedSongs.join(','));
+                    castSender.sendMessage('play-favorites', {
+                        'favoritedSongs': favoritedSongs
+                    });
                 } else {
                     if (_.indexOf(favoritedSongs, songID) < 0) {
                         playNextSong();

@@ -154,7 +154,7 @@ var onCastSenderStopped = function() {
     isSenderCasting = false;
 
     var song = SONG_DATA[currentSongID];
-    var songURL = 'http://podcastdownload.npr.org/anon.npr-mp3' + song['download_url'] + '.mp3';
+    var songURL = 'http://podcastdownload.npr.org/anon.npr-mp3' + song['stream_url'] + '.mp3';
 
     $audioPlayer.jPlayer('setMedia', {
         mp3: songURL
@@ -175,9 +175,6 @@ var onCastReceiverInit = function(data) {
     simpleStorage.set('songOrder', songOrder);
     maxSongIndex = data['maxSongIndex'];
     simpleStorage.set('maxSongIndex', maxSongIndex);
-
-    $songs.find('.song').remove();
-    buildListeningHistory();
 
     castReceiver.sendMessage('ready-to-play');
 }
