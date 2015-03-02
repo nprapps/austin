@@ -10,7 +10,8 @@ from smartypants import smartypants
 import os
 from time import sleep
 
-from fabric.api import local, task
+import boto
+from fabric.api import local, require, task
 from facebook import GraphAPI
 import requests
 from smartypants import smartypants
@@ -18,6 +19,7 @@ from twitter import Twitter, OAuth
 
 import app_config
 import copytext
+from flat import deploy_file
 
 @task(default=True)
 def update():
@@ -82,11 +84,11 @@ def clean_songs(verify):
                     if stream_request.status_code != 302:
                         print '--> %s The stream url is invalid: %s' % (stream_request.status_code, stream_url)
 
-                    foo="""download_url = row['download_url'].replace('pd.npr.org', 'podcastdownload.npr.org')
+                    download_url = row['download_url'].replace('pd.npr.org', 'podcastdownload.npr.org')
                     download_request = requests.head(download_url)
 
                     if download_request.status_code != 200:
-                        print '--> %s The download URL is invalid: %s' % (download_request.status_code, download_url)"""
+                        print '--> %s The download URL is invalid: %s' % (download_request.status_code, download_url)
 
                     song_art_link = 'http://www.npr.org%s' % row['song_art']
                     song_art_request = requests.head(song_art_link)
@@ -116,6 +118,42 @@ def clean_songs(verify):
             output[row['id']] = row
 
     return output
+
+@task
+def update_downloads():
+    require('settings', provided_by=['production', 'staging'])
+
+    with open('data/songs.csv') as f:
+        rows = csv.DictReader(f)
+
+        for row in rows:
+            if not row['download_url']:
+                print 'Missing download url'
+                continue
+
+            filename = row['download_url'].split('/')[-1]
+
+            print filename
+
+            download_request = requests.get(row['download_url'], stream=True)
+
+            with open('downloads/%s' % filename, 'w') as f:
+                for chunk in download_request.iter_content(chunk_size=1024):
+                    if chunk:
+                        f.write(chunk)
+                        f.flush()
+
+            s3 = boto.connect_s3()
+
+            deploy_file(
+                s3,
+                'downloads/%s' % filename,
+                '%s/downloads/%s' % (app_config.PROJECT_SLUG, filename),
+                headers={
+                    'Cache-Control': 'max-age=%i' % app_config.ASSETS_MAX_AGE,
+                    'Content-Disposition': 'attachment; filename="%s"' % filename
+                }
+            )
 
 @task
 def update_featured_social():

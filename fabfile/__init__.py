@@ -161,19 +161,23 @@ def deploy(remote='origin'):
     flat.deploy_folder(
         'www',
         app_config.PROJECT_SLUG,
-        max_age=app_config.DEFAULT_MAX_AGE,
+        headers={
+            'Cache-Control': 'max-age=%i' % app_config.DEFAULT_MAX_AGE
+        },
         ignore=['www/assets/*']
     )
 
     flat.deploy_folder(
         'www/assets',
         '%s/assets' % app_config.PROJECT_SLUG,
-        max_age=app_config.ASSETS_MAX_AGE
+        headers={
+            'Cache-Control': 'max-age=%i' % app_config.ASSETS_MAX_AGE
+        }
     )
 
-@task 
+@task
 def deploy_test():
-    require('settings', provided_by=[production, staging])    
+    require('settings', provided_by=[production, staging])
     render.render_all()
 
     # Clear files that should never be deployed
@@ -182,7 +186,9 @@ def deploy_test():
     flat.deploy_folder(
         'www',
         app_config.PROJECT_SLUG,
-        max_age=app_config.DEFAULT_MAX_AGE,
+        headers={
+            'Cache-Control': 'max-age=%i' % app_config.DEFAULT_MAX_AGE
+        },
         ignore=['www/assets/*']
     )
 
@@ -206,7 +212,7 @@ def shiva_the_destroyer():
     )
 
     with settings(warn_only=True):
-        flat.delete_folder(app_config.PROJECT_SLUG) 
+        flat.delete_folder(app_config.PROJECT_SLUG)
 
         if app_config.DEPLOY_TO_SERVERS:
             servers.delete_project()
@@ -216,4 +222,3 @@ def shiva_the_destroyer():
 
             if app_config.DEPLOY_SERVICES:
                 servers.nuke_confs()
-
