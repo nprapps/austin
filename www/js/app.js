@@ -1377,14 +1377,15 @@ var onDocumentKeyDown = function(e) {
             if ($back.hasClass('disabled')) {
                 break;
             }
+            if (!(e.altKey)) {
+                var songEventName = getSongEventName(songOrder[getIndexOfCurrentSong() - 1]);
+                ANALYTICS.trackEvent('song-back', songEventName);
 
-            var songEventName = getSongEventName(songOrder[getIndexOfCurrentSong() - 1]);
-            ANALYTICS.trackEvent('song-back', songEventName);
-
-            if (isSenderCasting) {
-                castSender.sendMessage('back');
+                if (isSenderCasting) {
+                    castSender.sendMessage('back');
+                }
+                backSong();
             }
-            backSong();
 
             break;
 
@@ -1393,14 +1394,14 @@ var onDocumentKeyDown = function(e) {
             if ($skip.hasClass('disabled')) {
                 break;
             }
-
-            var songEventName = getSongEventName(currentSongID);
-            ANALYTICS.trackEvent('song-skip', songEventName);
-
-            if (isSenderCasting) {
-                castSender.sendMessage('skip');
-            }
             if (!(e.altKey)) {
+                var songEventName = getSongEventName(currentSongID);
+                ANALYTICS.trackEvent('song-skip', songEventName);
+
+                if (isSenderCasting) {
+                    castSender.sendMessage('skip');
+                }
+
                 skipSong();
             }
             break;
