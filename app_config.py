@@ -48,7 +48,7 @@ ASSETS_S3_BUCKET = {
     'region': 'us-east-1'
 }
 
-DEFAULT_MAX_AGE = 20 
+DEFAULT_MAX_AGE = 20
 ASSETS_MAX_AGE = 86400
 
 PRODUCTION_SERVERS = ['cron.nprapps.org']
@@ -83,12 +83,12 @@ SERVER_SERVICES = [
 ]
 
 # These variables will be set at runtime. See configure_targets() below
-S3_BUCKET = None 
-S3_BASE_URL = None 
+S3_BUCKET = None
+S3_BASE_URL = None
 S3_DEPLOY_URL = None
 SERVERS = []
 SERVER_BASE_URL = None
-SERVER_LOG_PATH = None 
+SERVER_LOG_PATH = None
 DEBUG = True
 
 """
@@ -178,7 +178,7 @@ def configure_targets(deployment_target):
         SERVER_BASE_URL = 'http://%s/%s' % (SERVERS[0], PROJECT_SLUG)
         SERVER_LOG_PATH = '/var/log/%s' % PROJECT_FILENAME
         DISQUS_SHORTNAME = 'npr-news'
-        CHROMECAST_APP_ID = None 
+        CHROMECAST_APP_ID = '6122CF9A' 
         DEBUG = False
     elif deployment_target == 'staging':
         S3_BUCKET = STAGING_S3_BUCKET
@@ -193,7 +193,7 @@ def configure_targets(deployment_target):
     else:
         S3_BUCKET = None
         S3_BASE_URL = 'http://127.0.0.1:8000'
-        S3_DEPLOY_URL = None 
+        S3_DEPLOY_URL = None
         SERVERS = []
         SERVER_BASE_URL = 'http://127.0.0.1:8001/%s' % PROJECT_SLUG
         SERVER_LOG_PATH = '/tmp'
@@ -209,4 +209,3 @@ Run automated configuration
 DEPLOYMENT_TARGET = os.environ.get('DEPLOYMENT_TARGET', None)
 
 configure_targets(DEPLOYMENT_TARGET)
-
