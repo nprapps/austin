@@ -862,6 +862,27 @@ h1,h2,h3,h4,h5,h6 {
 				width: calc(~"(100%) + (1rem)");
 				width: -webkit-calc(~"(100%) + (1rem)");
 				max-width: none;
+				position: relative;
+
+				&:before {
+					display: block;
+					content: ' ';
+					#gradient > .vertical(@start-color: transparent; @end-color: rgba(0,0,0,0.7););
+					position: absolute;
+					top: 0;
+					left: 0;
+					right: 0;
+					bottom: 0;
+					z-index: 100;
+				}
+
+				.song-tools {
+					position: absolute;
+					bottom: 0;
+					left: 1.5rem;
+					right: 1.5rem;
+					z-index: 200;
+				}
 			}
 		}
 
@@ -963,7 +984,7 @@ h1,h2,h3,h4,h5,h6 {
 
 		.touch & {
 			@media screen and (max-width: @screen-xs-max){
-				font-size: @font-size-base;
+				font-size: @font-size-base * 0.83333333;
 			}
 		}
 	}
@@ -1115,6 +1136,12 @@ h1,h2,h3,h4,h5,h6 {
 				display: block;
 				width: 50%;
 				float: left;
+			}
+
+			.touch & {
+				.download-wrapper {
+					display: none;
+				}
 			}
 		}
 	}
