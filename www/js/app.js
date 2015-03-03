@@ -179,7 +179,7 @@ var onDocumentLoad = function(e) {
         $videoWrapper.html(JST.video());
 
         $video = $('.covervid-video');
-        $video.coverVid(1280, 720);
+        $video.coverVid(1480, 1080);
         $video.get(0).play();
     }
 
