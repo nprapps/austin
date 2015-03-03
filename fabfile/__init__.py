@@ -122,8 +122,8 @@ def update():
     Update all application data not in repository (copy, assets, etc).
     """
     text.update()
-    assets.sync()
-    data.update()
+    #assets.sync()
+    #data.update()
 
 @task
 def deploy(remote='origin'):
