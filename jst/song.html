@@ -30,6 +30,9 @@
 
                     <p class="hometown">Hometown: <%= hometown %></p>
                     <p class="description"><%= description %> </p>
+                    <% if (learn_more_url) { %>
+                        <p class="website"><a href="<%= learn_more_url %>">Learn More <i class="fa fa-angle-double-right"></i></a></p>
+                    <% } %>
 
                     <% if (castReceiver === null) { %>
                     <% if (itunes||(!is_touch && DOWNLOADS_ALLOWED && download_url)||asin) { %>
