@@ -179,13 +179,6 @@ def make_context(asset_depth=0):
     context['JS'] = JavascriptIncluder(asset_depth=asset_depth)
     context['CSS'] = CSSIncluder(asset_depth=asset_depth)
 
-    c = context['COPY']
-    s = c['content']
-    print s._columns
-    r = s['brand']
-    for r in s._sheet:
-        print unicode(r)
-
     return context
 
 def urlencode_filter(s):
