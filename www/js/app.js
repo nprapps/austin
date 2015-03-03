@@ -1289,7 +1289,7 @@ var onFavoriteClick = function(e) {
 
     if (!APP_CONFIG.ENFORCE_PLAYBACK_LIMITS) {
         if (favoritedSongs.length > 0) {
-            $playFavorites.removeClass('disabled');
+            $playFavorites.removeClass('disabled').show();
 
             // Update castReceiver's list of favorites
             if (playFavorites) {
@@ -1331,14 +1331,12 @@ var checkNumberOfFavorites = function() {
         $playFavorites.addClass('disabled');
     } else {
         $playFavorites.removeClass('disabled');
-        updateNumberOfFavorites();
-    }
-}
+        var favoritesText = favoritedSongs.length;
 
-var updateNumberOfFavorites = function() {
-    var favoritesText = favoritedSongs.length;
         favoritesText += favoritedSongs.length === 1 ? ' favorite' : ' favorites';
-    $numberOfFavorites.text(favoritesText);
+
+        $numberOfFavorites.text(favoritesText);
+    }
 }
 
 /*

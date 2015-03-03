@@ -227,6 +227,9 @@ var onCastReceiverPlayFavorites = function(data) {
     favoritedSongs = data['favoritedSongs'];
     playFavorites = true;
 
+    $html.addClass('playing-favorites');
+    checkNumberOfFavorites();
+
     // Advance to next track if current track is not in favorites list
     if (_.indexOf(favoritedSongs, currentSongID) < 0) {
         playNextSong();
@@ -238,6 +241,8 @@ var onCastReceiverPlayFavorites = function(data) {
  */
 var onCastReceiverPlayAll = function() {
     playFavorites = false;
+
+    $html.removeClass('playing-favorites');
 }
 
 /*
