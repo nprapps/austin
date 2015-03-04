@@ -371,7 +371,7 @@ The Google Analytics events tracked in this application are:
 |austin|song-favorite|`favSong['artist']` + ' - ' + `favSong['title']`|
 |austin|song-unfavorite|`favSong['artist']` + ' - ' + `favSong['title']`|
 |austin|song-show-details|`song['artist']` + ' - ' + `song['title']`|
-|austin|song-max-index|`maxSongIndex`||
+|austin|max-song-index|`maxSongIndex`||
 |austin|song-download|`song['artist']` + ' - ' + `song['title']`||
 |austin|amazon-click|`song['artist']` + ' - ' + `song['title']`||
 |austin|itunes-click|`song['artist']` + ' - ' + `song['title']`||
