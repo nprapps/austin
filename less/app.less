@@ -844,15 +844,27 @@ h1,h2,h3,h4,h5,h6 {
 
 		.album-cover {
 			.transition(all 0.3s ease-in-out);
+			.transform-origin(top left);
 			.make-xs-column(12);
 			.make-sm-column(5);
 			margin-bottom: 0;
 			margin-right: 0;
+			.scaleY(1);
 
 			.small& {
 				.transition(all 0.3s ease-in-out  0.3s);
 				width: 0;
 				margin-bottom: 0;
+				.scaleY(0);
+			}
+
+			.song-header {
+				position: absolute;
+				top: 0;
+				left: 0;
+				padding: 1rem;
+				width: 100%;
+				#gradient > .vertical(@start-color: rgba(0,0,0,0.9); @end-color: transparent;);
 			}
 
 			@media screen and (max-width: @screen-xs-max){
@@ -867,9 +879,9 @@ h1,h2,h3,h4,h5,h6 {
 				&:before {
 					display: block;
 					content: ' ';
-					#gradient > .vertical(@start-color: transparent; @end-color: rgba(0,0,0,0.7););
+					#gradient > .vertical(@start-color: transparent; @end-color: rgba(0,0,0,0.9););
 					position: absolute;
-					top: 0;
+					top: 50%;
 					left: 0;
 					right: 0;
 					bottom: 0;
@@ -899,6 +911,20 @@ h1,h2,h3,h4,h5,h6 {
 
 				.tag-header {
 					.clearfix;
+				}
+
+				.song-header {
+					.transition(all 200ms ease-in-out);
+					.transform-origin(bottom left);
+					.scale(0);
+					max-height: 0;
+					opacity: 0;
+
+					.small&{
+						.scale(1);
+						max-height: 100%;
+						opacity: 1;
+					}
 				}
 			}
 

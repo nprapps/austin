@@ -4,6 +4,10 @@
             <div class="album-cover">
                 <img class="img-responsive" src="<%= APP_CONFIG.S3_BASE_URL%>/assets/img/bands/<%= song_art2 %>">
 
+                <div class="song-header visible-xs">
+                    <h2 class="artist"><%= artist %></h2>
+                    <h1 class="song-title">&lsquo;<%= title %>&rsquo;</h1>
+                </div>
                 <% if (castReceiver === null) { %>
                 <ul class="song-tools song-actions list-unstyled visible-xs">
                     <li><a class="favorite"><span class="icon heart icon-heart-empty"></span> Favorite</a></li>
@@ -14,8 +18,10 @@
                 <% } %>
             </div>
             <div class="song-info-wrapper">
-                <h2 class="artist"><%= artist %></h2>
-                <h1 class="song-title">&lsquo;<%= title %>&rsquo;</h1>
+                <div class="song-header">
+                    <h2 class="artist"><%= artist %></h2>
+                    <h1 class="song-title">&lsquo;<%= title %>&rsquo;</h1>
+                </div>
 
                 <div class="review-wrapper">
 
