@@ -134,6 +134,8 @@ Visit [localhost:8000](http://localhost:8000) in your browser.
 COPY editing
 ------------
 
+**IMPORTANT NOTE: This project relies on an outdated method to access content in Google Spreadsheets. For now, the connection has been disabled (see `update()` in `fabfile/__init__.py`), and the project instead pulls from a spreadsheet stored in `www/assets/copy.xlsx`. Run `fab assets.sync` to download this file (and other media files) from the [assets rig](#save-media-assets).**
+
 This app uses a Google Spreadsheet for a simple key/value store that provides an editing workflow.
 
 View the [sample copy spreadsheet](https://docs.google.com/spreadsheet/pub?key=0AlXMOHKxzQVRdHZuX1UycXplRlBfLVB0UVNldHJYZmc#gid=0).

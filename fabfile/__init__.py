@@ -120,7 +120,9 @@ code to a remote server if required.
 def update():
     """
     Update all application data not in repository (copy, assets, etc).
+    5/23/18 - DISABLED GDOCS CONNECTION
     """
+    print 'The Google Spreadsheets connection has been disabled. See project README.'
     #text.update()
     assets.sync()
     data.update()

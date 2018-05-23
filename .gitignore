@@ -48,5 +48,5 @@ data/copy.xls
 data/copy.xlsx
 www/assets/*
 www/assets16/*
-!www/assets/assetsignore
+!www/assets/.assetsignore
 data/songs.*

@@ -31,6 +31,7 @@ def update():
 
 @task
 def update_songs(verify='false'):
+    print 'update_songs'
     local('Curl -s -o data/songs.csv https://docs.google.com/spreadsheets/d/1eJ4qkOXaLUvPaRvjjeplgWD7hZCnxW_By3FzrfF3wss/export?format=csv&id=1eJ4qkOXaLUvPaRvjjeplgWD7hZCnxW_By3FzrfF3wss&gid=0')
 
     # Hack: for some reason downloaded file does not exist yet without this

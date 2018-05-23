@@ -95,7 +95,8 @@ DEBUG = True
 COPY EDITING
 """
 COPY_GOOGLE_DOC_URL = 'https://docs.google.com/spreadsheets/d/1DiE0j6vcCN55Dyj_sV5OJYoNXRRhn_Pjsndba7dVljo/edit#gid=1'
-COPY_PATH = 'data/copy.xlsx'
+# COPY_PATH = 'data/copy.xlsx'
+COPY_PATH = 'www/assets/copy.xlsx'
 
 """
 SHARING
